@@ -1,20 +1,21 @@
 
 
 
-
-
-
-
-
-const express=require('express');
-const mongoose=require('mongoose');
+import express from "express";
+import mongoose from "mongoose";
+import {userRoutes} from "./routes/user.route.js";
 const app =express();
+
+
+
+userRoutes(app);
+app.use("/api/user", userRoutes);
 
 app.get('/',(req,res)=>{
     res.send(" hello from node api server using express");
 })
- mongoose.connect("mongodb+srv://dwikatlama4_db_user:xiqgYq-jesfob-6zatgo@cluster0.bvlsdmx.mongodb.net/trialCollection?retryWrites=true&w=majority&appName=Cluster0")
- .then(()=>{
+ mongoose.connect("mongodb+srv://dwikatlama4_db_user:xiqgYq-jesfob-6zatgo@cluster0.smivs2s.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    .then(()=>{
     console.log("connected to DB");
     app.listen(3000,()=>{
         console.log('server is running on port 3000');

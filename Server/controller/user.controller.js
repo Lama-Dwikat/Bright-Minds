@@ -1,40 +1,96 @@
-import "./services/user.service.js";
 
-export const userController = (app) => {
-    const { signUp, signIn, getAllUsers, getUserById, getUserByUsername } = userService();
 
-    app.post('/signup', async (req, res) => {
-        try {
-            const user = await signUp(req.body);
-            res.status(201).json(user);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
+import '../services/user.service.js';
+
+ export const userController={
+    async signup(req,res){
+        try{
+    const newUser=req.body;
+await userServices.signup(newUser);
+res.status(201).send("User Created Successfully");
+        }  catch(error){
+            res.status(400).send({error:error.message});
         }
-    });
 
-    app.post('/signin', async (req, res) => {
-        try {
-            const user = await signIn(req.body.username, req.body.password);
-            res.status(200).json(user);
-        } catch (error) {
-            res.status(401).json({ error: error.message });
-        }
-    });
-
-    app.get('/users', async (req, res) => {
-        try {
-            const users = await getAllUsers();
-            res.status(200).json(users);
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-    }});
+    },
     
-    app.get('/users/:id', async (req, res) => {
-        try {
-            const user = await getUserById(req.params.id);
-            res.status(200).json(user);
-        } catch (error) {
-            res.status(404).json({ error: error.message });
+    async signin (req,res){
+        try{
+   const userName= req.body.userName;
+   const password=req.body.password;
+     await userService.signin(userName,password);
+     res.satus(200).send("Signin Successful");
         }
-    });                                                   
-}
+        catch(error){
+            res.status(400).send({error:error.message});
+        }},
+
+async getUserById (req,res){
+    try{
+    const userId=req.params.id;
+    await userService.findUserById(userId);
+    res.status(200).send("User Found");
+    } catch (error){
+        res.status(400).send({error:error.message});
+    }
+},
+
+async getAllUsers (req,res){
+    try{
+    await userService.findAllUsers();
+    res.status(200).send("Users Found");
+    } catch (error){
+        res.status(400).send({error:error.message});
+    }},
+    async deleteUserById (req,res){
+        try{
+    const userId=req.params.id;
+    await userService.deleteUserById(userId);
+    res.status(200).send("User Deleted Successfully");
+        } catch (error){
+            res.status(400).send({error:error.message});
+        }
+    },
+
+    async deleteUserByUsername (req,res){
+        try{
+    const username=req.params.username;
+    await userService.deleteUserByUsername(username);
+    res.status(200).send("User Deleted Successfully");
+        } catch (error){
+            res.status(400).send({error:error.message});
+        }
+    },
+
+
+    async deleteAllUsers (req,res){
+        try{
+    await userService.deleteAllUsers();
+    res.status(200).send("All Users Deleted Successfully");
+        } catch (error){
+            res.status(400).send({error:error.message});
+        }
+    },
+
+    async updateUserById (req,res){
+        try{
+    const userId=req.params.id;
+    const updatedData=req.body;
+    await userService.updateUserById(userId,updatedData);
+    res.status(200).send("User Updated Successfully");
+        } catch (error){
+            res.status(400).send({error:error.message});
+        }
+    },
+
+    async updateUserByUsername (req,res){
+        try{
+    const username=req.params.username;
+    const updatedData=req.body;
+    await userService.updateUserByUsername(username,updatedData);
+    res.status(200).send("User Updated Successfully");
+        } catch (error){
+            res.status(400).send({error:error.message});
+        }
+    },
+};  

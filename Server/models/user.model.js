@@ -1,4 +1,4 @@
- const mongoose=require('mongoose');
+import mongoose from 'mongoose';
 
  const UserSchema=new mongoose.Schema({
     firstName:{
@@ -46,8 +46,15 @@ type:String,
  profileImage:{
     type:String,
  },
+ enail:{
+   type:String,
+   match:/^[a-zA-Z0-9._%+-]+@gmail\\.com$/
+ }
 
   },{timestamps:true} );
 
-  module.exports=mongoose.model('User',UserSchema);
+  export const userModel=mongoose.model('User',UserSchema);
+  //module.exports = userModel;
+
+
   
