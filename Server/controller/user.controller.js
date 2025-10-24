@@ -1,13 +1,13 @@
 
 
-import '../services/user.service.js';
+import  {userService} from '../services/user.service.js';
 
  export const userController={
     async signup(req,res){
         try{
     const newUser=req.body;
-await userServices.signup(newUser);
-res.status(201).send("User Created Successfully");
+    await userService.signup(newUser);
+    res.status(201).send("User Created Successfully");
         }  catch(error){
             res.status(400).send({error:error.message});
         }
@@ -19,7 +19,7 @@ res.status(201).send("User Created Successfully");
    const userName= req.body.userName;
    const password=req.body.password;
      await userService.signin(userName,password);
-     res.satus(200).send("Signin Successful");
+     res.status(200).send("Signin Successful");
         }
         catch(error){
             res.status(400).send({error:error.message});
@@ -35,13 +35,14 @@ async getUserById (req,res){
     }
 },
 
-async getAllUsers (req,res){
+    async getAllUsers (req,res){
     try{
     await userService.findAllUsers();
     res.status(200).send("Users Found");
     } catch (error){
         res.status(400).send({error:error.message});
     }},
+
     async deleteUserById (req,res){
         try{
     const userId=req.params.id;
@@ -87,7 +88,7 @@ async getAllUsers (req,res){
         try{
     const username=req.params.username;
     const updatedData=req.body;
-    await userService.updateUserByUsername(username,updatedData);
+    await userService.updateUserByUserName(username,updatedData);
     res.status(200).send("User Updated Successfully");
         } catch (error){
             res.status(400).send({error:error.message});

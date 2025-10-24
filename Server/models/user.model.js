@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
 userName:{
     type:String,
     required:true,
-    uniquw:true,
+    unique:true,
     minlength:3,
     maxlength:30
 },
@@ -46,9 +46,9 @@ type:String,
  profileImage:{
     type:String,
  },
- enail:{
+ email:{
    type:String,
-   match:/^[a-zA-Z0-9._%+-]+@gmail\\.com$/
+   match:/^[a-zA-Z0-9._%+-]+@gmail\.com$/
  }
 
   },{timestamps:true} );

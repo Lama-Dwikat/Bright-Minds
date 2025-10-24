@@ -4,12 +4,11 @@
 import express from "express";
 import mongoose from "mongoose";
 import {userRoutes} from "./routes/user.route.js";
+
 const app =express();
+app.use(express.json());
 
 
-
-userRoutes(app);
-app.use("/api/user", userRoutes);
 
 app.get('/',(req,res)=>{
     res.send(" hello from node api server using express");
@@ -24,8 +23,9 @@ app.get('/',(req,res)=>{
     console.error("Error connecting to DB:");
  });
 
- app.use(express.json());
- 
+ userRoutes(app);
+
+
 
 
  
