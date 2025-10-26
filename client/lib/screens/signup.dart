@@ -154,36 +154,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (selectedRole == "child") ...[
                         TextFormField(
                          // controller: ageController,
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter your age";
-                            }
-                            int? age = int.tryParse(value);
-                            if (age == null || age < 5) {
-                              return "Age must be 5 or older";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            setState(() {
-                              int? age = int.tryParse(value);
-                              if (age != null && age >= 5 && age <= 8) {
-                                ageGroup = "5-8";
-                              } else if (age != null && age >= 9 && age <= 12) {
-                                ageGroup = "9-12";
-                              } else {
-                                ageGroup = null;
-                              }
-                            });
-                          },
-                          decoration: InputDecoration(
-                            label: const Text("Age"),
-                            prefixIcon: const Icon(Icons.cake_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                         readOnly: true,
+                        decoration:InputDecoration(
+                          labelText:"Date of Birth",
+                          prefixIcon:const Icon(Icons.cake_outlined),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                           ),
+                        ),
+                        onTap:()async{
+                          DateTime today=DateTime.now();
+                          DateTime firstDate=DateTime(today.year-12);
+                          DateTime lastDate=DateTime(today.year-5);
+
+                          DateTime? pickedDate=await showDatePicker(
+                            context:context,
+                            initialDate:firstDate,
+                            firstDate:firstDate,
+                            lastDate:lastDate,
+                            );
+                            if(pickedDate!=null){
+                              setState((){
+                                ageController.text="${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                                int age=today.year-pickedDate.year;
+                                if(today.month<pickedDate.month || (today.month==pickedDate.month && today.day<pickedDate.day)){
+                                  age--;
+                                }
+                                if(age>=5 && age<=8){
+                                  ageGroup="5-8";
+                                }
+                                else if(age>=9 && age<=12){
+                                  ageGroup="9-12";
+                                }else{
+                                  ageGroup=null;
+                                }
+                              });
+                            }
+                        }
                         ),
                         const SizedBox(height: 20),
 
