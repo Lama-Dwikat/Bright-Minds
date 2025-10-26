@@ -29,14 +29,16 @@ const userSchema = mongoose.Schema(
             required: true,
         },
 
-        age: Number,
+        age: Date,
         ageGroup:  {
             type: String,
             enum:["5-8" , "9-12"]
         },
 
         profilePicture: String,
+        
         cv: String,
+
         cvStatus: {
             type: String,
             enum: ["pending", "approved", "rejected"],

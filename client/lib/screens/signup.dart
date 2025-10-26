@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/signin.dart';
 import 'package:bright_minds/widgets/sign.dart';
 import 'package:bright_minds/theme/theme.dart';
+import 'package:bright_minds/config.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,18 +21,144 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
 
   // Controllers
-  /*final TextEditingController nameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController profilePicController = TextEditingController();
   final TextEditingController cvController = TextEditingController();
-*/
-  final TextEditingController ageController = TextEditingController();
-    final TextEditingController parentCodeController = TextEditingController();
+ // final TextEditingController parentCodeController = TextEditingController();
 
   String? ageGroup;
   String cvStatus = "pending"; // default value
+
+
+  bool _isNotValidate = false;
+  void  SignUp() async {
+   
+    if (selectedRole != null && selectedRole == "parent") {
+      if (nameController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty
+        ){
+
+            var SignUpBody={
+              "name":nameController.text,
+              "email":emailController.text,
+              "password":passwordController.text,
+              "age":null,
+              "ageGroup":null,
+              "profilePic":profilePicController.text,
+              "role":selectedRole,
+              "cvStatus":null,
+              
+            };
+
+            try{
+              // API call to register parent
+              print ("profile pic: ${profilePicController.text}");
+              var response = await http.post(Uri.parse(createUser),
+              headers: {"Content-Type":"application/json"}, 
+              body: jsonEncode(SignUpBody)
+              );
+              print (response.statusCode);
+            }
+            catch(e){
+              print("Exception: $e");
+            }
+        }
+
+        else{
+          print("Please fill all required fields for parent");
+          setState((){
+            _isNotValidate=true;
+            });
+        }
+ 
+    }
+    else if (selectedRole != null && selectedRole == "child") {
+      if (nameController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty&&
+        ageController.text.isNotEmpty){
+
+            var SignUpBody={
+              "name":nameController.text,
+              "email":emailController.text,
+              "password":passwordController.text,
+              "age":ageController.text,
+              "ageGroup":ageGroup,
+              "profilePic":profilePicController.text,
+              "role":selectedRole,
+              "cvStatus":null,
+            };
+
+             try{
+              // API call to register parent
+
+               var response = await http.post(Uri.parse(createUser),
+              headers: {"Content-Type":"application/json"}, 
+              body: jsonEncode(SignUpBody)
+              );
+              print (response.statusCode);
+            }
+            catch(e){
+              print("Exception: $e");
+            }
+        }
+        else {
+          print("Please fill all required fields for child");
+          setState((){
+            _isNotValidate=true;
+            });
+        }
+ 
+    }
+    else if (selectedRole != null && selectedRole == "supervisor") {
+      if (nameController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty&&
+        cvController.text.isNotEmpty
+        ){
+
+            var SignUpBody={
+              "name":nameController.text,
+              "email":emailController.text,
+              "password":passwordController.text,
+              "age":null,
+              "ageGroup":null,
+              "profilePic":profilePicController.text,
+              "role":selectedRole,
+              "cv":cvController.text,
+              "cvStatus":cvStatus,
+            };
+
+             try{
+              // API call to register parent
+               //  print ("cvController.text ${cvController.text}");
+               var response = await http.post(Uri.parse(createUser),
+              headers: {"Content-Type":"application/json"}, 
+              body: jsonEncode(SignUpBody)
+              );
+              print (response.statusCode);
+            }
+            catch(e){
+              print("Exception: $e");
+            }
+        }
+        else {
+          print("Please fill all required fields for supervisor");
+          setState((){
+            _isNotValidate=true;
+            });
+        }
+ 
+    }
+
+
+    
+      
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +195,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       // Name
                       TextFormField(
-                      //  controller: nameController,
+                        controller: nameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your name";
@@ -109,7 +239,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Email ( for parent & supervisor & child )
                      // if (selectedRole == "parent" || selectedRole == "supervisor" || selectedRole == "child") ...[
                         TextFormField(
-                          //controller: emailController,
+                          controller: emailController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "Please enter your email";
@@ -130,7 +260,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       // Password (for all)
                       TextFormField(
-                        //controller: passwordController,
+                        controller: passwordController,
                         obscureText: true,
                         obscuringCharacter: '*',
                         validator: (value) {
@@ -155,7 +285,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Age (for child only)
                       if (selectedRole == "child") ...[
                         TextFormField(
-                         // controller: ageController,
+                        controller: ageController,
                          readOnly: true,
                         decoration:InputDecoration(
                           labelText:"Date of Birth",
@@ -213,7 +343,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                       // Profile Picture (for all)
                       TextFormField(
-                        //controller: profilePicController,
+                        controller: profilePicController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter profile picture text";
@@ -221,7 +351,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return null;
                         },
                         decoration: InputDecoration(
-                          label: const Text("Profile Picture (text)"),
+                          label: const Text("Profile Picture URL"),
                           prefixIcon: const Icon(Icons.image_outlined),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -233,15 +363,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // CV (supervisor only)
                       if (selectedRole == "supervisor") ...[
                         TextFormField(
-                         // controller: cvController,
+                          controller: cvController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "Please enter your CV text";
+                              return "Please enter your CV ";
                             }
                             return null;
                           },
                           decoration: InputDecoration(
-                            label: const Text("CV (text)"),
+                            label: const Text("CV URL"),
                             prefixIcon: const Icon(Icons.description_outlined),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -265,7 +395,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
 
                       // Parent Code (for parent only)
-                      if (selectedRole == "parent") ...[
+                     /* if (selectedRole == "parent") ...[
                         TextFormField(
                          // controller: parentCodeController,
                           readOnly: true,
@@ -281,14 +411,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ElevatedButton(
                           onPressed: () {
                             setState(() {
-                              parentCodeController.text = "PARENT-${DateTime.now().millisecondsSinceEpoch}";
+                              // parentCodeController.text = "PARENT-${DateTime.now().millisecondsSinceEpoch}";
                             });
                           },
                           child: const Text("Generate Code"),
                         ),
                         const SizedBox(height: 20),
                       ],
-
+                         */
                       // Agree personal data checkbox
                       Row(
                         children: [
@@ -324,6 +454,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 const SnackBar(content: Text("Please agree to personal data processing")),
                               );
                             }
+                            SignUp();
                           },
                           child: const Text("Sign Up"),
                         ),

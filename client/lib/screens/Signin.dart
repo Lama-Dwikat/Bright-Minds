@@ -5,6 +5,7 @@ import 'package:icons_plus/icons_plus.dart';
 import '../theme/theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:bright_minds/config.dart';
 
 
 
@@ -60,7 +61,7 @@ void SignIn() async {
     
   }
   else{
-     print("Calling API...");
+    
     setState((){
       _isNotValidate=true;
     });
