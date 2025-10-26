@@ -9,7 +9,7 @@ const userSchema = mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-            unique: true 
+             
         },
         
         role: {
@@ -20,7 +20,7 @@ const userSchema = mongoose.Schema(
         
         email: {
             type: String,
-            sparse: true,
+           // sparse: true,
             unique: true
         },
 

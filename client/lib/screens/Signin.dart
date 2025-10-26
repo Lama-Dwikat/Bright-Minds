@@ -3,7 +3,8 @@ import "package:bright_minds/widgets/sign.dart";
 import 'package:bright_minds/screens/signup.dart';
 import 'package:icons_plus/icons_plus.dart';
 import '../theme/theme.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 
 
@@ -22,6 +23,50 @@ class SignInScreen extends StatefulWidget {
 class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey=GlobalKey<FormState>();
   bool rememberPassword=true;
+
+TextEditingController emailController=TextEditingController();
+TextEditingController passwordController=TextEditingController();
+bool _isNotValidate = false;
+void SignIn() async {
+  
+  if(emailController.text.isNotEmpty && passwordController.text.isNotEmpty){
+    
+   
+   var SignInBody={
+     "email": emailController.text,
+     "password": passwordController.text
+   };
+   try{
+  
+       var response = await http.get(Uri.parse('http://10.0.2.2:3000/api/users/email/${emailController.text}'));
+     
+      if (response.statusCode ==200){
+        var data = jsonDecode(response.body);
+         print("User data: $data");
+        if(data['password'] == passwordController.text){
+          print("Login Successful");
+          // Navigate to home screen or dashboard
+        } else {
+          print("Incorrect Password");
+        }
+      } else {
+         print("Error: ${response.statusCode}, ${response.body}");
+       // print("User not found");
+      }
+
+   }catch(e){
+    print("Exception: $e");
+   }
+    
+  }
+  else{
+     print("Calling API...");
+    setState((){
+      _isNotValidate=true;
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Sign(
@@ -62,20 +107,22 @@ child:SingleChildScrollView(
         
       
 TextFormField(
-  validator: (value){
-if(value==null || value.isEmpty){
-  return "Please Enter your Username";
-  }
-  return null;
-  },
+   controller: emailController,
+   validator: (value) {
+ if (value == null || value.isEmpty) {
+return "Please enter your email";
+}
+if (!value.contains('@')) return "Invalid email";
+return null;
+},
   decoration:InputDecoration(
-    label:Text("Username"),
-    hintText:"Enter your Username",
+    label:Text("Email"),
+    hintText:"Enter your Email",
     hintStyle:TextStyle(
       color:Colors.black26,
     ),
     prefixIcon: Icon(
-      Icons.person,
+      Icons.email,
       color:Colors.black26,
     ),
     
@@ -90,10 +137,16 @@ if(value==null || value.isEmpty){
     )
     )
     ),
+
+
     const SizedBox(
                height:30,
              ),
+
+
+
     TextFormField(
+      controller: passwordController,
       obscureText: true,
       obscuringCharacter: '*',
       validator:(value){
@@ -105,20 +158,20 @@ if(value==null || value.isEmpty){
           label:Text("Password"),
           hintText:"Enter Password",
           hintStyle:TextStyle(
-            color:Colors.black26,
+            color:const Color.fromARGB(111, 0, 0, 0),
           ),
-          prefixIcon: Icon(
-            Icons.password,
-            color:Colors.black26
+          prefixIcon:const Icon(
+            (Icons.lock_outline),
+            color:Color.fromARGB(111, 0, 0, 0)
           ),
           border:OutlineInputBorder(
             borderSide:BorderSide(
-              color:Colors.black12,
+              color:const Color.fromARGB(77, 0, 0, 0),
             ),
             borderRadius:BorderRadius.circular(10)
           ),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color:Colors.black12),
+        borderSide: BorderSide(color:const Color.fromARGB(77, 0, 0, 0)),
          )
     )
     ),
@@ -169,6 +222,10 @@ if(value==null || value.isEmpty){
                   content:Text('Processing Data')
                   ),
               );
+              // Call SignIn function
+              print("Sign In button pressed");
+
+              SignIn();
             } 
             else if (!rememberPassword){
               ScaffoldMessenger.of(context).showSnackBar(
@@ -178,6 +235,9 @@ if(value==null || value.isEmpty){
               );
             }
           }, 
+         /* onTap:()=>{
+            SignIn(),
+          },*/
           child: const Text('Sign In')
           ),
         ),

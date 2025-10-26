@@ -18,6 +18,8 @@ export  const userService = {
         return await User.findById(id);
     },
 
+
+
     // Get all users
     async getAllUsers() {
         return await User.find();

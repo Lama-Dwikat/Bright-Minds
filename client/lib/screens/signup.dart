@@ -17,13 +17,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
 
   // Controllers
-  final TextEditingController nameController = TextEditingController();
+  /*final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController profilePicController = TextEditingController();
   final TextEditingController cvController = TextEditingController();
-  final TextEditingController parentCodeController = TextEditingController();
+*/
+  final TextEditingController ageController = TextEditingController();
+    final TextEditingController parentCodeController = TextEditingController();
 
   String? ageGroup;
   String cvStatus = "pending"; // default value
@@ -104,8 +106,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Email (only for parent & supervisor)
-                      if (selectedRole == "parent" || selectedRole == "supervisor") ...[
+                      // Email ( for parent & supervisor & child )
+                     // if (selectedRole == "parent" || selectedRole == "supervisor" || selectedRole == "child") ...[
                         TextFormField(
                           //controller: emailController,
                           validator: (value) {
@@ -124,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                      ],
+                     // ],
 
                       // Password (for all)
                       TextFormField(
@@ -231,7 +233,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // CV (supervisor only)
                       if (selectedRole == "supervisor") ...[
                         TextFormField(
-                          controller: cvController,
+                         // controller: cvController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return "Please enter your CV text";

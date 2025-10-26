@@ -26,6 +26,8 @@ export const userController = {
         }
     },
 
+
+
     // Get all users
     async getAllUsers(req, res) {
         try {
