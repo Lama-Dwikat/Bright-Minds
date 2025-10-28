@@ -34,11 +34,8 @@ const userSchema = mongoose.Schema(
             maxlength:64
         },
 
-        age: 
-        //Date,
-        {
-           type:Date,
-           sparse:true},
+        age: Date,
+
 
         ageGroup:  {
             type: String,
