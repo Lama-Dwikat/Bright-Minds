@@ -23,7 +23,7 @@ const userSchema = mongoose.Schema(
            // sparse: true,
             unique: true , 
             required:true,
-           // match:/^[a-zA-Z0-9._%+-]+@gmail\.com$/
+           match:/^[a-zA-Z0-9._%+-]+@gmail\.com$/
 
         },
 
@@ -34,10 +34,11 @@ const userSchema = mongoose.Schema(
             maxlength:64
         },
 
-        age: Date,
-        //{
-           // type:Date,
-           // sparse:true},
+        age: 
+        //Date,
+        {
+           type:Date,
+           sparse:true},
 
         ageGroup:  {
             type: String,

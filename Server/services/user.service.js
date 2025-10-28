@@ -11,8 +11,8 @@ export  const userService = {
  const existingUser = await User.findOne({ email: userData.email });
     if (existingUser) throw new Error("Email already exists");
 
-    // if (userData.password.length < 8 || userData.password.length > 64)
-    //   throw new Error("Password must be between 8 and 64 characters");
+    if (userData.password.length < 8 || userData.password.length > 64)
+      throw new Error("Password must be between 8 and 64 characters");
 
       const newUser = new User(userData);
         if (newUser.role === "parent") {
