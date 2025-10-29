@@ -21,6 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
 
   // Controllers
+  // any thing that user will input
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
