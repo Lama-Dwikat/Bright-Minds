@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               "password":passwordController.text,
               "age":null,
               "ageGroup":null,
-              "profilePic":profilePicController.text,
+              "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cvStatus":null,
               
@@ -56,12 +56,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
             try{
               // API call to register parent
-              print ("profile pic: ${profilePicController.text}");
+              print ("profilePicture: ${profilePicController.text}");
               var response = await http.post(Uri.parse(createUser),
               headers: {"Content-Type":"application/json"}, 
               body: jsonEncode(SignUpBody)
               );
-              print (response.statusCode);
+
+              if (response.statusCode == 201) {
+  // Success
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Account Created Successfully!")),
+            );
+             } else {
+           var body = jsonDecode(response.body);
+          String errorMsg = body['error'] ?? 'An unexpected error occurred';
+  
+      if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("This email already exists. Please use another email.")),
+    );
+               } else {
+           ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text(errorMsg)),
+         );
+           }
+           }
+
+             // print (response.statusCode);
             }
             catch(e){
               print("Exception: $e");
@@ -88,7 +109,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               "password":passwordController.text,
               "age":ageController.text,
               "ageGroup":ageGroup,
-              "profilePic":profilePicController.text,
+              "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cvStatus":null,
             };
@@ -100,7 +121,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
               headers: {"Content-Type":"application/json"}, 
               body: jsonEncode(SignUpBody)
               );
-              print (response.statusCode);
+             // print (response.statusCode);
+             if (response.statusCode == 201) {
+            // Success
+        ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("Account Created Successfully!")),
+               );
+            } else {
+              var body = jsonDecode(response.body);
+        String errorMsg = body['error'] ?? 'An unexpected error occurred';
+  
+       if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
+         ScaffoldMessenger.of(context).showSnackBar(     const SnackBar(content: Text("This email already exists. Please use another email.")),
+                     );
+        } else {
+         ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMsg)),
+           );
+         }
+           }
+
             }
             catch(e){
               print("Exception: $e");
@@ -127,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               "password":passwordController.text,
               "age":null,
               "ageGroup":null,
-              "profilePic":profilePicController.text,
+              "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cv":cvController.text,
               "cvStatus":cvStatus,
@@ -140,7 +180,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
               headers: {"Content-Type":"application/json"}, 
               body: jsonEncode(SignUpBody)
               );
-              print (response.statusCode);
+            //  print (response.statusCode);
+            if (response.statusCode == 201) {
+  // Success
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Account Created Successfully!")),
+              );
+            } else {
+          var body = jsonDecode(response.body);
+          String errorMsg = body['error'] ?? 'An unexpected error occurred';
+  
+       if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
+       ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("This email already exists. Please use another email.")),
+            );
+          } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text(errorMsg)),
+         );
+      }
+      }
+
             }
             catch(e){
               print("Exception: $e");
@@ -445,17 +505,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            if (_formSignUpKey.currentState!.validate() && agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Account Created Successfully!")),
-                              );
-                            } else if (!agreePersonalData) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Please agree to personal data processing")),
-                              );
-                            }
-                            SignUp();
-                          },
+                     if (_formSignUpKey.currentState!.validate() && agreePersonalData) {
+    SignUp();
+               } else if (!agreePersonalData) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                 const SnackBar(content: Text("Please agree to personal data processing")),
+                 );
+                }
+             },
+     
                           child: const Text("Sign Up"),
                         ),
                       ),

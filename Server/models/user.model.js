@@ -21,15 +21,22 @@ const userSchema = mongoose.Schema(
         email: {
             type: String,
            // sparse: true,
-            unique: true
+            unique: true , 
+            required:true,
+           match:/^[a-zA-Z0-9._%+-]+@gmail\.com$/
+
         },
 
         password: {
             type: String,
             required: true,
+            minlength:8,
+            maxlength:64
         },
 
         age: Date,
+
+
         ageGroup:  {
             type: String,
             enum:["5-8" , "9-12"]
@@ -42,7 +49,7 @@ const userSchema = mongoose.Schema(
         cvStatus: {
             type: String,
             enum: ["pending", "approved", "rejected"],
-            default: "pending"
+            default: "pending",
         },
 
 
@@ -78,9 +85,9 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.generateParentCode = function () {
   if (this.role === "parent") {
     this.parentCode = Math.floor(100000 + Math.random() * 900000).toString();// 6-digit code
-    const expiryTime = new Date();// Set expiry time to 24 hours from now
-    expiryTime.setHours(expiryTime.getHours() + 24);
-    this.parentCodeExpires = expiryTime;
+    // const expiryTime = new Date();// Set expiry time to 24 hours from now
+    // expiryTime.setHours(expiryTime.getHours() + 24);
+    // this.parentCodeExpires = expiryTime;
   }
 };
 
