@@ -1,3 +1,4 @@
+import 'package:bright_minds/screens/mainPage.dart';
 import 'package:flutter/material.dart';
 import "package:bright_minds/widgets/sign.dart";
 import 'package:bright_minds/screens/signup.dart';
@@ -50,6 +51,7 @@ void SignIn() async {
         } else {
           print("Incorrect Password");
         }
+          Navigator.push(context, MaterialPageRoute(builder:(context)=>MainPage()));
       } else {
          print("Error: ${response.statusCode}, ${response.body}");
        // print("User not found");

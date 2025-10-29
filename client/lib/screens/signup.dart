@@ -95,7 +95,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
              try{
               // API call to register parent
-
+                print ("profile pic: ${profilePicController.text}");
                var response = await http.post(Uri.parse(createUser),
               headers: {"Content-Type":"application/json"}, 
               body: jsonEncode(SignUpBody)
