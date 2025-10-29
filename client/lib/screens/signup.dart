@@ -22,7 +22,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // Controllers
   // any thing that user will input
-  // controllers to get the input values
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
