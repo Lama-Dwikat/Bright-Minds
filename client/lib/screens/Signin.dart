@@ -6,6 +6,7 @@ import '../theme/theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bright_minds/config.dart';
+import 'package:bright_minds/screens/homePage.dart';
 
 
 
@@ -50,6 +51,7 @@ void SignIn() async {
         } else {
           print("Incorrect Password");
         }
+         Navigator.push(context, MaterialPageRoute(builder:(context)=>homePage()));
       } else {
          print("Error: ${response.statusCode}, ${response.body}");
        // print("User not found");
