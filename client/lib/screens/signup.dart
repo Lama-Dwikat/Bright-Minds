@@ -9,6 +9,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart'; // For MediaType
 import 'package:file_selector/file_selector.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 
 
@@ -20,6 +22,29 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+
+
+
+
+
+
+
+String getBackendUrl() {
+  if (kIsWeb) {
+    // For web, use localhost or network IP
+    return "http://127.0.0.1:3000"; // or your LAN IP like 192.168.1.10
+  } else if (Platform.isAndroid) {
+    // Android emulator
+    return "http://10.0.2.2:3000";
+  } else if (Platform.isIOS) {
+    // iOS emulator
+    return "http://localhost:3000";
+  } else {
+    // fallback
+    return "http://localhost:3000";
+  }
+}
+
   final _formSignUpKey = GlobalKey<FormState>();
 
   String? selectedRole;
@@ -96,7 +121,8 @@ Future<void> uploadFiles(String userId) async {
   try {
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
+     // Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
+       Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
     );
 
     if (_profileImage != null) {
@@ -170,12 +196,53 @@ Future<void> uploadFiles(String userId) async {
               body: jsonEncode(SignUpBody)
               );
 
-              if (response.statusCode == 201) {
-  // Success
-           ScaffoldMessenger.of(context).showSnackBar(
+                if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Account Created Successfully!")),
-            );
-             } else {
+          );
+
+          var body = jsonDecode(response.body);
+          var userId = body['_id']; // Backend user ID
+
+          // Upload files
+          var uploadRequest = http.MultipartRequest(
+            'POST',
+            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
+          );
+
+          if (_profileImage != null) {
+            uploadRequest.files.add(await http.MultipartFile.fromPath(
+              'profilePicture',
+              _profileImage!.path,
+              contentType: MediaType('image', 'png'),
+            ));
+          }
+
+     try {
+  var streamedResponse = await uploadRequest.send();
+  var response = await http.Response.fromStream(streamedResponse);
+
+  if (response.statusCode == 200) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Files uploaded successfully!")),
+    );
+  } else {
+    var body = jsonDecode(response.body);
+    String errorMsg = body['error'] ?? 'File upload failed';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("File upload failed: $errorMsg")),
+    );
+  }
+} catch (e) {
+  print("Upload exception: $e");
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("File upload error")),
+  );
+}
+
+
+        }
+        else {
            var body = jsonDecode(response.body);
           String errorMsg = body['error'] ?? 'An unexpected error occurred';
   
@@ -230,12 +297,54 @@ Future<void> uploadFiles(String userId) async {
               body: jsonEncode(SignUpBody)
               );
              // print (response.statusCode);
-             if (response.statusCode == 201) {
-            // Success
-        ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("Account Created Successfully!")),
-               );
-            } else {
+        //      if (response.statusCode == 201) {
+        //     // Success
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //    const SnackBar(content: Text("Account Created Successfully!")),
+        //        );
+        //     }
+               if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Account Created Successfully!")),
+          );
+
+          var body = jsonDecode(response.body);
+          var userId = body['_id']; // Backend user ID
+
+          // Upload files
+          var uploadRequest = http.MultipartRequest(
+            'POST',
+            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
+          );
+
+          if (_profileImage != null) {
+            uploadRequest.files.add(await http.MultipartFile.fromPath(
+              'profilePicture',
+              _profileImage!.path,
+              contentType: MediaType('image', 'png'),
+            ));
+          }
+
+          if (_cvFile != null) {
+            uploadRequest.files.add(await http.MultipartFile.fromPath(
+              'cv',
+              _cvFile!.path,
+              contentType: MediaType('application', 'pdf'),
+            ));
+          }
+
+          var uploadResponse = await uploadRequest.send();
+          if (uploadResponse.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Files uploaded successfully!")),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
+            );
+          }
+        }
+         else {
               var body = jsonDecode(response.body);
         String errorMsg = body['error'] ?? 'An unexpected error occurred';
   
@@ -420,7 +529,7 @@ Future<void> uploadFiles(String userId) async {
           // Upload files
           var uploadRequest = http.MultipartRequest(
             'POST',
-            Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
+            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
           );
 
           if (_profileImage != null) {
