@@ -22,7 +22,7 @@ export  const userService = {
        },
 
   async signin(email, password) {
-  const user = await User.getUserByEmail(email);
+  const user = await User.findOne({ email: email });
   if (!user) throw new Error("Invalid email or password");
 
   const validPassword = await bcrypt.compare(password, user.password);
@@ -99,6 +99,29 @@ export  const userService = {
             { new: true }
         );
     },
+
+
+      async uploadFiles(userId, profilePicture, cv) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
+
+    if (profilePicture) {
+      user.profilePicture = {
+        data: profilePicture.buffer,
+        contentType: profilePicture.mimetype,
+      };
+    }
+
+    if (cv) {
+      user.cv = {
+        data: cv.buffer,
+        contentType: cv.mimetype,
+      };
+    }
+
+    await user.save();
+    return user;
+  },
 
   
 

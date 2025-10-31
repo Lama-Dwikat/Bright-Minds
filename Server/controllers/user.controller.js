@@ -18,16 +18,28 @@ export const userController = {
     },
 
 
-      async signin (req,res){
-        try{
-       const email= req.body.email;
-      const password=req.body.password;
-       await userService.signin(email,password);
-      res.status(200).send("Signin Successful");
-        }
-        catch(error){
-            res.status(400).send({error:error.message});
-        }},
+  async signin(req, res) {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    // This calls the service that checks email/password
+    const user = await userService.signin(email, password);
+
+    // Send user details (with role) back to Flutter
+    res.status(200).json({
+      message: "Signin Successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+        },
 
 
 
@@ -179,9 +191,39 @@ export const userController = {
    },
 
 
+    async uploadFiles (req, res)  {
+  try {
+    const userId = req.params.id;
+    const profilePicture = req.files?.profilePicture ? req.files.profilePicture[0] : null;
+    const cv = req.files?.cv ? req.files.cv[0] : null;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (profilePicture) {
+      user.profilePicture = {
+        data: profilePicture.buffer,
+        contentType: profilePicture.mimetype,
+      };
+    }
+
+   if (cv) {
+  user.cv = {
+    data: cv.buffer,
+    contentType: cv.mimetype,
+  };
+  user.cvStatus = "pending"; // <-- Add this
+}
 
 
-   // Add more controller methods as needed
+    await user.save();
+    res.status(200).json({ message: "Files uploaded successfully", user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+  },
+
+
 
 }
 

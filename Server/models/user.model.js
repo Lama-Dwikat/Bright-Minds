@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import multer from "multer";
+
 
 
 const userSchema = mongoose.Schema(
@@ -42,9 +44,19 @@ const userSchema = mongoose.Schema(
             enum:["5-8" , "9-12"]
         },
 
-        profilePicture: String,
+        // profilePicture: String,
         
-        cv: String,
+        // cv: String,
+
+         // Store files as binary buffers
+        profilePicture: { 
+        data: Buffer,
+         contentType: String
+         },
+
+        cv: {
+         data: Buffer,
+          contentType: String },
 
         cvStatus: {
             type: String,
@@ -100,5 +112,11 @@ userSchema.methods.isParentCodeValid = function (code) {
   );
 };
 
+
+
+
+
+
 const User = mongoose.model("User", userSchema);
 export default User;
+
