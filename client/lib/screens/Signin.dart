@@ -1,13 +1,19 @@
-import 'package:bright_minds/screens/mainPage.dart';
 import 'package:flutter/material.dart';
 import "package:bright_minds/widgets/sign.dart";
 import 'package:bright_minds/screens/signup.dart';
 import 'package:icons_plus/icons_plus.dart';
-import '../theme/theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bright_minds/config.dart';
+import 'package:bright_minds/screens/homeParent.dart';
+import 'package:bright_minds/screens/homeChild.dart';
+import 'package:bright_minds/screens/homeSupervisor.dart';
+import 'package:bright_minds/screens/homeAdmin.dart';
 import 'package:bright_minds/screens/homePage.dart';
+
+
+
+
 
 
 
@@ -27,53 +33,76 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formSignInKey=GlobalKey<FormState>();
   bool rememberPassword=true;
 
+
 TextEditingController emailController=TextEditingController();
 TextEditingController passwordController=TextEditingController();
 bool _isNotValidate = false;
-void SignIn() async {
-  
-  if(emailController.text.isNotEmpty && passwordController.text.isNotEmpty){
-    
-   
-   var SignInBody={
-     "email": emailController.text,
-     "password": passwordController.text
-   };
-   try{
-  
-       var response = await http.get(Uri.parse('http://10.0.2.2:3000/api/users/email/${emailController.text}'));
-     
-      if (response.statusCode ==200){
-        var data = jsonDecode(response.body);
-         print("User data: $data");
-        if(data['password'] == passwordController.text){
-          print("Login Successful");
-          // Navigate to home screen or dashboard
-        } else {
-          print("Incorrect Password");
-        }
-<<<<<<< HEAD
-         Navigator.push(context, MaterialPageRoute(builder:(context)=>homePage()));
-=======
-          Navigator.push(context, MaterialPageRoute(builder:(context)=>MainPage()));
->>>>>>> fatima_nasser
-      } else {
-         print("Error: ${response.statusCode}, ${response.body}");
-       // print("User not found");
-      }
 
-   }catch(e){
-    print("Exception: $e");
-   }
-    
-  }
-  else{
-    
-    setState((){
-      _isNotValidate=true;
+
+
+
+  void SignIn() async {
+   if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+    var SignInBody = {
+      "email": emailController.text,
+      "password": passwordController.text
+    };
+
+    try {
+      var response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/api/user/signIn'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(SignInBody),
+      );
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        var userRole = data['user']['role'];
+        print("User role: $userRole");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sign in successful')),
+        );
+
+        // Navigate based on role
+        if (userRole == 'parent') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => HomeParent()));
+        } else if (userRole == 'supervisor') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => HomeSupervisor()));
+        } else if (userRole == 'child') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => HomeChild()));
+        } else if (userRole == 'admin') {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => HomeAdmin()));
+        } else {
+          // default fallback
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => homePage()));
+        }
+
+      } else {
+        var errorMsg = jsonDecode(response.body)['error'];
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign in failed: $errorMsg')),
+        );
+      }
+    } catch (e) {
+      print("Exception: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An error occurred during sign in')),
+      );
+    }
+  } else {
+    setState(() {
+      _isNotValidate = true;
     });
   }
 }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +147,10 @@ TextFormField(
    controller: emailController,
    validator: (value) {
  if (value == null || value.isEmpty) {
-return "Please enter your email";
-}
-if (!value.contains('@')) return "Invalid email";
-return null;
+    return "Please enter your email";
+     }
+ if (!value.contains('@')) return "Invalid email";
+  return null;
 },
   decoration:InputDecoration(
     label:Text("Email"),
