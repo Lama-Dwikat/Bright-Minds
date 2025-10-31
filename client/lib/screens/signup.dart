@@ -21,6 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool agreePersonalData = true;
 
   // Controllers
+  // any thing that user will input
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -116,7 +117,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
              try{
               // API call to register parent
-
+                print ("profile pic: ${profilePicController.text}");
                var response = await http.post(Uri.parse(createUser),
               headers: {"Content-Type":"application/json"}, 
               body: jsonEncode(SignUpBody)
