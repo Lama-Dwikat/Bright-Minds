@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/signin.dart';
 import 'package:bright_minds/widgets/sign.dart';
-import 'package:bright_minds/theme/theme.dart';
 import 'package:bright_minds/config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http_parser/http_parser.dart'; // For MediaType
+import 'package:file_selector/file_selector.dart';
+
 
 
 class SignUpScreen extends StatefulWidget {
@@ -19,6 +24,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? selectedRole;
   bool agreePersonalData = true;
+
+  File? _profileImage;
+  File? _cvFile;
+
 
   // Controllers
   // any thing that user will input
@@ -35,6 +44,104 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
   bool _isNotValidate = false;
+
+
+
+
+ Future<void> pickProfileImage() async {
+  const XTypeGroup pngTypeGroup = XTypeGroup(
+    label: 'images',
+    extensions: ['png', 'PNG'],
+  );
+
+  final XFile? file = await openFile(acceptedTypeGroups: [pngTypeGroup]);
+
+  if (file != null) {
+    setState(() {
+      _profileImage = File(file.path);
+    });
+    print("✅ PNG selected: ${file.path}");
+  } else {
+    print("No file selected.");
+  }
+}
+
+// In pickCV()
+Future<void> pickCV() async {
+  // Allow only PDF files
+  const XTypeGroup typeGroup = XTypeGroup(
+    label: 'PDF',
+    extensions: ['pdf'],
+  );
+
+  final XFile? file = await openFile(
+    acceptedTypeGroups: [typeGroup],
+  );
+
+  if (file != null) {
+    setState(() {
+      _cvFile = File(file.path);
+      cvStatus = "Selected";
+    });
+    print("CV selected: ${_cvFile!.path}");
+  } else {
+    print("No file selected.");
+  }
+}
+
+
+
+Future<void> uploadFiles(String userId) async {
+  if (_profileImage == null && _cvFile == null) return; // nothing to upload
+
+  try {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
+    );
+
+    if (_profileImage != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'profilePicture',
+        _profileImage!.path,
+        contentType: MediaType('image', 'png'),
+      ));
+    }
+
+  if (_cvFile != null) {
+  request.files.add(await http.MultipartFile.fromPath(
+    'cv',
+    _cvFile!.path,
+    contentType: MediaType('application', 'pdf'), // matches backend
+  ));
+}
+
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      print("Files uploaded successfully!");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Files uploaded successfully!")),
+      );
+    } else {
+      print("Upload failed: ${response.statusCode}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Upload failed: ${response.statusCode}")),
+      );
+    }
+  } catch (e) {
+    print("Upload error: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Upload error")),
+    );
+  }
+}
+
+
+
+
+
+
   void  SignUp() async {
    
     if (selectedRole != null && selectedRole == "parent") {
@@ -49,11 +156,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               "password":passwordController.text,
               "age":null,
               "ageGroup":null,
-              "profilePicture":profilePicController.text,
+             // "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cvStatus":null,
               
             };
+          
 
             try{
               // API call to register parent
@@ -110,7 +218,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               "password":passwordController.text,
               "age":ageController.text,
               "ageGroup":ageGroup,
-              "profilePicture":profilePicController.text,
+            //  "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cvStatus":null,
             };
@@ -155,68 +263,214 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
  
     }
-    else if (selectedRole != null && selectedRole == "supervisor") {
-      if (nameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty&&
-        cvController.text.isNotEmpty
-        ){
+//     else if (selectedRole != null && selectedRole == "supervisor") {
+//       if (nameController.text.isNotEmpty &&
+//         emailController.text.isNotEmpty &&
+//         passwordController.text.isNotEmpty&&
+//         cvController.text.isNotEmpty
+//         ){
 
-            var SignUpBody={
-              "name":nameController.text,
-              "email":emailController.text,
-              "password":passwordController.text,
-              "age":null,
-              "ageGroup":null,
-              "profilePicture":profilePicController.text,
-              "role":selectedRole,
-              "cv":cvController.text,
-              "cvStatus":cvStatus,
-            };
+//             var SignUpBody={
+//               "name":nameController.text,
+//               "email":emailController.text,
+//               "password":passwordController.text,
+//               "age":null,
+//               "ageGroup":null,
+//            //   "profilePicture":profilePicController.text,
+//               "role":selectedRole,
+//             //  "cv":cvController.text,
+//               "cvStatus":cvStatus,
+//             };
 
-             try{
-              // API call to register parent
-               //  print ("cvController.text ${cvController.text}");
-               var response = await http.post(Uri.parse(createUser),
-              headers: {"Content-Type":"application/json"}, 
-              body: jsonEncode(SignUpBody)
-              );
-            //  print (response.statusCode);
-            if (response.statusCode == 201) {
-  // Success
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Account Created Successfully!")),
-              );
-            } else {
-          var body = jsonDecode(response.body);
-          String errorMsg = body['error'] ?? 'An unexpected error occurred';
+            
+
+//              try{
+//               // API call to register parent
+//                //  print ("cvController.text ${cvController.text}");
+//                var response = await http.post(Uri.parse(createUser),
+//               headers: {"Content-Type":"application/json"}, 
+//               body: jsonEncode(SignUpBody)
+//               );
+//             //  print (response.statusCode);
+//             // if (response.statusCode == 201) { // Success
+//             // ScaffoldMessenger.of(context).showSnackBar(
+//             //   const SnackBar(content: Text("Account Created Successfully!")),
+//             //   );
+//             // } 
+//     if (response.statusCode == 201) {
+//   ScaffoldMessenger.of(context).showSnackBar(
+//     const SnackBar(content: Text("Account Created Successfully!")),
+//   );
+
+//   // Upload files if selected
+//   if (_profileImage != null || _cvFile != null) {
+//     try {
+//       var body = jsonDecode(response.body);
+//       var userId = body['_id']; // ID of created user
+
+//       var uploadRequest = http.MultipartRequest(
+//         'POST',
+//         Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'), // backend route
+//       );
+
+//       if (_profileImage != null) {
+//         uploadRequest.files.add(await http.MultipartFile.fromPath(
+//           'profilePicture',
+//           _profileImage!.path,
+//           contentType: MediaType('image', 'png'),
+//         ));
+//       }
+
+//       if (_cvFile != null) {
+//         uploadRequest.files.add(await http.MultipartFile.fromPath(
+//           'cv',
+//           _cvFile!.path,
+//           contentType: MediaType('application', 'pdf'),
+//         ));
+//       }
+
+//       var uploadResponse = await uploadRequest.send();
+//       if (uploadResponse.statusCode == 200) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text("Files uploaded successfully!")),
+//         );
+//       } else {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
+//         );
+//       }
+//     } catch (e) {
+//       print("File upload error: $e");
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text("File upload error")),
+//       );
+//     }
+//   }
+// }
+
+
+            
+//             else {
+//           var body = jsonDecode(response.body);
+//           String errorMsg = body['error'] ?? 'An unexpected error occurred';
   
-       if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
-       ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("This email already exists. Please use another email.")),
+//        if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
+//        ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(content: Text("This email already exists. Please use another email.")),
+//             );
+//           } else {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//            SnackBar(content: Text(errorMsg)),
+//          );
+//       }
+//       }
+
+
+
+
+
+
+
+//             }
+//             catch(e){
+//               print("Exception: $e");
+//             }
+//         }
+//         else {
+//           print("Please fill all required fields for supervisor");
+//           setState((){
+//             _isNotValidate=true;
+//             });
+//         }
+ 
+//     }
+
+
+
+
+
+  if (selectedRole == "supervisor") {
+    if (nameController.text.isNotEmpty &&
+        emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty &&
+        _cvFile != null) {  // Use _cvFile instead of cvController.text
+
+      var SignUpBody = {
+        "name": nameController.text,
+        "email": emailController.text,
+        "password": passwordController.text,
+        "role": selectedRole,
+        "cvStatus": cvStatus,
+      };
+
+      try {
+        var response = await http.post(
+          Uri.parse(createUser),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(SignUpBody),
+        );
+
+        if (response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Account Created Successfully!")),
+          );
+
+          var body = jsonDecode(response.body);
+          var userId = body['_id']; // Backend user ID
+
+          // Upload files
+          var uploadRequest = http.MultipartRequest(
+            'POST',
+            Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
+          );
+
+          if (_profileImage != null) {
+            uploadRequest.files.add(await http.MultipartFile.fromPath(
+              'profilePicture',
+              _profileImage!.path,
+              contentType: MediaType('image', 'png'),
+            ));
+          }
+
+          if (_cvFile != null) {
+            uploadRequest.files.add(await http.MultipartFile.fromPath(
+              'cv',
+              _cvFile!.path,
+              contentType: MediaType('application', 'pdf'),
+            ));
+          }
+
+          var uploadResponse = await uploadRequest.send();
+          if (uploadResponse.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Files uploaded successfully!")),
             );
           } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(errorMsg)),
-         );
-      }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
+            );
+          }
+
+        } else {
+          var body = jsonDecode(response.body);
+          String errorMsg = body['error'] ?? 'An unexpected error occurred';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg)));
+        }
+
+      } catch (e) {
+        print("Exception: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sign up failed")),
+        );
       }
 
-            }
-            catch(e){
-              print("Exception: $e");
-            }
-        }
-        else {
-          print("Please fill all required fields for supervisor");
-          setState((){
-            _isNotValidate=true;
-            });
-        }
- 
+    } else {
+      print("Please fill all required fields for supervisor");
+      setState(() {
+        _isNotValidate = true;
+      });
     }
-
-
+  }
     
       
   }
@@ -386,60 +640,69 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Age Group (auto-filled)
-                       /*   TextFormField(
-                          readOnly: true,
-                          controller: TextEditingController(text: ageGroup ?? ""),
-                          decoration: InputDecoration(
-                            label: const Text("Age Group"),
-                            prefixIcon: const Icon(Icons.category_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        */
                       ],
 
-                      // Profile Picture (for all)
-                      TextFormField(
-                        controller: profilePicController,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter profile picture text";
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          label: const Text("Profile Picture URL"),
-                          prefixIcon: const Icon(Icons.image_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+         
 
-                      // CV (supervisor only)
-                      if (selectedRole == "supervisor") ...[
-                        TextFormField(
-                          controller: cvController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter your CV ";
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text("CV URL"),
-                            prefixIcon: const Icon(Icons.description_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
+// Profile Picture Picker
+GestureDetector(
+  onTap: pickProfileImage,
+  child: Container(
+    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          _profileImage != null
+              ? _profileImage!.path.split('/').last
+              : "Select Profile Picture (PNG)",
+          style: const TextStyle(fontSize: 16),
+        ),
+        _profileImage != null
+            ? const Icon(Icons.check_circle, color: Colors.green)
+            : const Icon(Icons.upload_file, color: Colors.deepPurple),
+      ],
+    ),
+  ),
+),
+const SizedBox(height: 20),
+
+
+                  // CV (Supervisor only)
+               if (selectedRole == "supervisor")  ...[
+
+         GestureDetector(
+    onTap: pickCV,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _cvFile != null
+                ? _cvFile!.path.split('/').last
+                : "Select CV (PDF)",
+            style: const TextStyle(fontSize: 16),
+          ),
+          _cvFile != null
+              ? const Icon(Icons.check_circle, color: Colors.green)
+              : const Icon(Icons.upload_file, color: Colors.deepPurple),
+        ],
+      ),
+    ),
+  ),
+
                         const SizedBox(height: 10),
+
+
                         Row(
                           children: [
                             const Text("CV Status: "),
@@ -453,33 +716,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
+
+
                       ],
 
-                      // Parent Code (for parent only)
-                     /* if (selectedRole == "parent") ...[
-                        TextFormField(
-                         // controller: parentCodeController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            label: const Text("Parent Code (Auto Generated)"),
-                            prefixIcon: const Icon(Icons.qr_code),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              // parentCodeController.text = "PARENT-${DateTime.now().millisecondsSinceEpoch}";
-                            });
-                          },
-                          child: const Text("Generate Code"),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                         */
+
+
                       // Agree personal data checkbox
                       Row(
                         children: [
@@ -500,6 +742,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
+
+
+
 
                       // Sign Up button
                       SizedBox(

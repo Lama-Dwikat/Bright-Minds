@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import'package:bright_minds/theme/theme.dart';
 import 'package:bright_minds/screens/homePage.dart';
 
 class navItem extends StatelessWidget {
