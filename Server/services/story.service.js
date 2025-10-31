@@ -69,7 +69,7 @@ export const storyService = {
                 throw new Error("Story not found");
             }
 
-            if (story.status !== "draft" || story.status !=="needs_edit") {
+            if (!["draft", "needs_edit"].includes(story.status)) {
                 throw new Error("story already submitted");
             }
 
@@ -102,7 +102,7 @@ export const storyService = {
     },
 
 
-    async getStoryById({storyId}) {
+    async getStoryById({storyId, userId=null}) {
         try {
             const story = await Story.findById(storyId)
              .populate("childId", "name")
@@ -112,25 +112,27 @@ export const storyService = {
            if (!story) {
                 throw new Error("Story not found");
             }
-            const reviews = await StoryReview.find({ storyId: story._id })
-          .populate("supervisorId", "name email")
-          .sort({ createdAt: -1 });
+           const [reviews, likesCount, userLiked] = await Promise.all([
+                StoryReview.find({ storyId: story._id })
+                    .populate("supervisorId", "name email")
+                    .sort({ createdAt: -1 }),
+                StoryLike.countDocuments({ storyId }),
+                userId ? StoryLike.findOne({ storyId, userId }) : Promise.resolve(null)
+            ]);
 
-           const likesCount = await StoryLike.countDocuments({ storyId });       
-           const userLiked = userId  ? !!(await StoryLike.findOne({ storyId, userId })): false;
-           
+            story.reviews = reviews;
+            story.likesCount = likesCount;
+            story.userLiked = !!userLiked;
 
-         story.reviews = reviews;
-         story.likesCount = likesCount;
-         story.userLiked = userLiked;
             return story;
+
         } catch (error) {
             throw new Error("Error fetching story: " + error.message);
         }
     },
 
 
-    async getStoriesByChild({childId, status = null}) {
+    async getStoriesByChild({childId, status = null, userId=null}) {
         try {
             const query = { childId: mongoose.Types.ObjectId(childId) };        
             if (status) {
@@ -142,23 +144,24 @@ export const storyService = {
                 .populate("templateId", "name defaultTheme")
                 .lean();
 
-                for (let story of stories) {
-                    const reviews = await StoryReview.find({ storyId: story._id })
-                   .populate("supervisorId", "name email")
-                   .sort({ createdAt: -1 });
-                     const likesCount = await StoryLike.countDocuments({ storyId });       
-                      const userLiked = userId  ? !!(await StoryLike.findOne({ storyId, userId })): false;
-           
+         const storiesWithDetails = await Promise.all(stories.map(async (story) => {
+                const [reviews, likesCount, userLiked] = await Promise.all([
+                    StoryReview.find({ storyId: story._id })
+                        .populate("supervisorId", "name email")
+                        .sort({ createdAt: -1 }),
+                    StoryLike.countDocuments({ storyId: story._id }),
+                    userId ? StoryLike.findOne({ storyId: story._id, userId }) : Promise.resolve(null)
+                ]);
 
-                        story.reviews = reviews;
-                        story.likesCount = likesCount;
-                        story.userLiked = userLiked;
-                
-                
-                }
+                story.reviews = reviews;
+                story.likesCount = likesCount;
+                story.userLiked = !!userLiked;
 
+                return story;
+        }));
 
-            return stories;
+        return storiesWithDetails;
+
         } catch (error) {
             throw new Error("Error fetching stories: " + error.message);
         }
