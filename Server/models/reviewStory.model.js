@@ -10,5 +10,5 @@ const ReviewSchema = new mongoose.Schema({
   
 }, { timestamps: true });
 
-const storyReview = mongoose.model("storyReview", ReviewSchema);
-export default storyReview;
+const StoryReview = mongoose.model("StoryReview", ReviewSchema);
+export default StoryReview;

@@ -3,8 +3,14 @@ const mongoose = require("mongoose");
 const ElementSchema = new mongoose.Schema({
   type: { type: String, enum: ["text","image","drawing","shape","sticker","audio"], required: true },//type of element
   content: String,
-  url: String,// for images, drawings, audio files if it is uploaded to cloudinary
-  dataUrl: String, //used if need to store base64 data not recommended 
+  //url: String,// for images, drawings, audio files if it is uploaded to cloudinary
+  media: {
+  mediaType: { type: String, enum: ["image","audio","video","drawing"] },
+  url: String,
+  page: Number, 
+  elementOrder: Number 
+  },
+  dataUrl: String, //used if need to store base64 data not recommended
   x: { type: Number, default: 0 },
   y: { type: Number, default: 0 },
   width: Number,
@@ -30,14 +36,17 @@ const StorySchema = new mongoose.Schema({
   supervisorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // assigned reviewer
   //parentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   //parentApproval: { type: Boolean, default: false },
+  templateId: { type: mongoose.Schema.Types.ObjectId, ref: "Template" },
   coverImage: String,
   theme: String,
   pages: [PageSchema], // array of pages
   audioNarration: String, // full story audio (URL)
-  status: { type: String, enum: ["pending","approved","rejected","needs_edit"], default: "pending" },
+  status: { type: String, enum: ["draft","pending","approved","rejected","needs_edit"], default: "draft" },
   rating: { type: Number, min: 1, max: 5 },
   feedback: String,
   publicVisibility: { type: Boolean, default: false },
+  isDraft: { type: Boolean, default: true },
+  supervisorCommentsSeen: { type: Boolean, default: false },
   tags: [String],
   likesCount: { type: Number, default: 0 },
   viewsCount: { type: Number, default: 0 },
@@ -46,7 +55,8 @@ const StorySchema = new mongoose.Schema({
 }, { timestamps: true });
 
 StorySchema.index({ childId:1, status:1 });
-StorySchema.index({ title: "text", "pages.elements.content": "text" }); // نصي للبحث
+StorySchema.index({ title: "text", "pages.elements.content": "text" }); // text index for search
+StorySchema.index({ publicVisibility: 1 });
 
 const Story = mongoose.model("Story", StorySchema);
 export default Story;
