@@ -8,5 +8,7 @@ const LikeSchema = new mongoose.Schema({
 LikeSchema.index({ storyId: 1, userId: 1 }, { unique: true });
 // Index to optimize like count retrieval
 LikeSchema.index({ storyId: 1 });
+
+
 const StoryLike = mongoose.model("StoryLike", LikeSchema);
 export default StoryLike;
