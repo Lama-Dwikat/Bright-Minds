@@ -100,7 +100,7 @@ export const storyService = {
         }
     },
 
-    async submitStory({storyId , role, userId}) {
+    async submitStory({storyId , userId, role}) {
 
         try {
             const story = await Story.findById(storyId);
@@ -307,7 +307,7 @@ export const storyService = {
   } catch (error) {
     throw new Error("Failed to add media: " + error.message);
   }
-}
+    }
 
 
 
