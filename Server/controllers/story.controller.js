@@ -2,8 +2,8 @@ import storyService from "../services/story.service.js";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import cloudinaryService from "../services/clouninary.service.js";
-
+import cloudinaryService from "../services/cloudinary.service.js";
+import jwt from "jsonwebtoken";
 
 
 
