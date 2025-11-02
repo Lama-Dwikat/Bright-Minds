@@ -1,6 +1,8 @@
+
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+
 
 
 export  const userService = {
@@ -46,8 +48,9 @@ export  const userService = {
        },
 
   async signin(email, password) {
-  const user = await User.getUserByEmail(email);
-  if (!user) throw new Error("Invalid email or password");
+  const user = await this.getUserByEmail(email);
+  //const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
 
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) throw new Error("Invalid email or password");
