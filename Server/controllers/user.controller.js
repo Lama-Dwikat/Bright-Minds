@@ -1,5 +1,6 @@
 import userService from '../services/user.service.js';
 import mongoose from 'mongoose';
+import jwt from "jsonwebtoken";
 
 export const userController = {
 
@@ -22,8 +23,25 @@ export const userController = {
         try{
        const email= req.body.email;
       const password=req.body.password;
-       await userService.signin(email,password);
-      res.status(200).send("Signin Successful");
+
+      const user = await userService.signin(email, password);
+      const token = jwt.sign(
+        { id: user._id, role: user.role }, 
+        process.env.JWT_SECRET,           
+        { expiresIn: "7d" }               
+      );
+       
+      //res.status(200).send("Signin Successful");
+       res.status(200).json({
+        message: "Signin Successful",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
         }
         catch(error){
             res.status(400).send({error:error.message});
