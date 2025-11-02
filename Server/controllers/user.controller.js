@@ -107,7 +107,7 @@ export const userController = {
      try{
 
         const user =  await userService.getUserByName(req.params.name)
-        res.status(200).send("User found")
+        res.status(200).json(user)
      }catch(error){
      res.status(404).message("User not found")
    }
@@ -177,6 +177,33 @@ export const userController = {
         }   
 
    },
+
+
+// Link child to parent using parentCode
+async linkChildToParent(req, res) {
+    try {
+        const { childId, parentCode } = req.body;
+
+        if (!childId || !parentCode) {
+            return res.status(400).json({ error: "childId and parentCode are required" });
+        }
+
+        const child = await userService.getUserById(childId);
+        if (!child) return res.status(404).json({ error: "Child not found" });
+
+        const parent = await userService.getUserByParentCode(parentCode);
+        if (!parent) return res.status(404).json({ error: "Invalid parent code" });
+
+        child.parentId = parent._id;
+        await child.save();
+
+        res.status(200).json({ message: "Child linked to parent successfully" });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+},
+
 
 
 
