@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-const PageSchema = require("./Page");
+import mongoose from "mongoose";
+//import PageSchema from "./Page.js";
+
 
 const TemplateSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -10,7 +11,16 @@ const TemplateSchema = new mongoose.Schema({
     enum: ["light", "dark", "kids"], 
     default: "light" 
   },
-  defaultPages: { type: [PageSchema], default: [] }
+ // defaultPages: { type: [PageSchema], default: [] }
+ defaultPages: { 
+  type: [
+    {
+      title: String,
+      elements: Array
+    }
+  ], 
+  default: [] 
+}
 });
 
 const Template = mongoose.model("Template", TemplateSchema);

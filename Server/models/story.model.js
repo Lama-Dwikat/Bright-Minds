@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const ElementSchema = new mongoose.Schema({
   type: { type: String, enum: ["text","image","drawing","shape","sticker","audio"], required: true },//type of element

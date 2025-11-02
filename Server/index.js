@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import http from 'http';
 import cors from 'cors';
 import { userRouter } from './routes/user.route.js';
-
+import { storyRouter } from './routes/story.route.js'; 
 const app = express()
 const server = http.createServer(app);
 
@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api', userRouter);
-
+app.use('/api', storyRouter);
 
 
 app.get('/', (req,res) => {

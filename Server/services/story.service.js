@@ -1,7 +1,7 @@
-import Story from "../models/story.model";
-import Template from "../models/template.model";
-import StoryReview from "../models/reviewStory.model";
-import StoryLike from "./storyLike.service";
+import Story from "../models/story.model.js";
+import Template from "../models/template.model.js";
+import StoryReview from "../models/reviewStory.model.js";
+import StoryLike from "../models/storyLike.model.js";
 import mongoose from "mongoose";
 
 export const storyService = {
