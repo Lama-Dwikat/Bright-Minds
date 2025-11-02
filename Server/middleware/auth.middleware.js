@@ -13,9 +13,14 @@ export  const authMiddleware = {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // ضعي السر في .env
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (!decoded || !decoded.id) {
+        return res.status(401).json({ message: "Invalid token structure." });
+      }
+    //const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("_id name email role");
 
-    const user = await User.findById(decoded.id).select("-password");
+    
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -24,7 +29,8 @@ export  const authMiddleware = {
 
     next();
   } catch (error) {
-    res.status(401).json({ message: "Invalid or expired token" });
+    console.error("Auth Error:", error.message);
+      res.status(401).json({ message: "Invalid or expired token." });
   }
    }
 };
