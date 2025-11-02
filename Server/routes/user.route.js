@@ -4,7 +4,7 @@ export const userRouter = express.Router();
 import authMiddleware from "../middleware/auth.middleware.js";
 // User routes
 userRouter.post('/users/createUser', userController.createUser);
-userRouter.post('/users/signIn',userController.signin)
+userRouter.post('/users/signIn',userController.signin);
 userRouter.get('/users/getme/:id', userController.getUserById);
 userRouter.delete('/users/deleteme/:id', userController.deleteUser);
 userRouter.delete('/users/deleteAll', userController.deleteAllUsers);

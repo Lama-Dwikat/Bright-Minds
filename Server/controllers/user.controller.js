@@ -44,7 +44,8 @@ export const userController = {
       });
         }
         catch(error){
-            res.status(400).send({error:error.message});
+            res.status(400).send({error:error.message });
+            
         }},
 
 
