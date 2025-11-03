@@ -307,7 +307,33 @@ export const storyService = {
   } catch (error) {
     throw new Error("Failed to add media: " + error.message);
   }
+    },
+
+    // not doing until now 
+    async resubmitStory({ storyId, childId }) {
+    const story = await Story.findById(storyId);
+    if (!story) throw new Error("Story not found");
+
+    if (story.childId.toString() !== childId.toString()) {
+      throw new Error("Unauthorized: You cannot resubmit someone else's story");
     }
+
+    if (story.status !== "needs_edit") {
+      throw new Error("Story must be in 'needs_edit' status to resubmit");
+    }
+
+    story.status = "pending";
+    await story.save();
+
+    const review = new StoryReview({
+      storyId: story._id,
+      supervisorId: story.supervisorId, 
+      status: "pending"
+    });
+    await review.save();
+
+    return { message: "Story resubmitted for review", story, review };
+  }
 
 
 
