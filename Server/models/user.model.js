@@ -72,6 +72,13 @@ const userSchema = mongoose.Schema(
 
         parentCode: String,
         parentCodeExpires: Date,
+
+
+        supervisorId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
+
         createdAt: {
             type: Date,
             default: Date.now

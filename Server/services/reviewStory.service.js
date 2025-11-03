@@ -6,16 +6,20 @@ export const reviewStoryService = {
 
 
 
-    async createReview ({ storyId, SupervisorId, rating = null, commet = ""}){
+    async createReview ({ storyId, supervisorId, rating = null, comment = ""}){
        try{
-           const story = await Story.findById(stotyId);
+           const story = await Story.findById(storyId);
            if(!story){
             throw new Error ("Story not found ");
            }
 
+           if (!story.supervisorId) {
+              throw new Error("No supervisor assigned to this story");
+            }
             if (story.supervisorId.toString() !== supervisorId.toString()) {
-             throw new Error("Supervisor not assigned to this story");
-             }
+               throw new Error("Supervisor not assigned to this story");
+              }
+
 
 
       const review = new StoryReview({
@@ -29,13 +33,16 @@ export const reviewStoryService = {
       await review.save();
         
       
-       if (rating !== null) {
-        if (rating >= 4) story.status = "approved";
-        else if (rating <= 2) story.status = "needs_edit";
-        else story.status = "pending"; 
-      } else if (comment && comment.trim() !== "") {
-        story.status = "needs_edit"; 
+      if (rating !== null) {
+      if (rating >= 4) story.status = "approved";
+      else if (rating >= 2) story.status = "needs_edit";
+      else story.status = "rejected";
+    } else if (comment && comment.trim() !== "") {
+       story.status = "needs_edit";
+     } else {
+        story.status = "pending";
       }
+
 
       story.supervisorCommentsSeen = false; 
       await story.save();
@@ -49,7 +56,49 @@ export const reviewStoryService = {
     },
 
 
-async updateReview({ reviewId, supervisorId, rating, comment }) {
+
+  
+   async getReviewsByStory( storyId ) {
+    try {
+      const query = await StoryReview.find({ storyId })
+        .populate("supervisorId", "name email")
+        .sort({ createdAt: -1 });
+         const reviews = latestOnly ? await query.limit(1) : await query;
+      return reviews;
+    } catch (error) {
+      throw new Error("Failed to fetch story reviews: " + error.message);
+    }
+  },
+
+
+   async getReviewsBySupervisor(supervisorId ) {
+    try {
+      const reviews = await StoryReview.find({ supervisorId })
+        .populate("storyId", "title childId")
+        .populate("supervisorId", "name email")
+        .sort({ createdAt: -1 });
+      return reviews;
+    } catch (error) {
+      throw new Error("Failed to fetch reviews by supervisor: " + error.message);
+    }
+  },
+
+  async deleteReview({ reviewId, supervisorId }) {
+    const review = await StoryReview.findById(reviewId);
+    if (!review) throw new Error("Review not found");
+
+    if (review.supervisorId.toString() !== supervisorId.toString()) {
+      throw new Error("Unauthorized: You cannot delete this review");
+    }
+
+    await review.remove();
+    return { message: "Review deleted successfully" };
+  }
+
+
+
+
+/*async updateReview({ reviewId, supervisorId, rating, comment }) {
     try {
       const review = await StoryReview.findById(reviewId);
       if (!review) throw new Error("Review not found");
@@ -59,20 +108,22 @@ async updateReview({ reviewId, supervisorId, rating, comment }) {
 
       if (rating !== undefined) review.rating = rating;
       if (comment !== undefined) review.comment = comment;
-
+      review.status = "completed";
       await review.save();
 
 
       const story = await Story.findById(review.storyId);
       if (!story) throw new Error("Story not found");
 
-      if (rating !== undefined) {
-        if (rating >= 4) story.status = "approved";
-        else if (rating <= 2) story.status = "needs_edit";
-        else story.status = "pending";
-      } else if (comment && comment.trim() !== "") {
-        story.status = "needs_edit";
-      }
+       if (rating !== undefined && rating !== null) {
+      if (rating >= 4) story.status = "approved";
+      else if (rating >= 2) story.status = "needs_edit";
+      else story.status = "rejected";
+    } else if (typeof comment === "string" && comment.trim() !== "") {
+      story.status = "needs_edit";
+    } else {
+      story.status = "pending";
+    }
 
       story.supervisorCommentsSeen = false;
       await story.save();
@@ -83,36 +134,7 @@ async updateReview({ reviewId, supervisorId, rating, comment }) {
       throw new Error("Error updating review: " + error.message);
     }
   },
-  
-  
-   async getReviewsByStory({ storyId }) {
-    try {
-      const reviews = await StoryReview.find({ storyId })
-        .populate("supervisorId", "name email")
-        .sort({ createdAt: -1 });
-      return reviews;
-    } catch (error) {
-      throw new Error("Error fetching reviews: " + error.message);
-    }
-  },
-
-
-   async getReviewsBySupervisor({ supervisorId }) {
-    try {
-      const reviews = await StoryReview.find({ supervisorId })
-        .populate("storyId", "title childId")
-        .populate("supervisorId", "name email")
-        .sort({ createdAt: -1 });
-      return reviews;
-    } catch (error) {
-      throw new Error("Error fetching supervisor reviews: " + error.message);
-    }
-  }
-
-
-
-
-
+  */
 
 
 };

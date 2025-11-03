@@ -1,5 +1,6 @@
 import userService from '../services/user.service.js';
 import mongoose from 'mongoose';
+import jwt from "jsonwebtoken";
 
 export const userController = {
 
@@ -18,6 +19,7 @@ export const userController = {
     },
 
 
+<<<<<<< HEAD
   async signin(req, res) {
   try {
     const email = req.body.email;
@@ -40,6 +42,36 @@ export const userController = {
     res.status(400).json({ error: error.message });
   }
         },
+=======
+      async signin (req,res){
+        try{
+       const email= req.body.email;
+      const password=req.body.password;
+
+      const user = await userService.signin(email, password);
+      const token = jwt.sign(
+        { id: user._id, role: user.role }, 
+        process.env.JWT_SECRET,           
+        { expiresIn: "7d" }               
+      );
+       
+      //res.status(200).send("Signin Successful");
+       res.status(200).json({
+        message: "Signin Successful",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+        }
+        catch(error){
+            res.status(400).send({error:error.message });
+            
+        }},
+>>>>>>> origin/fatima_nasser
 
 
 
@@ -119,7 +151,7 @@ export const userController = {
      try{
 
         const user =  await userService.getUserByName(req.params.name)
-        res.status(200).send("User found")
+        res.status(200).json(user)
      }catch(error){
      res.status(404).message("User not found")
    }
@@ -191,6 +223,7 @@ export const userController = {
    },
 
 
+<<<<<<< HEAD
     async uploadFiles (req, res)  {
   try {
     const userId = req.params.id;
@@ -222,6 +255,35 @@ export const userController = {
     res.status(500).json({ error: err.message });
   }
   },
+=======
+// Link child to parent using parentCode
+async linkChildToParent(req, res) {
+    try {
+        const { childId, parentCode } = req.body;
+
+        if (!childId || !parentCode) {
+            return res.status(400).json({ error: "childId and parentCode are required" });
+        }
+
+        const child = await userService.getUserById(childId);
+        if (!child) return res.status(404).json({ error: "Child not found" });
+
+        const parent = await userService.getUserByParentCode(parentCode);
+        if (!parent) return res.status(404).json({ error: "Invalid parent code" });
+
+        child.parentId = parent._id;
+        await child.save();
+
+        res.status(200).json({ message: "Child linked to parent successfully" });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+},
+
+
+
+>>>>>>> origin/fatima_nasser
 
 
 
