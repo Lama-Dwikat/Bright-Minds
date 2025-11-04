@@ -52,7 +52,7 @@ export  const userService = {
   async signin(email, password) {
   const user = await this.getUserByEmail(email);
   //const user = await User.findOne({ email });
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error("Invalid email or password");
 
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) throw new Error("Invalid email or password");

@@ -70,7 +70,7 @@ String getBackendUrl() {
 
     try {
       var response = await http.post(
-          Uri.parse('${getBackendUrl()}/api/user/signIn'),
+          Uri.parse('${getBackendUrl()}/api/users/signIn'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(SignInBody),
       );
