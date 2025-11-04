@@ -264,4 +264,3 @@ async linkChildToParent(req, res) {
 
 }
 
-export default userController;
