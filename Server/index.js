@@ -6,9 +6,14 @@ import http from 'http';
 import cors from 'cors';
 import { userRouter } from './routes/user.route.js';
 import { storyRouter } from './routes/story.route.js'; 
+import { videoRouter} from './routes/video.route.js';
+import { quizeRouter} from './routes/quize.route.js';
+
+
+
 const app = express()
 const server = http.createServer(app);
-
+app.use(cors());
 
 
 // إعدادات CORS
@@ -22,12 +27,19 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// Increase JSON body size to 5MB (or more if needed)
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
+//app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api', userRouter);
 app.use('/api', storyRouter);
+app.use('/api/',videoRouter);
+app.use('/api/',quizeRouter);
+
+
 
 
 app.get('/', (req,res) => {

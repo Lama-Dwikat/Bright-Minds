@@ -10,6 +10,8 @@ import 'package:bright_minds/screens/homeChild.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
 import 'package:bright_minds/screens/homeAdmin.dart';
 import 'package:bright_minds/screens/homePage.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 
 
@@ -40,6 +42,24 @@ bool _isNotValidate = false;
 
 
 
+String getBackendUrl() {
+  if (kIsWeb) {
+    // For web, use localhost or network IP
+   // return "http://localhost:5000";
+    return "http://192.168.1.122:3000";
+
+  } else if (Platform.isAndroid) {
+    // Android emulator
+    return "http://10.0.2.2:3000";
+  } else if (Platform.isIOS) {
+    // iOS emulator
+    return "http://localhost:3000";
+  } else {
+    // fallback
+    return "http://localhost:3000";
+  }
+}
+
 
   void SignIn() async {
    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
@@ -50,7 +70,7 @@ bool _isNotValidate = false;
 
     try {
       var response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/api/user/signIn'),
+          Uri.parse('${getBackendUrl()}/api/user/signIn'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(SignInBody),
       );

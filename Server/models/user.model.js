@@ -48,7 +48,7 @@ const userSchema = mongoose.Schema(
         
         // cv: String,
 
-         // Store files as binary buffers
+        // Store files as binary buffers
         profilePicture: { 
         data: Buffer,
          contentType: String

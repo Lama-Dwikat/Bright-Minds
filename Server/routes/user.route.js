@@ -1,6 +1,6 @@
 import express from 'express';
 import { userController } from '../controllers/user.controller.js';
-import { upload } from "../middleware/uploadMiddleware.js";
+// import { upload } from "../middleware/uploadMiddleware.js";
 export const userRouter = express.Router();
 import authMiddleware from "../middleware/auth.middleware.js";
 // User routes
@@ -18,13 +18,7 @@ userRouter.get('/users/role/:role', userController.getUsersByRole);
 userRouter.get('/users/getall', userController.getAllUsers);
 userRouter.post('/users/approvestatus/:id', userController.approveCV);
 userRouter.post('/users/rejectstatus/:id', userController.rejectCV);
-<<<<<<< HEAD
-userRouter.post( "/users/upload/:id",upload.fields([
-    { name: "profilePicture", maxCount: 1 },
-    { name: "cv", maxCount: 1 }, ]), userController.uploadFiles);
-
-=======
 userRouter.post('/users/link-child', authMiddleware.authentication ,userController.linkChildToParent);
->>>>>>> origin/fatima_nasser
+
 
 

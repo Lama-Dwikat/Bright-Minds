@@ -2,6 +2,7 @@
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import cors from 'cors';
 
 
 
@@ -46,16 +47,12 @@ export  const userService = {
 
 
        },
+       
 
   async signin(email, password) {
-<<<<<<< HEAD
-  const user = await User.findOne({ email: email });
-  if (!user) throw new Error("Invalid email or password");
-=======
   const user = await this.getUserByEmail(email);
   //const user = await User.findOne({ email });
   if (!user) throw new Error("User not found");
->>>>>>> origin/fatima_nasser
 
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) throw new Error("Invalid email or password");
@@ -134,29 +131,7 @@ export  const userService = {
     },
 
 
-<<<<<<< HEAD
-      async uploadFiles(userId, profilePicture, cv) {
-    const user = await User.findById(userId);
-    if (!user) throw new Error("User not found");
 
-    if (profilePicture) {
-      user.profilePicture = {
-        data: profilePicture.buffer,
-        contentType: profilePicture.mimetype,
-      };
-    }
-
-    if (cv) {
-      user.cv = {
-        data: cv.buffer,
-        contentType: cv.mimetype,
-      };
-    }
-
-    await user.save();
-    return user;
-  },
-=======
     async linkChildToParent({ childId, parentCode }) {
     const child = await User.findById(childId);
     if (!child) throw new Error("Child not found");
@@ -174,12 +149,10 @@ async getUserByParentCode(code) {
     return await User.findOne({ parentCode: code });
 }
 
->>>>>>> origin/fatima_nasser
 
   
 
 };
 
-export default userService;
 
  
