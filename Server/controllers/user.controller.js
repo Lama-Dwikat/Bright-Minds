@@ -1,48 +1,54 @@
-import userService from '../services/user.service.js';
+import {userService} from '../services/user.service.js';
 import mongoose from 'mongoose';
 import jwt from "jsonwebtoken";
 
 export const userController = {
 
     // Create a new user
+    // async createUser(req, res) {
+    //     try {
+    //         const user = await userService.createUser(req.body);
+    //         res.status(201).json(user);
+    //     } catch (error) {
+    //    if (error.message === "Email already exists") {
+    //     return res.status(400).json({ error: error.message });
+    //     }
+    //    res.status(500).json({ error: error.message });
+    //   }
+
+    // },
     async createUser(req, res) {
-        try {
-            const user = await userService.createUser(req.body);
-            res.status(201).json(user);
-        } catch (error) {
-       if (error.message === "Email already exists") {
-        return res.status(400).json({ error: error.message });
-        }
-       res.status(500).json({ error: error.message });
-      }
-
-    },
-
-
-<<<<<<< HEAD
-  async signin(req, res) {
   try {
-    const email = req.body.email;
-    const password = req.body.password;
+    const userData = req.body;
 
-    // This calls the service that checks email/password
-    const user = await userService.signin(email, password);
+  if (userData.profilePicture) {
+  userData.profilePicture = {
+    data: Buffer.from(userData.profilePicture, "base64"),
+    contentType: "image/png", // consider using 'mime' package for dynamic detection
+  };
+}
 
-    // Send user details (with role) back to Flutter
-    res.status(200).json({
-      message: "Signin Successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
+if (userData.cv) {
+  userData.cv = {
+    data: Buffer.from(userData.cv, "base64"),
+    contentType: "application/pdf",
+  };
+}
+
+
+    const user = await userService.createUser(userData);
+    res.status(201).json(user);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    if (error.message === "Email already exists") {
+      return res.status(400).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
   }
-        },
-=======
+},
+
+
+
+
       async signin (req,res){
         try{
        const email= req.body.email;
@@ -71,7 +77,7 @@ export const userController = {
             res.status(400).send({error:error.message });
             
         }},
->>>>>>> origin/fatima_nasser
+
 
 
 
@@ -223,39 +229,8 @@ export const userController = {
    },
 
 
-<<<<<<< HEAD
-    async uploadFiles (req, res)  {
-  try {
-    const userId = req.params.id;
-    const profilePicture = req.files?.profilePicture ? req.files.profilePicture[0] : null;
-    const cv = req.files?.cv ? req.files.cv[0] : null;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (profilePicture) {
-      user.profilePicture = {
-        data: profilePicture.buffer,
-        contentType: profilePicture.mimetype,
-      };
-    }
-
-   if (cv) {
-  user.cv = {
-    data: cv.buffer,
-    contentType: cv.mimetype,
-  };
-  user.cvStatus = "pending"; // <-- Add this
-}
 
 
-    await user.save();
-    res.status(200).json({ message: "Files uploaded successfully", user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-  },
-=======
 // Link child to parent using parentCode
 async linkChildToParent(req, res) {
     try {
@@ -283,7 +258,7 @@ async linkChildToParent(req, res) {
 
 
 
->>>>>>> origin/fatima_nasser
+
 
 
 
