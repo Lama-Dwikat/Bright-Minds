@@ -32,7 +32,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 String getBackendUrl() {
   if (kIsWeb) {
     // For web, use localhost or network IP
-    return "http://127.0.0.1:3000"; // or your LAN IP like 192.168.1.10
+    //return "http://localhost:5000"; 
+    return "http://192.168.1.122:3000";
+
   } else if (Platform.isAndroid) {
     // Android emulator
     return "http://10.0.2.2:3000";
@@ -50,8 +52,8 @@ String getBackendUrl() {
   String? selectedRole;
   bool agreePersonalData = true;
 
-  File? _profileImage;
-  File? _cvFile;
+XFile? _profileXFile;
+XFile? _cvXFile;
 
 
   // Controllers
@@ -66,6 +68,7 @@ String getBackendUrl() {
 
   String? ageGroup;
   String cvStatus = "pending"; // default value
+DateTime? selectedDOB; // declare at the top of your State class
 
 
   bool _isNotValidate = false;
@@ -73,95 +76,29 @@ String getBackendUrl() {
 
 
 
- Future<void> pickProfileImage() async {
-  const XTypeGroup pngTypeGroup = XTypeGroup(
-    label: 'images',
-    extensions: ['png', 'PNG'],
-  );
 
+Future<void> pickProfileImage() async {
+  final XTypeGroup pngTypeGroup = XTypeGroup(label: 'images', extensions: ['png', 'PNG']);
   final XFile? file = await openFile(acceptedTypeGroups: [pngTypeGroup]);
-
   if (file != null) {
     setState(() {
-      _profileImage = File(file.path);
+      _profileXFile = file;
     });
     print("✅ PNG selected: ${file.path}");
-  } else {
-    print("No file selected.");
   }
 }
 
-// In pickCV()
 Future<void> pickCV() async {
-  // Allow only PDF files
-  const XTypeGroup typeGroup = XTypeGroup(
-    label: 'PDF',
-    extensions: ['pdf'],
-  );
-
-  final XFile? file = await openFile(
-    acceptedTypeGroups: [typeGroup],
-  );
-
+  final XTypeGroup pdfTypeGroup = XTypeGroup(label: 'PDF', extensions: ['pdf']);
+  final XFile? file = await openFile(acceptedTypeGroups: [pdfTypeGroup]);
   if (file != null) {
     setState(() {
-      _cvFile = File(file.path);
-      cvStatus = "Selected";
+      _cvXFile = file;
     });
-    print("CV selected: ${_cvFile!.path}");
-  } else {
-    print("No file selected.");
+    print("✅ PDF selected: ${file.path}");
   }
 }
 
-
-
-Future<void> uploadFiles(String userId) async {
-  if (_profileImage == null && _cvFile == null) return; // nothing to upload
-
-  try {
-    var request = http.MultipartRequest(
-      'POST',
-     // Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'),
-       Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
-    );
-
-    if (_profileImage != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'profilePicture',
-        _profileImage!.path,
-        contentType: MediaType('image', 'png'),
-      ));
-    }
-
-  if (_cvFile != null) {
-  request.files.add(await http.MultipartFile.fromPath(
-    'cv',
-    _cvFile!.path,
-    contentType: MediaType('application', 'pdf'), // matches backend
-  ));
-}
-
-
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      print("Files uploaded successfully!");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Files uploaded successfully!")),
-      );
-    } else {
-      print("Upload failed: ${response.statusCode}");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Upload failed: ${response.statusCode}")),
-      );
-    }
-  } catch (e) {
-    print("Upload error: $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Upload error")),
-    );
-  }
-}
 
 
 
@@ -176,73 +113,40 @@ Future<void> uploadFiles(String userId) async {
         passwordController.text.isNotEmpty
         ){
 
+     String? profileBase64;
+if (_profileXFile != null) {
+  final profileBytes = await _profileXFile!.readAsBytes();
+  profileBase64 = base64Encode(profileBytes);
+}
+
+
             var SignUpBody={
               "name":nameController.text,
               "email":emailController.text,
               "password":passwordController.text,
               "age":null,
               "ageGroup":null,
-             // "profilePicture":profilePicController.text,
               "role":selectedRole,
               "cvStatus":null,
-              
+              "profilePicture":profileBase64,
+   
             };
           
 
             try{
-              // API call to register parent
-              print ("profilePicture: ${profilePicController.text}");
-              var response = await http.post(Uri.parse(createUser),
-              headers: {"Content-Type":"application/json"}, 
-              body: jsonEncode(SignUpBody)
-              );
+           
+      // API call to create user
+      var response = await http.post(
+        Uri.parse('${getBackendUrl()}/api/users/createUser'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(SignUpBody),
+      );
 
-                if (response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Account Created Successfully!")),
-          );
-
-          var body = jsonDecode(response.body);
-          var userId = body['_id']; // Backend user ID
-
-          // Upload files
-          var uploadRequest = http.MultipartRequest(
-            'POST',
-            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
-          );
-
-          if (_profileImage != null) {
-            uploadRequest.files.add(await http.MultipartFile.fromPath(
-              'profilePicture',
-              _profileImage!.path,
-              contentType: MediaType('image', 'png'),
-            ));
-          }
-
-     try {
-  var streamedResponse = await uploadRequest.send();
-  var response = await http.Response.fromStream(streamedResponse);
-
-  if (response.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Files uploaded successfully!")),
-    );
-  } else {
-    var body = jsonDecode(response.body);
-    String errorMsg = body['error'] ?? 'File upload failed';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("File upload failed: $errorMsg")),
-    );
-  }
-} catch (e) {
-  print("Upload exception: $e");
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("File upload error")),
-  );
-}
-
-
-        }
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account Created Successfully!")),
+        );
+      }
         else {
            var body = jsonDecode(response.body);
           String errorMsg = body['error'] ?? 'An unexpected error occurred';
@@ -273,236 +177,92 @@ Future<void> uploadFiles(String userId) async {
         }
  
     }
-    else if (selectedRole != null && selectedRole == "child") {
-      if (nameController.text.isNotEmpty &&
-        emailController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty&&
-        ageController.text.isNotEmpty){
+   
+else if (selectedRole != null && selectedRole == "child") {
+  if (nameController.text.isNotEmpty &&
+      emailController.text.isNotEmpty &&
+      passwordController.text.isNotEmpty &&
+      ageController.text.isNotEmpty) {
 
-            var SignUpBody={
-              "name":nameController.text,
-              "email":emailController.text,
-              "password":passwordController.text,
-              "age":ageController.text,
-              "ageGroup":ageGroup,
-            //  "profilePicture":profilePicController.text,
-              "role":selectedRole,
-              "cvStatus":null,
-            };
+    // Encode profile picture as Base64 if selected
+ String? profileBase64;
+if (_profileXFile != null) {
+  final profileBytes = await _profileXFile!.readAsBytes();
+  profileBase64 = base64Encode(profileBytes);
+}
 
-             try{
-              // API call to register parent
-                print ("profile pic: ${profilePicController.text}");
-               var response = await http.post(Uri.parse(createUser),
-              headers: {"Content-Type":"application/json"}, 
-              body: jsonEncode(SignUpBody)
-              );
-             // print (response.statusCode);
-        //      if (response.statusCode == 201) {
-        //     // Success
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //    const SnackBar(content: Text("Account Created Successfully!")),
-        //        );
-        //     }
-               if (response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Account Created Successfully!")),
-          );
 
-          var body = jsonDecode(response.body);
-          var userId = body['_id']; // Backend user ID
+    var SignUpBody = {
+      "name": nameController.text,
+      "email": emailController.text,
+      "password": passwordController.text,
+      "age": selectedDOB?.toIso8601String(), // send proper date
+      "ageGroup": ageGroup,
+      "role": selectedRole,
+      "cvStatus": null,
+      "profilePicture": profileBase64, // Send Base64 in JSON
+      "cv": null,                      // Children don’t send CV
+    };
 
-          // Upload files
-          var uploadRequest = http.MultipartRequest(
-            'POST',
-            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
-          );
+    try {
+      // API call to create user
+      var response = await http.post(
+        Uri.parse('${getBackendUrl()}/api/users/createUser'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(SignUpBody),
+      );
 
-          if (_profileImage != null) {
-            uploadRequest.files.add(await http.MultipartFile.fromPath(
-              'profilePicture',
-              _profileImage!.path,
-              contentType: MediaType('image', 'png'),
-            ));
-          }
-
-          if (_cvFile != null) {
-            uploadRequest.files.add(await http.MultipartFile.fromPath(
-              'cv',
-              _cvFile!.path,
-              contentType: MediaType('application', 'pdf'),
-            ));
-          }
-
-          var uploadResponse = await uploadRequest.send();
-          if (uploadResponse.statusCode == 200) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Files uploaded successfully!")),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
-            );
-          }
-        }
-         else {
-              var body = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account Created Successfully!")),
+        );
+      } else {
+        var body = jsonDecode(response.body);
         String errorMsg = body['error'] ?? 'An unexpected error occurred';
-  
-       if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
-         ScaffoldMessenger.of(context).showSnackBar(     const SnackBar(content: Text("This email already exists. Please use another email.")),
-                     );
+
+        if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("This email already exists. Please use another email.")),
+          );
         } else {
-         ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(errorMsg)),
-           );
-         }
-           }
-
-            }
-            catch(e){
-              print("Exception: $e");
-            }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg)),
+          );
         }
-        else {
-          print("Please fill all required fields for child");
-          setState((){
-            _isNotValidate=true;
-            });
-        }
- 
+      }
+    } catch (e) {
+      print("Exception: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sign up failed")),
+      );
     }
-//     else if (selectedRole != null && selectedRole == "supervisor") {
-//       if (nameController.text.isNotEmpty &&
-//         emailController.text.isNotEmpty &&
-//         passwordController.text.isNotEmpty&&
-//         cvController.text.isNotEmpty
-//         ){
-
-//             var SignUpBody={
-//               "name":nameController.text,
-//               "email":emailController.text,
-//               "password":passwordController.text,
-//               "age":null,
-//               "ageGroup":null,
-//            //   "profilePicture":profilePicController.text,
-//               "role":selectedRole,
-//             //  "cv":cvController.text,
-//               "cvStatus":cvStatus,
-//             };
-
-            
-
-//              try{
-//               // API call to register parent
-//                //  print ("cvController.text ${cvController.text}");
-//                var response = await http.post(Uri.parse(createUser),
-//               headers: {"Content-Type":"application/json"}, 
-//               body: jsonEncode(SignUpBody)
-//               );
-//             //  print (response.statusCode);
-//             // if (response.statusCode == 201) { // Success
-//             // ScaffoldMessenger.of(context).showSnackBar(
-//             //   const SnackBar(content: Text("Account Created Successfully!")),
-//             //   );
-//             // } 
-//     if (response.statusCode == 201) {
-//   ScaffoldMessenger.of(context).showSnackBar(
-//     const SnackBar(content: Text("Account Created Successfully!")),
-//   );
-
-//   // Upload files if selected
-//   if (_profileImage != null || _cvFile != null) {
-//     try {
-//       var body = jsonDecode(response.body);
-//       var userId = body['_id']; // ID of created user
-
-//       var uploadRequest = http.MultipartRequest(
-//         'POST',
-//         Uri.parse('http://10.0.2.2:3000/api/users/upload/$userId'), // backend route
-//       );
-
-//       if (_profileImage != null) {
-//         uploadRequest.files.add(await http.MultipartFile.fromPath(
-//           'profilePicture',
-//           _profileImage!.path,
-//           contentType: MediaType('image', 'png'),
-//         ));
-//       }
-
-//       if (_cvFile != null) {
-//         uploadRequest.files.add(await http.MultipartFile.fromPath(
-//           'cv',
-//           _cvFile!.path,
-//           contentType: MediaType('application', 'pdf'),
-//         ));
-//       }
-
-//       var uploadResponse = await uploadRequest.send();
-//       if (uploadResponse.statusCode == 200) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text("Files uploaded successfully!")),
-//         );
-//       } else {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
-//         );
-//       }
-//     } catch (e) {
-//       print("File upload error: $e");
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("File upload error")),
-//       );
-//     }
-//   }
-// }
-
-
-            
-//             else {
-//           var body = jsonDecode(response.body);
-//           String errorMsg = body['error'] ?? 'An unexpected error occurred';
-  
-//        if (response.statusCode == 400 && errorMsg.contains('Email already exists')) {
-//        ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text("This email already exists. Please use another email.")),
-//             );
-//           } else {
-//           ScaffoldMessenger.of(context).showSnackBar(
-//            SnackBar(content: Text(errorMsg)),
-//          );
-//       }
-//       }
-
-
-
-
-
-
-
-//             }
-//             catch(e){
-//               print("Exception: $e");
-//             }
-//         }
-//         else {
-//           print("Please fill all required fields for supervisor");
-//           setState((){
-//             _isNotValidate=true;
-//             });
-//         }
- 
-//     }
-
-
-
+  } else {
+    print("Please fill all required fields for child");
+    setState(() {
+      _isNotValidate = true;
+    });
+  }
+}
 
 
   if (selectedRole == "supervisor") {
     if (nameController.text.isNotEmpty &&
         emailController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
-        _cvFile != null) {  // Use _cvFile instead of cvController.text
+        _cvXFile != null) {  // Use _cvFile instead of cvController.text
+
+
+  String? profileBase64;
+if (_profileXFile != null) {
+  final profileBytes = await _profileXFile!.readAsBytes();
+  profileBase64 = base64Encode(profileBytes);
+}
+
+String? cvBase64;
+if (_cvXFile != null) {
+  final cvBytes = await _cvXFile!.readAsBytes();
+  cvBase64 = base64Encode(cvBytes);
+}
 
       var SignUpBody = {
         "name": nameController.text,
@@ -510,57 +270,26 @@ Future<void> uploadFiles(String userId) async {
         "password": passwordController.text,
         "role": selectedRole,
         "cvStatus": cvStatus,
+        "profilePicture": profileBase64, // Send Base64 in JSON
+        "cv":cvBase64,
+
       };
 
       try {
         var response = await http.post(
-          Uri.parse(createUser),
+         // Uri.parse(createUser),
+          Uri.parse('${getBackendUrl()}/api/users/createUser'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode(SignUpBody),
         );
 
-        if (response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Account Created Successfully!")),
-          );
-
-          var body = jsonDecode(response.body);
-          var userId = body['_id']; // Backend user ID
-
-          // Upload files
-          var uploadRequest = http.MultipartRequest(
-            'POST',
-            Uri.parse('${getBackendUrl()}/api/users/upload/$userId'),
-          );
-
-          if (_profileImage != null) {
-            uploadRequest.files.add(await http.MultipartFile.fromPath(
-              'profilePicture',
-              _profileImage!.path,
-              contentType: MediaType('image', 'png'),
-            ));
-          }
-
-          if (_cvFile != null) {
-            uploadRequest.files.add(await http.MultipartFile.fromPath(
-              'cv',
-              _cvFile!.path,
-              contentType: MediaType('application', 'pdf'),
-            ));
-          }
-
-          var uploadResponse = await uploadRequest.send();
-          if (uploadResponse.statusCode == 200) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Files uploaded successfully!")),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("File upload failed: ${uploadResponse.statusCode}")),
-            );
-          }
-
-        } else {
+          if (response.statusCode == 201) {
+        //     // Success
+        ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("Account Created Successfully!")),
+               );
+            }
+      else {
           var body = jsonDecode(response.body);
           String errorMsg = body['error'] ?? 'An unexpected error occurred';
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg)));
@@ -717,35 +446,67 @@ Future<void> uploadFiles(String userId) async {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onTap:()async{
-                          DateTime today=DateTime.now();
-                          DateTime firstDate=DateTime(today.year-12);
-                          DateTime lastDate=DateTime(today.year-5);
+                        // onTap:()async{
+                        //   DateTime today=DateTime.now();
+                        //   DateTime firstDate=DateTime(today.year-12);
+                        //   DateTime lastDate=DateTime(today.year-5);
 
-                          DateTime? pickedDate=await showDatePicker(
-                            context:context,
-                            initialDate:firstDate,
-                            firstDate:firstDate,
-                            lastDate:lastDate,
-                            );
-                            if(pickedDate!=null){
-                              setState((){
-                                ageController.text="${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
-                                int age=today.year-pickedDate.year;
-                                if(today.month<pickedDate.month || (today.month==pickedDate.month && today.day<pickedDate.day)){
-                                  age--;
-                                }
-                                if(age>=5 && age<=8){
-                                  ageGroup="5-8";
-                                }
-                                else if(age>=9 && age<=12){
-                                  ageGroup="9-12";
-                                }else{
-                                  ageGroup=null;
-                                }
-                              });
-                            }
-                        }
+                        //   DateTime? pickedDate=await showDatePicker(
+                        //     context:context,
+                        //     initialDate:firstDate,
+                        //     firstDate:firstDate,
+                        //     lastDate:lastDate,
+                        //     );
+                        //     if(pickedDate!=null){
+                        //       setState((){
+                        //         ageController.text="${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                        //         int age=today.year-pickedDate.year;
+                        //         if(today.month<pickedDate.month || (today.month==pickedDate.month && today.day<pickedDate.day)){
+                        //           age--;
+                        //         }
+                        //         if(age>=5 && age<=8){
+                        //           ageGroup="5-8";
+                        //         }
+                        //         else if(age>=9 && age<=12){
+                        //           ageGroup="9-12";
+                        //         }else{
+                        //           ageGroup=null;
+                        //         }
+                        //       });
+                        //     }
+                        // }
+                        onTap: () async {
+  DateTime today = DateTime.now();
+  DateTime firstDate = DateTime(today.year - 12);
+  DateTime lastDate = DateTime(today.year - 5);
+
+  DateTime? pickedDate = await showDatePicker(
+    context: context,
+    initialDate: firstDate,
+    firstDate: firstDate,
+    lastDate: lastDate,
+  );
+
+  if (pickedDate != null) {
+    setState(() {
+      selectedDOB = pickedDate;
+      ageController.text = "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+
+      int age = today.year - pickedDate.year;
+      if (today.month < pickedDate.month || (today.month == pickedDate.month && today.day < pickedDate.day)) {
+        age--;
+      }
+      if (age >= 5 && age <= 8) {
+        ageGroup = "5-8";
+      } else if (age >= 9 && age <= 12) {
+        ageGroup = "9-12";
+      } else {
+        ageGroup = null;
+      }
+    });
+  }
+}
+
                         ),
                         const SizedBox(height: 20),
 
@@ -766,12 +527,12 @@ GestureDetector(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          _profileImage != null
-              ? _profileImage!.path.split('/').last
+          _profileXFile!= null
+              ? _profileXFile!.path.split('/').last
               : "Select Profile Picture (PNG)",
           style: const TextStyle(fontSize: 16),
         ),
-        _profileImage != null
+        _profileXFile != null
             ? const Icon(Icons.check_circle, color: Colors.green)
             : const Icon(Icons.upload_file, color: Colors.deepPurple),
       ],
@@ -782,49 +543,48 @@ const SizedBox(height: 20),
 
 
                   // CV (Supervisor only)
-               if (selectedRole == "supervisor")  ...[
-
-         GestureDetector(
+            // CV (Supervisor only)
+if (selectedRole == "supervisor") ...[
+  GestureDetector(
     onTap: pickCV,
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
+        border: Border.all(
+          color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.grey,
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            _cvFile != null
-                ? _cvFile!.path.split('/').last
+            _cvXFile != null
+                ? _cvXFile!.path.split('/').last
                 : "Select CV (PDF)",
-            style: const TextStyle(fontSize: 16),
+            style: TextStyle(
+              fontSize: 16,
+              color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.black,
+            ),
           ),
-          _cvFile != null
+          _cvXFile != null
               ? const Icon(Icons.check_circle, color: Colors.green)
               : const Icon(Icons.upload_file, color: Colors.deepPurple),
         ],
       ),
     ),
   ),
+  // Error message
+  if (_cvXFile == null && _isNotValidate)
+    const Padding(
+      padding: EdgeInsets.only(top: 5),
+      child: Text(
+        "CV is required",
+        style: TextStyle(color: Colors.red, fontSize: 12),
+      ),
+    ),
+  const SizedBox(height: 10),
 
-                        const SizedBox(height: 10),
-
-
-                        Row(
-                          children: [
-                            const Text("CV Status: "),
-                            Text(
-                              cvStatus,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepPurple,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
 
 
                       ],

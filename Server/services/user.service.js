@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import cors from 'cors';
 
-app.use(cors());
 
 export  const userService = {
      
@@ -22,6 +21,7 @@ export  const userService = {
         }   
         return await newUser.save();
        },
+       
 
   async signin(email, password) {
   const user = await User.findOne({ email: email });
@@ -103,27 +103,27 @@ export  const userService = {
     },
 
 
-      async uploadFiles(userId, profilePicture, cv) {
-    const user = await User.findById(userId);
-    if (!user) throw new Error("User not found");
+  //     async uploadFiles(userId, profilePicture, cv) {
+  //   const user = await User.findById(userId);
+  //   if (!user) throw new Error("User not found");
 
-    if (profilePicture) {
-      user.profilePicture = {
-        data: profilePicture.buffer,
-        contentType: profilePicture.mimetype,
-      };
-    }
+  //   if (profilePicture) {
+  //     user.profilePicture = {
+  //       data: profilePicture.buffer,
+  //       contentType: profilePicture.mimetype,
+  //     };
+  //   }
 
-    if (cv) {
-      user.cv = {
-        data: cv.buffer,
-        contentType: cv.mimetype,
-      };
-    }
+  //   if (cv) {
+  //     user.cv = {
+  //       data: cv.buffer,
+  //       contentType: cv.mimetype,
+  //     };
+  //   }
 
-    await user.save();
-    return user;
-  },
+  //   await user.save();
+  //   return user;
+  // },
 
   
 

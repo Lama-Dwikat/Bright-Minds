@@ -45,7 +45,9 @@ bool _isNotValidate = false;
 String getBackendUrl() {
   if (kIsWeb) {
     // For web, use localhost or network IP
-    return "http://127.0.0.1:9000"; // or your LAN IP like 192.168.1.10
+   // return "http://localhost:5000";
+    return "http://192.168.1.122:3000";
+
   } else if (Platform.isAndroid) {
     // Android emulator
     return "http://10.0.2.2:3000";

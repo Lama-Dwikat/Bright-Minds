@@ -4,18 +4,47 @@ import mongoose from 'mongoose';
 export const userController = {
 
     // Create a new user
-    async createUser(req, res) {
-        try {
-            const user = await userService.createUser(req.body);
-            res.status(201).json(user);
-        } catch (error) {
-       if (error.message === "Email already exists") {
-        return res.status(400).json({ error: error.message });
-        }
-       res.status(500).json({ error: error.message });
-      }
+    // async createUser(req, res) {
+    //     try {
+    //         const user = await userService.createUser(req.body);
+    //         res.status(201).json(user);
+    //     } catch (error) {
+    //    if (error.message === "Email already exists") {
+    //     return res.status(400).json({ error: error.message });
+    //     }
+    //    res.status(500).json({ error: error.message });
+    //   }
 
-    },
+    // },
+    async createUser(req, res) {
+  try {
+    const userData = req.body;
+
+  if (userData.profilePicture) {
+  userData.profilePicture = {
+    data: Buffer.from(userData.profilePicture, "base64"),
+    contentType: "image/png", // consider using 'mime' package for dynamic detection
+  };
+}
+
+if (userData.cv) {
+  userData.cv = {
+    data: Buffer.from(userData.cv, "base64"),
+    contentType: "application/pdf",
+  };
+}
+
+
+    const user = await userService.createUser(userData);
+    res.status(201).json(user);
+  } catch (error) {
+    if (error.message === "Email already exists") {
+      return res.status(400).json({ error: error.message });
+    }
+    res.status(500).json({ error: error.message });
+  }
+},
+
 
 
   async signin(req, res) {
@@ -191,37 +220,39 @@ export const userController = {
    },
 
 
-    async uploadFiles (req, res)  {
-  try {
-    const userId = req.params.id;
-    const profilePicture = req.files?.profilePicture ? req.files.profilePicture[0] : null;
-    const cv = req.files?.cv ? req.files.cv[0] : null;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (profilePicture) {
-      user.profilePicture = {
-        data: profilePicture.buffer,
-        contentType: profilePicture.mimetype,
-      };
-    }
-
-   if (cv) {
-  user.cv = {
-    data: cv.buffer,
-    contentType: cv.mimetype,
-  };
-  user.cvStatus = "pending"; // <-- Add this
-}
+//     async uploadFiles (req, res)  {
+//   try {
+//     const userId = req.params.id;
+//     user.profilePicture = req.files['profilePicture'][0].path;
+// user.cv = req.files['cv'][0].path;
+// await user.save();
 
 
-    await user.save();
-    res.status(200).json({ message: "Files uploaded successfully", user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-  },
+//     const user = await User.findById(userId);
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     if (profilePicture) {
+//       user.profilePicture = {
+//         data: profilePicture.buffer,
+//         contentType: profilePicture.mimetype,
+//       };
+//     }
+
+//    if (cv) {
+//   user.cv = {
+//     data: cv.buffer,
+//     contentType: cv.mimetype,
+//   };
+//   user.cvStatus = "pending"; // <-- Add this
+// }
+
+
+//     await user.save();
+//     res.status(200).json({ message: "Files uploaded successfully", user });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+//   },
 
 
 
