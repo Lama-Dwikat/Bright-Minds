@@ -1,6 +1,6 @@
 import express from 'express';
 import { userController } from '../controllers/user.controller.js';
-import { upload } from "../middleware/uploadMiddleware.js";
+// import { upload } from "../middleware/uploadMiddleware.js";
 export const userRouter = express.Router();
 
 // User routes
@@ -18,9 +18,9 @@ userRouter.get('/users/role/:role', userController.getUsersByRole);
 userRouter.get('/users/getall', userController.getAllUsers);
 userRouter.post('/users/approvestatus/:id', userController.approveCV);
 userRouter.post('/users/rejectstatus/:id', userController.rejectCV);
-userRouter.post( "/users/upload/:id",upload.fields([
-    { name: "profilePicture", maxCount: 1 },
-    { name: "cv", maxCount: 1 }, ]), userController.uploadFiles);
+// userRouter.post( "/users/upload/:id",upload.fields([
+//     { name: "profilePicture", maxCount: 1 },
+//     { name: "cv", maxCount: 1 }, ]), userController.uploadFiles);
 
 
 

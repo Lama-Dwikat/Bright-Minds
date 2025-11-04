@@ -12,16 +12,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   icons_plus: ^4.0.0
   http: ^1.5.0
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
   image_picker: ^1.0.7
   file_picker: ^8.1.2
   file_selector: ^1.0.3
->>>>>>> 7dfffcef281108c053629500dd009c1ce77fd833
 
->>>>>>> origin/lama_temporareBranch
 
 dev_dependencies:
   flutter_test:
