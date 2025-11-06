@@ -1,6 +1,8 @@
+
 import User from "../models/user.model.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+
 
 
 export  const userService = {
@@ -18,12 +20,37 @@ export  const userService = {
         if (newUser.role === "parent") {
             newUser.generateParentCode();
         }   
+
+        if (newUser.role === "child") {
+        const supervisors = await User.find({ role: "supervisor" , ageGroup: newUser.ageGroup, cvStatus: "approved"});
+         if (supervisors.length === 0) {
+            throw new Error("No supervisor available for this age group");
+          }
+        let selectedSupervisor = null;
+        let minChildren = Infinity;
+
+        for (const supervisor of supervisors) {
+            const childrenCount = await User.countDocuments({ supervisorId: supervisor._id });
+            if (childrenCount < minChildren) {
+                minChildren = childrenCount;
+                selectedSupervisor = supervisor;
+            }
+        }
+
+        if (selectedSupervisor) {
+            newUser.supervisorId = selectedSupervisor._id;
+        }
+    }
+
         return await newUser.save();
+
+
        },
 
   async signin(email, password) {
-  const user = await User.getUserByEmail(email);
-  if (!user) throw new Error("Invalid email or password");
+  const user = await this.getUserByEmail(email);
+  //const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
 
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) throw new Error("Invalid email or password");
@@ -39,7 +66,7 @@ export  const userService = {
 
     // update user by email
         async updateUserByEmail(email, updatedData) {
-    await userModel.findOneAndUpdate({ email }, updatedData, { new: true });
+        await User.findOneAndUpdate({ email }, updatedData, { new: true });
     },
 
 
@@ -83,13 +110,14 @@ export  const userService = {
     },
 
     // Approve CV
-    async approveCV(userId) {
+    async approveCV(userId, ageGroup) {
         return await User.findByIdAndUpdate(
             userId,
-            { cvStatus: "approved" },
+            { cvStatus: "approved", ageGroup: ageGroup },
             { new: true }
         );
     },
+
 
     // Reject CV
     async rejectCV(userId) {
@@ -99,6 +127,25 @@ export  const userService = {
             { new: true }
         );
     },
+
+
+    async linkChildToParent({ childId, parentCode }) {
+    const child = await User.findById(childId);
+    if (!child) throw new Error("Child not found");
+
+    const parent = await User.findOne({ parentCode: parentCode });
+    if (!parent) throw new Error("Invalid parent code");
+
+    child.parentId = parent._id;
+    await child.save();
+
+    return { message: "Child linked to parent successfully" };
+},
+
+async getUserByParentCode(code) {
+    return await User.findOne({ parentCode: code });
+}
+
 
   
 

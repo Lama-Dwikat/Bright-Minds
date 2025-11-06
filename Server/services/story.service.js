@@ -1,0 +1,348 @@
+import Story from "../models/story.model.js";
+import Template from "../models/template.model.js";
+import StoryReview from "../models/reviewStory.model.js";
+import StoryLike from "../models/storyLike.model.js";
+import mongoose from "mongoose";
+
+export const storyService = {
+
+    // Create a new story
+    async createStory({title, childId, templateId= null , role }) {
+        try {
+
+              if (role !== "child" && role !== "admin") {
+                 throw new Error("You are not allowed to create stories");
+                }
+
+            let pages = [];
+
+
+            // If a templateId is provided, fetch the template and use its pages
+            if (templateId) {
+                const template = await Template.findById(templateId);
+                if (!template) {
+                    throw new Error("Template not found");
+                }
+                pages = Array.isArray(template.defaultPages) ? template.defaultPages : [];
+
+            }
+
+         // create new story 
+        const story = new Story({
+            title,
+            childId,
+            pages,
+            templateId,
+            status: "draft",// default status
+            isDraft: true 
+        });
+
+           await story.save();
+              return story;
+        } 
+        catch (error) {
+            throw new Error("Error creating story: " + error.message);
+        }
+    },
+
+
+    async updateStory({storyId,userId,role, storyData}) {
+        try {
+
+             const story = await Story.findById(storyId);
+            if (!story) {
+                throw new Error("Story not found");
+            }
+
+            if (role === "child" && story.childId.toString() !== userId) {
+               throw new Error("You are not allowed to edit this story");
+             }
+
+            if (role === "parent") {
+                  throw new Error("Parents are not allowed to edit stories");
+             }
+
+             if (role === "supervisor" && story.supervisorId?.toString() !== userId) {
+              throw new Error("You are not assigned as the supervisor for this story");
+             }
+
+            if (!["draft", "needs_edit"].includes(story.status) && role !== "admin" && role !== "supervisor") {
+             throw new Error("Only stories with status 'draft' or 'needs_edit' can be updated");
+             }
+
+
+               let allowedFields = [];
+                switch (role) {
+                 case "child":
+                  allowedFields = ["title", "pages", "templateId"];
+                  break;
+                 
+                 case "supervisor":
+                 allowedFields = ["status", "reviewNotes"];  
+                 break;
+                 case "admin":
+                 allowedFields = ["title", "pages", "templateId", "status", "supervisorId"];
+                 break;
+                 default:
+                 throw new Error("Invalid role");
+                }
+
+            for (const key of Object.keys(storyData)) {
+                if (allowedFields.includes(key)) {
+                     story[key] = storyData[key];
+                }
+            }
+            await story.save();
+            return story;   
+
+        } catch (error) {
+            throw new Error("Error updating story: " + error.message);
+        }
+    },
+
+    async submitStory({storyId , userId, role}) {
+
+        try {
+            const story = await Story.findById(storyId);
+            if (!story) {
+                throw new Error("Story not found");
+            }
+
+
+             if (role === "parent" || role === "supervisor") {
+               throw new Error("You are not allowed to submit stories");
+              }
+
+
+              if (role === "child" && story.childId.toString() !== userId) {
+                 throw new Error("You are not allowed to submit this story");
+                  }
+
+
+            if (!["draft", "needs_edit"].includes(story.status)) {
+                throw new Error("Only draft or needs_edit stories can be submitted");
+            }
+
+            story.status = "pending";
+            story.isDraft = false;
+            //story.supervisorId = supervisorId;
+            await story.save();
+            return story;
+        } catch (error) {
+            throw new Error("Error submitting story: " + error.message);
+        }
+    },
+
+
+    async deleteStory({storyId,userId, role}) {
+        try {
+            const story = await Story.findById(storyId);
+            if (!story) {
+                throw new Error("Story not found or already deleted");
+            }
+
+            if (role === "parent") {
+               throw new Error("Parents are not allowed to delete stories");
+              }
+            
+             const isChildOwner = story.childId.toString() === userId;
+             const isSupervisorAssigned = story.supervisorId?.toString() === userId;
+             const isAdmin = role === "admin";
+
+
+             
+            if (!isChildOwner && !isSupervisorAssigned && !isAdmin) {
+            throw new Error("You are not allowed to delete this story");
+            }
+
+
+            if (!["draft", "needs_edit"].includes(story.status) && role !== "supervisor" && role !== "admin") {
+            throw new Error("Only stories with status 'draft' or 'needs_edit' can be deleted");
+        }
+            await Story.deleteOne({ _id: storyId});
+            return { message: "Story deleted successfully" };
+
+        } catch (error) {
+            throw new Error("Error deleting story: " + error.message);
+        }
+    },
+
+
+    async getStoryById({storyId, userId=null, role }) {
+        try {
+            const story = await Story.findById(storyId)
+             .populate("childId", "name parentId")
+             .populate("supervisorId", "name")
+             .populate("templateId", "name defaultTheme")
+             .lean();
+           if (!story) {
+                throw new Error("Story not found");
+            }
+              if (role !== "admin") {
+                   const isChildOwner = story.childId?._id?.toString() === userId;
+                   const isSupervisorAssigned = story.supervisorId?._id?.toString() === userId;
+                   const isParentOfChild = story.childId?.parentId?.toString() === userId;
+
+                if (
+                      !isChildOwner &&
+                      !isSupervisorAssigned &&
+                      !isParentOfChild
+                     ) {
+                 throw new Error("You are not allowed to view this story");
+                    }
+               }
+
+
+
+           const [reviews, likesCount, userLiked] = await Promise.all([
+                StoryReview.find({ storyId: story._id })
+                    .populate("supervisorId", "name email")
+                    .sort({ createdAt: -1 }),
+                StoryLike.countDocuments({ storyId }),
+                userId ? StoryLike.findOne({ storyId, userId }) : Promise.resolve(null)
+            ]);
+
+            story.reviews = reviews;
+            story.likesCount = likesCount;
+            story.userLiked = !!userLiked;
+
+            return story;
+
+        } catch (error) {
+            throw new Error("Error fetching story: " + error.message);
+        }
+    },
+
+
+    async getStoriesByChild({childId, status = null, userId=null, role}) {
+        try {
+
+             if (role !== "admin") {
+                if (role === "child" && userId !== childId) {
+                   throw new Error("You are not allowed to view other children's stories");
+                  }
+
+                  if (role === "parent") {
+                     const child = await mongoose.model("Child").findById(childId).populate("parentId", "_id");
+                      if (!child || child.parentId?._id?.toString() !== userId) {
+                        throw new Error("You are not allowed to view this child's stories");
+                 }
+                }
+
+              }
+
+            const query = { childId: mongoose.Types.ObjectId(childId) };        
+            if (status) {
+                query.status = status;
+            }
+            const stories = await Story.find(query)
+                .populate("childId", "name parentId")
+                .populate("supervisorId", "name")
+                .populate("templateId", "name defaultTheme")
+                .sort({ createdAt: -1 })
+                .lean();
+
+                 const filteredStories = stories.filter((story) => {
+                    if (role === "admin") return true; 
+                    if (role === "child") return story.childId._id.toString() === userId;
+                     if (role === "parent") return story.childId?.parentId?.toString() === userId;
+                     if (role === "supervisor") return story.supervisorId?._id?.toString() === userId;
+                        return false;
+                        });
+
+
+
+         const storiesWithDetails = await Promise.all(
+      filteredStories.map(async (story) => {
+        const [reviews, likesCount, userLiked] = await Promise.all([
+          StoryReview.find({ storyId: story._id })
+            .populate("supervisorId", "name email")
+            .sort({ createdAt: -1 }),
+          StoryLike.countDocuments({ storyId: story._id }),
+          userId ? StoryLike.findOne({ storyId: story._id, userId }) : Promise.resolve(null),
+        ]);
+
+                story.reviews = reviews;
+                story.likesCount = likesCount;
+                story.userLiked = !!userLiked;
+
+                return story;
+        }));
+
+        return storiesWithDetails;
+
+        } catch (error) {
+            throw new Error("Error fetching stories: " + error.message);
+        }
+    },
+
+
+   async addMediaToStory({ storyId, mediaUrl, mediaType = "image", pageIndex = 0 }) {
+  try {
+    const story = await Story.findById(storyId);
+    if (!story) throw new Error("Story not found");
+
+    if (mediaType === "image" && !mediaUrl.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      throw new Error("Invalid media type. Only image URLs are allowed.");
+    }
+
+    if (!story.pages) story.pages = [];
+    if (!story.pages[pageIndex]) story.pages[pageIndex] = { elements: [] };
+    if (!story.pages[pageIndex].elements) story.pages[pageIndex].elements = [];
+
+    const nextOrder = story.pages[pageIndex].elements.length + 1;
+
+    story.pages[pageIndex].elements.push({
+      type: mediaType,
+      media: { mediaType, url: mediaUrl, page: pageIndex + 1, elementOrder: nextOrder },
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      order: nextOrder
+    });
+
+    await story.save();
+    return story;
+  } catch (error) {
+    throw new Error("Failed to add media: " + error.message);
+  }
+    },
+
+    // not doing until now 
+    async resubmitStory({ storyId, childId }) {
+    const story = await Story.findById(storyId);
+    if (!story) throw new Error("Story not found");
+
+    if (story.childId.toString() !== childId.toString()) {
+      throw new Error("Unauthorized: You cannot resubmit someone else's story");
+    }
+
+    if (story.status !== "needs_edit") {
+      throw new Error("Story must be in 'needs_edit' status to resubmit");
+    }
+
+    story.status = "pending";
+    await story.save();
+
+    const review = new StoryReview({
+      storyId: story._id,
+      supervisorId: story.supervisorId, 
+      status: "pending"
+    });
+    await review.save();
+
+    return { message: "Story resubmitted for review", story, review };
+  }
+
+
+
+
+
+
+
+
+
+};
+
+export default storyService;
