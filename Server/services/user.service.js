@@ -81,7 +81,7 @@ export  const userService = {
 
         // Get all users
     async getAllUsers() {
-        return await User.find();
+        return await User.find().select('-profilePicture -cv');
     },
 
     // Approve CV
