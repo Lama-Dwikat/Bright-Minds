@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 class Sign extends StatelessWidget {
   const Sign({super.key, this.child});
   final Widget? child;
+  
 
   @override
-  Widget build(BuildContext context) {   
+  Widget build(BuildContext context) {  
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+ 
     return Scaffold(
      body:Stack(
   children:[
@@ -15,13 +19,13 @@ color: const Color.fromARGB(255, 149, 138, 252),
       width: double.infinity,
       height: double.infinity,),
     Positioned(
-      top:30,
-      left:0,
+      top: screenHeight * 0.05, // 5% from top     
+       left:0,
       right:0,
      child: SizedBox(
-      width:250,
-      height:250,
-      child:Image.asset('assets/images/image2.png',fit:BoxFit.contain),
+      width: screenWidth * 0.5,  // 50% of screen width
+      height: screenWidth * 0.5, // keep square shape
+      child:Image.asset('assets/images/logo.png',fit:BoxFit.contain),
     )
     ),
     SafeArea(

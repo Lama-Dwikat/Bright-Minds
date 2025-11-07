@@ -1,5 +1,5 @@
 
-import 'package:bright_minds/screens/homePage.dart';
+import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 
 

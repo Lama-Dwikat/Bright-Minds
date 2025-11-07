@@ -19,7 +19,7 @@ title:{
 },
 description:{
     type:String,
-    required:true,
+   // required:true,
 },
 category:{
     type:String,
@@ -44,9 +44,11 @@ ageGroup:{
 createdBy:{
    type:mongoose.Schema.Types.ObjectId,
    ref:"User"
-}
+},
+
 
 } , 
+
 
 {
 timestamps:true

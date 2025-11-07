@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:bright_minds/screens/homePage.dart';
+import 'package:bright_minds/widgets/home.dart';
 
 class navItem extends StatelessWidget {
   final IconData icon;
