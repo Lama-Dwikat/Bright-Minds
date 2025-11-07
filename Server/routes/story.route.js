@@ -1,7 +1,7 @@
 import express from "express";
 import {storyController} from "../controllers/story.controller.js";
-import authMiddleware from "../middleware/auth.middleware.js";
-import { authorizeStory } from "../middleware/storyAuth.middleware.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
+import { authorizeStory } from "../middlewares/storyAuth.middleware.js";
 export const storyRouter = express.Router();
 
 

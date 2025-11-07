@@ -4,6 +4,9 @@ import { Buffer } from "buffer";
 import Story from "../models/story.model.js"; 
 import ActivityLog from "../models/activityLog.model.js"; 
 import rateLimit from "express-rate-limit";
+import cloudinary from 'cloudinary';
+
+
 
 
 console.log("OPENAI API KEY:", process.env.OPENAI_API_KEY);
@@ -47,7 +50,7 @@ export const generateImageFromPrompt = async (req, res) => {
     const forbiddenWords = ["kill", "blood", "weapon", "violence", "sword"];
     const hasBadWord = forbiddenWords.some(word => prompt.toLowerCase().includes(word));
     if (hasBadWord) {
-      await ActivityLog.create({ userId, prompt, status: "error" });
+      await ActivityLog.create({ userId, storyId,  pageNumber,  prompt, status: "error",role: userRole  });
       return res.status(400).json({ success: false, message: "The prompt contains forbidden words." });
     }
 
@@ -57,9 +60,13 @@ export const generateImageFromPrompt = async (req, res) => {
       input: prompt,
     });
     if (modResp.results?.[0]?.flagged) {
-      await ActivityLog.create({ userId, prompt, status: "error" });
+      await ActivityLog.create({ userId, storyId,  pageNumber,  prompt, status: "error",role: userRole  });
       return res.status(400).json({ success: false, message: "The prompt is not allowed due to safety policies." });
     }
+
+     const story = await Story.findById(storyId);
+    if (!story) throw new Error("Story not found");
+
 
     // ===== Generate image =====
     const fullPrompt = `${prompt}. The image should be in ${style} style suitable for children.`;
@@ -85,9 +92,7 @@ export const generateImageFromPrompt = async (req, res) => {
     const imageUrl = uploadResult.secure_url;
 
     // ===== Save to Story =====
-    const story = await Story.findById(storyId);
-    if (!story) throw new Error("Story not found");
-
+   
     let page = story.pages.find(p => p.pageNumber === pageNumber);
     if (!page) {
       page = { pageNumber, elements: [], assignedToRole: "child" }; // default role
@@ -103,12 +108,14 @@ export const generateImageFromPrompt = async (req, res) => {
       type: "image",
       content: "",
       role: userRole, // store who generated this element
-      media: {
-        mediaType: "image",
-        url: imageUrl,
-        page: pageNumber,
-        elementOrder: (page.elements?.length || 0) + 1
-      },
+     media: {
+  mediaType: "image",
+  url: imageUrl,
+  storyId,
+  page: pageNumber,
+  elementOrder: (page.elements?.length || 0) + 1
+},
+
       x: 0,
       y: 0,
       width: 400,
@@ -124,14 +131,14 @@ export const generateImageFromPrompt = async (req, res) => {
     await story.save();
 
     // ===== Log successful activity =====
-    await ActivityLog.create({ userId, prompt, status: "success", role: userRole });
+      await ActivityLog.create({ userId, storyId,  pageNumber,  prompt, status: "error",role: userRole  });
 
     // ===== Send response =====
     res.json({ success: true, imageUrl, element: newElement, storyId: story._id });
 
   } catch (err) {
     console.error("AI generate error:", err);
-    await ActivityLog.create({ userId, prompt, status: "error", role: userRole });
+      await ActivityLog.create({ userId, storyId,  pageNumber,  prompt, status: "error",role: userRole  });
     res.status(500).json({ success: false, message: err.message || "Server error" });
   }
 };
