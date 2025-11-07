@@ -1,5 +1,5 @@
-import StoryReview from "../models/reviewStory.model";
-import Story from "../models/story.model";
+import StoryReview from "../models/reviewStory.model.js";
+import Story from "../models/story.model.js";
 import mongoose from "mongoose";
 
 export const reviewStoryService = {
@@ -19,6 +19,9 @@ export const reviewStoryService = {
             if (story.supervisorId.toString() !== supervisorId.toString()) {
                throw new Error("Supervisor not assigned to this story");
               }
+             const existingReview = await StoryReview.findOne({ storyId, supervisorId });
+      if (existingReview)
+        throw new Error("You already submitted a review for this story");
 
 
 
@@ -45,6 +48,7 @@ export const reviewStoryService = {
 
 
       story.supervisorCommentsSeen = false; 
+      story.updatedAt = new Date();
       await story.save();
 
       return review;
@@ -84,6 +88,7 @@ export const reviewStoryService = {
   },
 
   async deleteReview({ reviewId, supervisorId }) {
+    try {
     const review = await StoryReview.findById(reviewId);
     if (!review) throw new Error("Review not found");
 
@@ -91,8 +96,12 @@ export const reviewStoryService = {
       throw new Error("Unauthorized: You cannot delete this review");
     }
 
-    await review.remove();
+    await review.deleteOne();
     return { message: "Review deleted successfully" };
+  }
+  catch (error) {
+      throw new Error("Error deleting review: " + error.message);
+    }
   }
 
 

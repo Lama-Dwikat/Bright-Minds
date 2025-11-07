@@ -2,7 +2,7 @@ import express from 'express';
 import { userController } from '../controllers/user.controller.js';
 // import { upload } from "../middleware/uploadMiddleware.js";
 export const userRouter = express.Router();
-import authMiddleware from "../middleware/auth.middleware.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 // User routes
 userRouter.post('/users/createUser', userController.createUser);
 userRouter.post('/users/signIn',userController.signin);

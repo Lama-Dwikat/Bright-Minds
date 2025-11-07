@@ -1,9 +1,9 @@
-import StoryLike from "../models/StoryLike.js";
-import Story from "../models/Story.js";
+import StoryLike from "../models/StoryLike.model.js";
+import Story from "../models/Story.model.js";
 import { mongo } from "mongoose";
 
 
-export const StoryLike ={
+export const storyLikeService ={
 
     async addLike({ storyId, userId }) {
     try {
@@ -65,4 +65,4 @@ export const StoryLike ={
 
 };
 
-export default StoryLike;
+export default storyLikeService;
