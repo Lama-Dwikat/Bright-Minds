@@ -1,4 +1,4 @@
-import Template from "../models/Template.js";
+import Template from "../models/template.model.js";
 import mongoose from "mongoose";
 
 export const templateService ={
