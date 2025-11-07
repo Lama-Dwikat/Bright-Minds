@@ -6,14 +6,11 @@ import http from 'http';
 import cors from 'cors';
 import { userRouter } from './routes/user.route.js';
 import { storyRouter } from './routes/story.route.js'; 
-<<<<<<< HEAD
+
 import { videoRouter} from './routes/video.route.js';
 import { quizeRouter} from './routes/quize.route.js';
-
-
-=======
 import { aiRouter } from './routes/ai.route.js'; 
->>>>>>> origin/fatima_nasser
+
 
 const app = express()
 const server = http.createServer(app);
@@ -40,14 +37,10 @@ app.use(express.urlencoded({ limit: '5mb', extended: true }));
 // Routes
 app.use('/api', userRouter);
 app.use('/api', storyRouter);
-<<<<<<< HEAD
 app.use('/api/',videoRouter);
 app.use('/api/',quizeRouter);
-
-
-=======
 app.use('/api', aiRouter);
->>>>>>> origin/fatima_nasser
+
 
 
 app.get('/', (req,res) => {
