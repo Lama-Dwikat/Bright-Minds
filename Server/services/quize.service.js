@@ -2,6 +2,8 @@
 
 import { get } from "mongoose";
 import Quize from "../models/quize.model.js";
+import axios from "axios";
+
 
 
 export const quizeService = {

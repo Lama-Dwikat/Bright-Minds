@@ -5,7 +5,7 @@ import {videoController} from "../controllers/video.controller.js"
 
 export const videoRouter=express.Router();
 
-videoRouter.get('/video/fetchvVideoFromAPI',videoController.fetchVediosFromAPI);
+videoRouter.get('/video/fetchVideoFromAPI',videoController.fetchVediosFromAPI);
 videoRouter.post('/video/addVideo',videoController.addVideo);
 videoRouter.get('/video/getVideoById/:id',videoController.getVideoById);
 videoRouter.get('/video/getVideoByTitle/:title',videoController.getVideoByTitle);

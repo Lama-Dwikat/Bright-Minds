@@ -12,9 +12,9 @@ export const videoService={
      
  const response = await axios.get("https://www.googleapis.com/youtube/v3/search", {
     params:{
-        q: topic,
+        q:topic,
         key: process.env.YOUTUBE_API_KEY,
-        part: "snippet,statistics",
+        part: "snippet",
         maxResults: 5,},
        });
 

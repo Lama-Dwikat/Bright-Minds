@@ -10,8 +10,9 @@ export const videoController={
   const {topic}=req.query;
   if(!topic)
     return res.status(400).json({ message: "Topic is required" });
-   const video=videoController.fetchVediosFromAPI(topic)
-     res.status(200).json(data);
+   const video= await videoService.fetchVideoFromAPI(topic)
+    res.status(200).json(video);
+
     }catch(error){
     res.status(500).json({ error: error.message });
 
