@@ -8,6 +8,7 @@ import cloudinary from 'cloudinary';
 
 
 
+
 console.log("OPENAI API KEY:", process.env.OPENAI_API_KEY);
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
