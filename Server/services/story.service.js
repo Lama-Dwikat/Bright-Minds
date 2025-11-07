@@ -10,12 +10,13 @@ export const storyService = {
     async createStory({title, childId, templateId= null , role }) {
         try {
 
-              if (role !== "child" && role !== "admin") {
+              if (role !== "child" && role !== "admin" && role !== "supervisor") {
                  throw new Error("You are not allowed to create stories");
                 }
 
             let pages = [];
-
+              const startedBy = role === "supervisor" ? "supervisor" : "child";
+              const continuedByChild = role === "child";
 
             // If a templateId is provided, fetch the template and use its pages
             if (templateId) {
@@ -34,11 +35,26 @@ export const storyService = {
             pages,
             templateId,
             status: "draft",// default status
-            isDraft: true 
+            isDraft: true ,
+            startedBy,
+            continuedByChild
         });
 
            await story.save();
-              return story;
+            
+             await ActivityLog.create({
+            userId: childId,
+            type: "create_story",
+            timestamp: new Date(),
+            status: "success"
+        });
+
+        return {
+            storyId: story._id,
+            title: story.title,
+            pages: story.pages,
+            status: story.status
+        };
         } 
         catch (error) {
             throw new Error("Error creating story: " + error.message);
@@ -74,14 +90,14 @@ export const storyService = {
                let allowedFields = [];
                 switch (role) {
                  case "child":
-                  allowedFields = ["title", "pages", "templateId"];
+                  allowedFields = ["title", "pages", "templateId", "continuedByChild"];
                   break;
                  
                  case "supervisor":
-                 allowedFields = ["status", "reviewNotes"];  
+                 allowedFields = ["status", "reviewNotes", "startedBy"];  
                  break;
                  case "admin":
-                 allowedFields = ["title", "pages", "templateId", "status", "supervisorId"];
+                 allowedFields = ["title", "pages", "templateId", "status", "supervisorId", "startedBy", "continuedByChild"];
                  break;
                  default:
                  throw new Error("Invalid role");
@@ -118,6 +134,10 @@ export const storyService = {
                  throw new Error("You are not allowed to submit this story");
                   }
 
+                 if (story.startedBy === "supervisor") {
+                  story.continuedByChild = true;
+                  }
+ 
 
             if (!["draft", "needs_edit"].includes(story.status)) {
                 throw new Error("Only draft or needs_edit stories can be submitted");
@@ -322,8 +342,18 @@ export const storyService = {
       throw new Error("Story must be in 'needs_edit' status to resubmit");
     }
 
+     if (story.startedBy === "supervisor" && !story.continuedByChild) {
+       story.continuedByChild = true;
+     }
+
     story.status = "pending";
+    story.isDraft = false;
     await story.save();
+
+    
+  if (!story.supervisorId) {
+    throw new Error("No supervisor assigned to this story");
+  }
 
     const review = new StoryReview({
       storyId: story._id,

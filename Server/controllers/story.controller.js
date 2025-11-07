@@ -11,9 +11,22 @@ export const storyController ={
 
     async createStory (req, res) {
         try {
-            const { title, templateId } = req.body;
-            const childId = req.user._id; // نفترض أن Middleware تحقق JWT وضعه في req.user
-            const role = req.user.role;
+            const { title, templateId ,childId: childIdFromBody} = req.body;
+            const { _id: userId, role } = req.user;
+              let childId;
+             if (role === "child") {
+                childId = userId;
+                }
+                 else if (role === "supervisor") {
+                   if (!childIdFromBody) {
+                 throw new Error("Child ID is required when supervisor creates a story");
+                   }
+                  childId = childIdFromBody;
+                  }
+                   else {
+                      throw new Error("You are not allowed to create stories");
+                      }
+
             const story = await storyService.createStory({ title, childId, templateId, role });
             res.status(201).json(story);
         } catch (error) {
@@ -27,6 +40,14 @@ export const storyController ={
             const storyData = req.body;
             const userId = req.user._id;
             const role = req.user.role;
+            if (!storyId) {
+             return res.status(400).json({ message: "Story ID is required" });
+             }
+              if (!["child", "supervisor", "admin"].includes(role)) {
+              return res.status(403).json({ message: "You are not allowed to update stories" });
+               }
+
+
             const story = await storyService.updateStory({ storyId,  userId, role, storyData });
             res.status(200).json(story);
         } catch (error) {
@@ -41,8 +62,19 @@ export const storyController ={
             const userId = req.user._id;
             const role = req.user.role;
 
+              if (!storyId) {
+      return res.status(400).json({ message: "Story ID is required" });
+    }
+
+     if (role !== "child") {
+      return res.status(403).json({ message: "Only children can submit stories" });
+    }
+
             const story = await storyService.submitStory({ storyId, userId, role });
-            res.status(200).json(story);
+            res.status(200).json({
+      message: "Story submitted successfully",
+      story,
+    });
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
@@ -54,8 +86,18 @@ export const storyController ={
             const userId = req.user._id;
             const role = req.user.role;
 
+             if (!storyId) {
+      return res.status(400).json({ message: "Story ID is required" });
+    }
+     if (role === "parent") {
+      return res.status(403).json({ message: "Parents are not allowed to delete stories" });
+    }
             const result = await storyService.deleteStory({ storyId, userId, role });
-            res.status(200).json(result);
+            res.status(200).json({
+      success: true,
+      message: "Story deleted successfully",
+      result,
+    });
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
@@ -105,6 +147,10 @@ export const storyController ={
       let mediaType = req.body.mediaType || "image";
       const pageIndex = req.body.pageIndex || 0;
 
+      const { role, _id: userId } = req.user;
+      const story = await Story.findById(storyId);
+      if (!story) return res.status(404).json({ message: "Story not found" });
+
       if (req.file) {
         mediaUrl = await cloudinaryService.uploadFile(req.file.path, "stories");
         fs.unlinkSync(req.file.path);
@@ -118,7 +164,9 @@ export const storyController ={
         storyId,
         mediaUrl,
         mediaType,
-        pageIndex
+        pageIndex,
+        userId,
+        role
       });
 
       res.status(200).json({ message: "Media added successfully", story: updatedStory });
@@ -126,7 +174,21 @@ export const storyController ={
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
+  },
+
+   async resubmitStory(req, res) {
+  try {
+    const { storyId } = req.params;
+    const childId = req.user._id;
+
+    const result = await storyService.resubmitStory({ storyId, childId });
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
+}
+
 
 
 
