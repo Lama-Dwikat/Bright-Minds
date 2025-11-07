@@ -10,5 +10,6 @@ LikeSchema.index({ storyId: 1, userId: 1 }, { unique: true });
 LikeSchema.index({ storyId: 1 });
 
 
-const StoryLike = mongoose.model("StoryLike", LikeSchema);
+//const StoryLike = mongoose.model("StoryLike", LikeSchema);
+const StoryLike = mongoose.models.StoryLike || mongoose.model("StoryLike", LikeSchema);
 export default StoryLike;
