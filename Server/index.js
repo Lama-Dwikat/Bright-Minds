@@ -6,10 +6,10 @@ import http from 'http';
 import cors from 'cors';
 import { userRouter } from './routes/user.route.js';
 import { storyRouter } from './routes/story.route.js'; 
-
 import { videoRouter} from './routes/video.route.js';
 import { quizeRouter} from './routes/quize.route.js';
 import { aiRouter } from './routes/ai.route.js'; 
+import { reviewStoryRouter } from './routes/reviewStory.route.js';
 
 
 const app = express()
@@ -40,7 +40,7 @@ app.use('/api', storyRouter);
 app.use('/api/',videoRouter);
 app.use('/api/',quizeRouter);
 app.use('/api', aiRouter);
-
+app.use('/api', reviewStoryRouter);
 
 
 app.get('/', (req,res) => {
