@@ -4,12 +4,11 @@ import 'package:bright_minds/screens/signup.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:bright_minds/config.dart';
 import 'package:bright_minds/screens/homeParent.dart';
 import 'package:bright_minds/screens/homeChild.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
 import 'package:bright_minds/screens/homeAdmin.dart';
-import 'package:bright_minds/screens/homePage.dart';
+import 'package:bright_minds/widgets/home.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -144,7 +143,7 @@ String getBackendUrl() {
     topRight:Radius.circular(40),
       )
        ),
-child:SingleChildScrollView(
+    child:SingleChildScrollView(
        child:Form(
       key:_formSignInKey,
         child:Column(

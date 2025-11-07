@@ -79,10 +79,23 @@ const userSchema = mongoose.Schema(
             ref: "User"
         },
 
-        createdAt: {
-            type: Date,
-            default: Date.now
-        }
+ 
+
+       videoHistory: [
+         {
+           video: { type: mongoose.Schema.Types.ObjectId, ref: "Video" },
+           watchedAt: { type: Date },
+           duration: { type: Number } // in minutes for each indivisual video
+         }
+       ],
+         // Fields to track watch time
+         dailyVidoeTime: { type: Number,default: 0 }, // in minutes
+         lastVideoDate: { type: Date },
+         dailyVideoLimit: { type: Number, default: 20 } // daily limit in minutes
+
+
+
+
     },
 
 

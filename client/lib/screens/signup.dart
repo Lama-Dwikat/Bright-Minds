@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/signin.dart';
 import 'package:bright_minds/widgets/sign.dart';
-import 'package:bright_minds/config.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -129,6 +128,10 @@ if (_profileXFile != null) {
               "role":selectedRole,
               "cvStatus":null,
               "profilePicture":profileBase64,
+              "cv":null,
+              "dailyVidoeTime":null,
+              "lastVideoDate":null ,
+              "dailyVideoLimit":null
    
             };
           
@@ -201,7 +204,8 @@ if (_profileXFile != null) {
       "role": selectedRole,
       "cvStatus": null,
       "profilePicture": profileBase64, // Send Base64 in JSON
-      "cv": null,                      // Children don’t send CV
+      "cv": null, 
+                           // Children don’t send CV
     };
 
     try {
@@ -272,6 +276,9 @@ if (_cvXFile != null) {
         "cvStatus": cvStatus,
         "profilePicture": profileBase64, // Send Base64 in JSON
         "cv":cvBase64,
+        "dailyVidoeTime":null,
+        "lastVideoDate":null ,
+        "dailyVideoLimit":null
 
       };
 
