@@ -68,6 +68,7 @@ StorySchema.index({ childId:1, status:1 });
 StorySchema.index({ title: "text", "pages.elements.content": "text" }); // text index for search
 StorySchema.index({ publicVisibility: 1 });
 
-const Story = mongoose.model("Story", StorySchema);
+//const Story = mongoose.model("Story", StorySchema);
+const Story = mongoose.models.Story || mongoose.model("Story", StorySchema);
 export default Story;
 
