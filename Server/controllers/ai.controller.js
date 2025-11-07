@@ -6,6 +6,7 @@ import ActivityLog from "../models/activityLog.model.js";
 import rateLimit from "express-rate-limit";
 
 
+console.log("OPENAI API KEY:", process.env.OPENAI_API_KEY);
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
