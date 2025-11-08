@@ -76,51 +76,7 @@ String getBackendUrl() {
         body: jsonEncode(SignInBody),
       );
 
-      // if (response.statusCode == 200) {
-      //   var data = jsonDecode(response.body);
-      //   var userRole = data['user']['role'];
-      //   print("User role: $userRole");
-
-       
-
-      //   // Navigate based on role
-      //   if (userRole == 'parent') {
-      //     Navigator.push(context,
-      //         MaterialPageRoute(builder: (context) => HomeParent()));
-      //          ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Sign in successful')),
-      //   );
-      //   } else if (userRole == 'supervisor') {
-      //     if (data['user']['cvStatus'] != 'approved') {
-      //       ScaffoldMessenger.of(context).showSnackBar(
-      //         const SnackBar(content: Text('Your CV is not approved yet.')),
-      //       );
-      //       return; // Stop further execution
-      //     }
-      //     Navigator.push(context,
-      //         MaterialPageRoute(builder: (context) => HomeSupervisor()));
-      //          ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Sign in successful')),
-      //   );
-      //   } else if (userRole == 'child') {
-      //     Navigator.push(context,
-      //         MaterialPageRoute(builder: (context) => HomeChild()));
-      //          ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Sign in successful')),
-      //   );
-      //   } else if (userRole == 'admin') {
-      //     Navigator.push(context,
-      //         MaterialPageRoute(builder: (context) => HomeAdmin()));
-      //          ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('Sign in successful')),
-      //   );
-      //   } else {
-      //     // default fallback
-      //     Navigator.push(
-      //         context, MaterialPageRoute(builder: (context) => homePage()));
-      //   }
-
-      // } 
+  
 
       if (response.statusCode == 200) {
     var data = jsonDecode(response.body);
