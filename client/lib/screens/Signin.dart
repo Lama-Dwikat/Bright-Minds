@@ -11,6 +11,8 @@ import 'package:bright_minds/screens/homeAdmin.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 
 
@@ -74,35 +76,41 @@ String getBackendUrl() {
         body: jsonEncode(SignInBody),
       );
 
+
       if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        var userRole = data['user']['role'];
-        print("User role: $userRole");
+    var data = jsonDecode(response.body);
+    var token = data['token']; // GET THE TOKEN
+    var userRole = data['user']['role'];
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sign in successful')),
-        );
+    // Save token in SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token); // ✅ store token
 
-        // Navigate based on role
-        if (userRole == 'parent') {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HomeParent()));
-        } else if (userRole == 'supervisor') {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HomeSupervisor()));
-        } else if (userRole == 'child') {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HomeChild()));
-        } else if (userRole == 'admin') {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => HomeAdmin()));
-        } else {
-          // default fallback
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => homePage()));
+    print("User role: $userRole");
+    
+    // Navigate based on role
+    if (userRole == 'parent') {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeParent()));
+    } else if (userRole == 'supervisor') {
+        if (data['user']['cvStatus'] != 'approved') {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Your CV is not approved yet.')),
+            );
+            return;
         }
+        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeSupervisor()));
+    } else if (userRole == 'child') {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeChild()));
+    } else if (userRole == 'admin') {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeAdmin()));
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in successful')),
+    );
+}
 
-      } else {
+      else {
         var errorMsg = jsonDecode(response.body)['error'];
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign in failed: $errorMsg')),
@@ -273,11 +281,11 @@ TextFormField(
           onPressed: (){
             if(_formSignInKey.currentState!.validate() && rememberPassword){
               //process data
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content:Text('Processing Data')
-                  ),
-              );
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   const SnackBar(
+              //     content:Text('Processing Data')
+              //     ),
+              // );
               // Call SignIn function
               print("Sign In button pressed");
 

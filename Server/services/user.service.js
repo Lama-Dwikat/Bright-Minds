@@ -147,10 +147,28 @@ export  const userService = {
 
 async getUserByParentCode(code) {
     return await User.findOne({ parentCode: code });
-}
+},
 
 
-  
+  async updateCvStatus(userId, status) {
+        const user= await User.findById(userId);
+        if (!user) throw new Error("User not found");
+        if(user.role!=="supervisor") throw new Error("CV status can only be updated for supervisors");
+        
+        user.cvStatus = status;
+        return await user.save();
+    },
+
+
+      async addAGeGroupToSupervisor(userId, ageGroup) {
+        const user= await User.findById(userId);
+        if (!user) throw new Error("User not found");
+        if(user.role!=="supervisor") throw new Error("Only supervisors can add age groups");
+        
+        user.ageGroup = ageGroup;
+        return await user.save();
+
+        },
 
 };
 
