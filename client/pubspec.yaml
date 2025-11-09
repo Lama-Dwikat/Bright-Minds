@@ -17,6 +17,7 @@ dependencies:
   file_selector: ^1.0.3
   google_fonts: ^6.3.2
   shared_preferences: ^2.2.3
+  jwt_decoder: ^2.0.1
 
 
 dev_dependencies:

@@ -170,6 +170,11 @@ async getUserByParentCode(code) {
 
         },
 
+
+
+        async getKidsForSupervisor(supervisorId) {
+        return await User.find({ supervisorId: supervisorId });
+    },
 };
 
 

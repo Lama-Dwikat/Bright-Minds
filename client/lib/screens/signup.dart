@@ -24,10 +24,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 
 
-
-
-
-
 String getBackendUrl() {
   if (kIsWeb) {
     // For web, use localhost or network IP

@@ -1,3 +1,4 @@
+import 'package:bright_minds/screens/supervisorKids.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -188,14 +189,15 @@ Column(
           label: "Videos",
           icon: Icons.video_library,
           color: Colors.orange[200]!,
-          onPressed: () {},
+          onPressed: () { },
         ),
         const SizedBox(width: 16),
         _buildSquareButton(
           label: "Drawing",
           icon: Icons.brush,
           color: Colors.pink[200]!,
-          onPressed: () {},
+       onPressed: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorKidsScreen()));},
+ 
         ),
       ],
     ),

@@ -24,6 +24,7 @@ userRouter.post('/users/rejectstatus/:id', userController.rejectCV);
 userRouter.post('/users/link-child', authMiddleware.authentication ,userController.linkChildToParent);
 userRouter.put("/users/updateCvStatus/:id", authMiddleware.authentication, roleMiddleware(["admin"]), userController.updateCvStatus);
 userRouter.put("/users/addAgeGroup/:id", authMiddleware.authentication, roleMiddleware(["admin"]), userController.addAGeGroupToSupervisor);
+userRouter.get('/users/kidsForSupervisor/:id', userController.getKidsForSupervisor);
 
 
 
