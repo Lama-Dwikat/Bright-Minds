@@ -1,6 +1,7 @@
 
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 
 

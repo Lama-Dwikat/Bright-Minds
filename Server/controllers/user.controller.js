@@ -273,6 +273,15 @@ async linkChildToParent(req, res) {
     }
 
     },
+    async getKidsForSupervisor(req, res) {
+        try {
+            const supervisorId = req.params.id;
+            const kids = await userService.getKidsForSupervisor(supervisorId);
+            res.status(200).json(kids);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    },
 
 
 }
