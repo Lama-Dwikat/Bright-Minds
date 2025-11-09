@@ -76,10 +76,6 @@ String getBackendUrl() {
         body: jsonEncode(SignInBody),
       );
 
-<<<<<<< HEAD
-  
-=======
->>>>>>> main
 
       if (response.statusCode == 200) {
     var data = jsonDecode(response.body);
