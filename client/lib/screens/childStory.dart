@@ -8,6 +8,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/story_model.dart';
+import 'package:bright_minds/screens/createStoryPage.dart';
+
 
 class StoryKidsScreen extends StatefulWidget {
   const StoryKidsScreen({super.key});
@@ -258,8 +260,12 @@ Color _statusColor(String status) {
   right: 10,
   child: GestureDetector(
     onTap: () {
-      print("Create new story pressed");
-    },
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const CreateStoryPage()),
+  );
+},
+
     child: Container(
       width: 75,
       height: 75,
