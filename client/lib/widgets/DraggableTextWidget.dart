@@ -8,15 +8,34 @@ class DraggableTextWidget extends StatefulWidget {
   bool isBold;
   bool isItalic;
   bool isUnderlined;
+  final VoidCallback onDelete;
+
+  final double x;
+  final double y;
+  final void Function(double x, double y)? onPositionChanged;
+
+  /// لما تتغير خصائص النص من الـ bottom sheet
+  final void Function(
+    Color color,
+    double fontSize,
+    bool isBold,
+    bool isItalic,
+    bool isUnderlined,
+  )? onStyleChanged;
 
   DraggableTextWidget({
     super.key,
     required this.text,
     this.color = Colors.black,
+    required this.onDelete,
     this.fontSize = 20,
     this.isBold = false,
     this.isItalic = false,
     this.isUnderlined = false,
+    this.x = 50,
+    this.y = 50,
+    this.onPositionChanged,
+    this.onStyleChanged,
   });
 
   @override
@@ -24,8 +43,17 @@ class DraggableTextWidget extends StatefulWidget {
 }
 
 class _DraggableTextWidgetState extends State<DraggableTextWidget> {
-  double x = 50;
-  double y = 50;
+  late double x;
+  late double y;
+
+  bool showDeleteButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    x = widget.x;
+    y = widget.y;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,25 +61,62 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       left: x,
       top: y,
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          setState(() {
+            showDeleteButton = !showDeleteButton;
+          });
+        },
         onPanUpdate: (details) {
           setState(() {
             x += details.delta.dx;
             y += details.delta.dy;
           });
+          widget.onPositionChanged?.call(x, y);
         },
+        onLongPress: () => _openTextFormattingMenu(context),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ===================== THE TEXT ITSELF =====================
+            Text(
+              widget.text,
+              style: GoogleFonts.poppins(
+                color: widget.color,
+                fontSize: widget.fontSize,
+                fontWeight: widget.isBold ? FontWeight.bold : FontWeight.normal,
+                fontStyle:
+                    widget.isItalic ? FontStyle.italic : FontStyle.normal,
+                decoration: widget.isUnderlined
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
+            ),
 
-        onTap: () => _openTextFormattingMenu(context),
-
-        child: Text(
-          widget.text,
-          style: GoogleFonts.poppins(
-            color: widget.color,
-            fontSize: widget.fontSize,
-            fontWeight: widget.isBold ? FontWeight.bold : FontWeight.normal,
-            fontStyle: widget.isItalic ? FontStyle.italic : FontStyle.normal,
-            decoration:
-                widget.isUnderlined ? TextDecoration.underline : TextDecoration.none,
-          ),
+            // ===================== DELETE BUTTON =====================
+            if (showDeleteButton)
+              Positioned(
+                top: -20,
+                right: -20,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: widget.onDelete,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -62,6 +127,12 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
     TextEditingController controller =
         TextEditingController(text: widget.text);
 
+    bool tempBold = widget.isBold;
+    bool tempItalic = widget.isItalic;
+    bool tempUnderlined = widget.isUnderlined;
+    double tempFontSize = widget.fontSize;
+    Color tempColor = widget.color;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -69,88 +140,121 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // ---------------- TEXT EDIT ----------------
-                TextField(
-                  controller: controller,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: "Edit Text",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // ---------------- TOOLS ROW ----------------
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+        return StatefulBuilder(
+          builder: (context, bottomSetState) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                child: Column(
                   children: [
-                    _formatButton(
-                      icon: Icons.format_bold,
-                      active: widget.isBold,
-                      onTap: () {
-                        setState(() => widget.isBold = !widget.isBold);
-                      },
+                    // ---------------- TEXT EDIT ----------------
+                    TextField(
+                      controller: controller,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: "Edit Text",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    _formatButton(
-                      icon: Icons.format_italic,
-                      active: widget.isItalic,
-                      onTap: () {
-                        setState(() => widget.isItalic = !widget.isItalic);
-                      },
+                    const SizedBox(height: 15),
+
+                    // ---------------- TOOLS ROW ----------------
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _formatButton(
+                          icon: Icons.format_bold,
+                          active: tempBold,
+                          onTap: () {
+                            bottomSetState(() {
+                              tempBold = !tempBold;
+                            });
+                          },
+                        ),
+                        _formatButton(
+                          icon: Icons.format_italic,
+                          active: tempItalic,
+                          onTap: () {
+                            bottomSetState(() {
+                              tempItalic = !tempItalic;
+                            });
+                          },
+                        ),
+                        _formatButton(
+                          icon: Icons.format_underline,
+                          active: tempUnderlined,
+                          onTap: () {
+                            bottomSetState(() {
+                              tempUnderlined = !tempUnderlined;
+                            });
+                          },
+                        ),
+                        _colorButton(
+                          currentColor: tempColor,
+                          onColorChanged: (c) {
+                            bottomSetState(() {
+                              tempColor = c;
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    _formatButton(
-                      icon: Icons.format_underline,
-                      active: widget.isUnderlined,
-                      onTap: () {
-                        setState(() => widget.isUnderlined = !widget.isUnderlined);
-                      },
+
+                    const SizedBox(height: 20),
+
+                    // ---------------- FONT SIZE SLIDER ----------------
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Font Size"),
+                        Slider(
+                          value: tempFontSize,
+                          min: 12,
+                          max: 60,
+                          onChanged: (value) {
+                            bottomSetState(() {
+                              tempFontSize = value;
+                            });
+                          },
+                        ),
+                      ],
                     ),
-                    _colorButton(),
+
+                    const SizedBox(height: 20),
+
+                    // ---------------- SAVE BUTTON ----------------
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF9182FA),
+                        minimumSize: const Size(double.infinity, 45),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          widget.text = controller.text;
+                          widget.isBold = tempBold;
+                          widget.isItalic = tempItalic;
+                          widget.isUnderlined = tempUnderlined;
+                          widget.fontSize = tempFontSize;
+                          widget.color = tempColor;
+                        });
+
+                        widget.onStyleChanged?.call(
+                          widget.color,
+                          widget.fontSize,
+                          widget.isBold,
+                          widget.isItalic,
+                          widget.isUnderlined,
+                        );
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Save"),
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: 20),
-
-                // ---------------- FONT SIZE SLIDER ----------------
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Font Size"),
-                    Slider(
-                      value: widget.fontSize,
-                      min: 12,
-                      max: 60,
-                      onChanged: (value) {
-                        setState(() => widget.fontSize = value);
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // ---------------- SAVE BUTTON ----------------
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF9182FA),
-                    minimumSize: const Size(double.infinity, 45),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      widget.text = controller.text;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Save"),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
@@ -158,29 +262,37 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
 
   // ===================== SMALL UI HELPERS =====================
 
-  Widget _formatButton({required IconData icon, required bool active, required VoidCallback onTap}) {
+  Widget _formatButton({
+    required IconData icon,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: CircleAvatar(
         radius: 22,
-        backgroundColor: active ? const Color(0xFF9182FA) : Colors.grey[300],
+        backgroundColor:
+            active ? const Color(0xFF9182FA) : Colors.grey[300],
         child: Icon(icon, color: active ? Colors.white : Colors.black),
       ),
     );
   }
 
-  Widget _colorButton() {
+  Widget _colorButton({
+    required Color currentColor,
+    required ValueChanged<Color> onColorChanged,
+  }) {
     return GestureDetector(
-      onTap: () => _openColorPicker(),
+      onTap: () => _openColorPicker(onColorChanged),
       child: CircleAvatar(
         radius: 22,
-        backgroundColor: widget.color,
+        backgroundColor: currentColor,
         child: const Icon(Icons.color_lens, color: Colors.white),
       ),
     );
   }
 
-  void _openColorPicker() {
+  void _openColorPicker(ValueChanged<Color> onColorChanged) {
     showDialog(
       context: context,
       builder: (context) {
@@ -189,12 +301,12 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
           content: Wrap(
             spacing: 10,
             children: [
-              _colorChoice(Colors.black),
-              _colorChoice(Colors.red),
-              _colorChoice(Colors.blue),
-              _colorChoice(Colors.green),
-              _colorChoice(Colors.purple),
-              _colorChoice(Colors.orange),
+              _colorChoice(Colors.black, onColorChanged),
+              _colorChoice(Colors.red, onColorChanged),
+              _colorChoice(Colors.blue, onColorChanged),
+              _colorChoice(Colors.green, onColorChanged),
+              _colorChoice(Colors.purple, onColorChanged),
+              _colorChoice(Colors.orange, onColorChanged),
             ],
           ),
         );
@@ -202,10 +314,10 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
     );
   }
 
-  Widget _colorChoice(Color color) {
+  Widget _colorChoice(Color color, ValueChanged<Color> onColorChanged) {
     return GestureDetector(
       onTap: () {
-        setState(() => widget.color = color);
+        onColorChanged(color);
         Navigator.pop(context);
       },
       child: CircleAvatar(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
 import 'package:bright_minds/widgets/DraggableImageWidget.dart';
+import 'package:bright_minds/screens/drawPage.dart';
+import 'dart:typed_data';
+
 
 class CreateStoryPage extends StatefulWidget {
   const CreateStoryPage({super.key});
@@ -13,8 +16,8 @@ class CreateStoryPage extends StatefulWidget {
 class _CreateStoryPageState extends State<CreateStoryPage> {
   String storyTitle = "My Story";
 
-  // بدل textWidgets → الآن عناصر عامة للكانفاس: نصوص + صور
-  List<Widget> canvasElements = [];
+  // عناصر الكانفاس: نصوص + صور
+  List<Map<String, dynamic>> canvasElements = [];
 
   final TextEditingController _textController = TextEditingController();
 
@@ -55,7 +58,8 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
 
                 // ---------- CANVAS ----------
                 Expanded(
-                  child: Center(
+                  child: Container(
+                    alignment: Alignment.center,
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.80,
                       height: MediaQuery.of(context).size.height * 0.60,
@@ -70,19 +74,118 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                         ],
                       ),
                       child: Stack(
+                        clipBehavior: Clip.none, // مهم جداً
                         children: [
-                          ...canvasElements,
-                          Center(
-                            child: canvasElements.isEmpty
-                                ? Text(
-                                    "Tap tools to add elements",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey[400],
-                                    ),
-                                  )
-                                : const SizedBox(),
-                          ),
+                          ...canvasElements.map((item) {
+                            // ===== TEXT ELEMENT =====
+                            if (item["type"] == "text") {
+                              return DraggableTextWidget(
+                                key: item["key"],
+                                text: item["text"],
+                                color: item["color"] ?? Colors.black,
+                                fontSize: item["fontSize"] ?? 20.0,
+                                isBold: item["isBold"] ?? false,
+                                isItalic: item["isItalic"] ?? false,
+                                isUnderlined: item["isUnderlined"] ?? false,
+                                x: item["x"] ?? 50.0,
+                                y: item["y"] ?? 50.0,
+                                onPositionChanged: (newX, newY) {
+                                  setState(() {
+                                    item["x"] = newX;
+                                    item["y"] = newY;
+                                  });
+                                },
+                                onStyleChanged: (color, size, bold, italic, underline) {
+                                  setState(() {
+                                    item["color"] = color;
+                                    item["fontSize"] = size;
+                                    item["isBold"] = bold;
+                                    item["isItalic"] = italic;
+                                    item["isUnderlined"] = underline;
+                                  });
+                                },
+                                onDelete: () {
+                                  setState(() {
+                                    canvasElements.removeWhere(
+                                      (e) => e["key"] == item["key"],
+                                    );
+                                  });
+                                },
+                              );
+                            }
+
+                            // ===== IMAGE ELEMENT =====
+                            if (item["type"] == "image") {
+                              return DraggableImageWidget(
+                                key: item["key"],
+                                imagePath: item["imagePath"],
+                                x: item["x"] ?? 40.0,
+                                y: item["y"] ?? 40.0,
+                                width: item["width"] ?? 150.0,
+                                height: item["height"] ?? 150.0,
+                                onPositionChanged: (newX, newY) {
+                                  setState(() {
+                                    item["x"] = newX;
+                                    item["y"] = newY;
+                                  });
+                                },
+                                onResize: (newW, newH) {
+                                  setState(() {
+                                    item["width"] = newW;
+                                    item["height"] = newH;
+                                  });
+                                },
+                                onDelete: () {
+                                  setState(() {
+                                    canvasElements.removeWhere(
+                                      (e) => e["key"] == item["key"],
+                                    );
+                                  });
+                                },
+                              );
+                            }
+
+                           if (item["type"] == "drawn_image") {
+  return DraggableImageWidget(
+    key: item["key"],
+    bytes: item["bytes"],
+    x: item["x"] ?? 40.0,
+    y: item["y"] ?? 40.0,
+    width: item["width"] ?? 150.0,
+    height: item["height"] ?? 150.0,
+    onPositionChanged: (newX, newY) {
+      setState(() {
+        item["x"] = newX;
+        item["y"] = newY;
+      });
+    },
+    onResize: (newW, newH) {
+      setState(() {
+        item["width"] = newW;
+        item["height"] = newH;
+      });
+    },
+    onDelete: () {
+      setState(() {
+        canvasElements.removeWhere((e) => e["key"] == item["key"]);
+      });
+    },
+  );
+}
+
+                            return const SizedBox();
+                          }).toList(),
+
+                          if (canvasElements.isEmpty)
+                            Center(
+                              child: Text(
+                                "Tap tools to add elements",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -247,7 +350,18 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                     Navigator.pop(context);
                     _showImageAssetsPicker();
                   }),
-                  _toolOption(Icons.draw, "Draw", () {}),
+                  _toolOption(Icons.draw, "Draw", () async {
+    Navigator.pop(context);
+
+    final drawnBytes = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DrawPage()),
+    );
+
+    if (drawnBytes != null) {
+      _addDrawnImage(drawnBytes);
+    }
+}),
                   _toolOption(Icons.upload_file, "Upload Picture", () {}),
                   _toolOption(Icons.auto_fix_high, "AI Generated Image", () {}),
                 ],
@@ -258,8 +372,8 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
       },
       transitionBuilder: (context, animation, _, child) {
         return SlideTransition(
-          position: Tween(begin: const Offset(-1, 0), end: Offset.zero)
-              .animate(animation),
+          position:
+              Tween(begin: const Offset(-1, 0), end: Offset.zero).animate(animation),
           child: child,
         );
       },
@@ -318,13 +432,21 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
   }
 
   void _addDraggableText(String text) {
+    final elementKey = UniqueKey();
+
     setState(() {
-      canvasElements.add(
-        DraggableTextWidget(
-          text: text,
-          color: Colors.black,
-        ),
-      );
+      canvasElements.add({
+        "key": elementKey,
+        "type": "text",
+        "text": text,
+        "x": 50.0,
+        "y": 50.0,
+        "color": Colors.black,
+        "fontSize": 20.0,
+        "isBold": false,
+        "isItalic": false,
+        "isUnderlined": false,
+      });
     });
   }
 
@@ -364,7 +486,7 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                   final assetPath = storyImageAssets[index];
                   return GestureDetector(
                     onTap: () {
-                      _addDraggableImage(assetPath);
+                      _addImageElement(assetPath);
                       Navigator.pop(context);
                     },
                     child: ClipRRect(
@@ -384,15 +506,82 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
     );
   }
 
-  void _addDraggableImage(String assetPath) {
+  void _addImageElement(String assetPath) {
+    final elementKey = UniqueKey();
+
     setState(() {
-      canvasElements.add(
-        DraggableImageWidget(
-          assetPath: assetPath,
-          width: 130,
-          height: 130,
-        ),
-      );
+      canvasElements.add({
+        "key": elementKey,
+        "type": "image",
+        "imagePath": assetPath,
+        "x": 40.0,
+        "y": 40.0,
+        "width": 150.0,
+        "height": 150.0,
+      });
     });
   }
+
+  // ============================================================
+  //          (من كودك الأصلي) IMAGE PICKER DRAWER الإضافي
+  // ============================================================
+  void _openImagePickerDrawer() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          height: 340,
+          child: GridView.count(
+            padding: const EdgeInsets.all(16),
+            crossAxisCount: 3,
+            childAspectRatio: 1,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: [
+              _imageThumb("assets/story_images/forest.png"),
+              _imageThumb("assets/story_images/castle.png"),
+              _imageThumb("assets/story_images/space.png"),
+              _imageThumb("assets/story_images/dragon.png"),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _imageThumb(String path) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        _addImageElement(path);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(path, fit: BoxFit.cover),
+      ),
+    );
+  }
+
+
+ void _addDrawnImage(Uint8List bytes) {
+  final elementKey = UniqueKey();
+
+  setState(() {
+    canvasElements.add({
+      "key": elementKey,
+      "type": "drawn_image",
+      "bytes": bytes,
+      "x": 40.0,
+      "y": 40.0,
+      "width": 150.0,
+      "height": 150.0,
+    });
+  });
+}
+
+
 }
