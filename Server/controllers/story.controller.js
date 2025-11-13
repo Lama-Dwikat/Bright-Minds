@@ -4,6 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import cloudinaryService from "../services/cloudinary.service.js";
 import jwt from "jsonwebtoken";
+import ActivityLog from "../models/activityLog.model.js";
 
 
 
@@ -28,32 +29,34 @@ export const storyController ={
                       }
 
             const story = await storyService.createStory({ title, childId, templateId, role });
+            
             res.status(201).json(story);
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
     },
 
-     async updateStory (req, res)  {
-        try {
-            const { storyId } = req.params;
-            const storyData = req.body;
-            const userId = req.user._id;
-            const role = req.user.role;
-            if (!storyId) {
-             return res.status(400).json({ message: "Story ID is required" });
-             }
-              if (!["child", "supervisor", "admin"].includes(role)) {
-              return res.status(403).json({ message: "You are not allowed to update stories" });
-               }
+  async updateStory(req, res) {
+  try {
+    const { storyId } = req.params;
+    const storyData = req.body;
+    const userId = req.user._id.toString(); // تحويل الـ ObjectId إلى string
+    const role = req.user.role;
 
+    if (!storyId) {
+      return res.status(400).json({ message: "Story ID is required" });
+    }
+    if (!["child", "supervisor", "admin"].includes(role)) {
+      return res.status(403).json({ message: "You are not allowed to update stories" });
+    }
 
-            const story = await storyService.updateStory({ storyId,  userId, role, storyData });
-            res.status(200).json(story);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    },
+    const story = await storyService.updateStory({ storyId, userId, role, storyData });
+    res.status(200).json(story);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+},
+
 
 
     async submitStory (req, res) {
