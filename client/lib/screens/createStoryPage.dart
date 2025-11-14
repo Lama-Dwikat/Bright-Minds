@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
 import 'package:bright_minds/widgets/DraggableImageWidget.dart';
-import 'package:bright_minds/screens/drawPage.dart';
 import 'dart:typed_data';
 
 
@@ -15,6 +14,13 @@ class CreateStoryPage extends StatefulWidget {
 
 class _CreateStoryPageState extends State<CreateStoryPage> {
   String storyTitle = "My Story";
+  bool isDrawingMode = false;
+
+Color selectedColor = Colors.black;
+double strokeWidth = 4.0;
+List<DrawPoint> drawingPoints = [];
+List<DrawPoint> redoStack = [];
+
 
   // عناصر الكانفاس: نصوص + صور
   List<Map<String, dynamic>> canvasElements = [];
@@ -43,6 +49,7 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
       backgroundColor: const Color(0xFFF3F0FF), // soft purple background
       body: SafeArea(
         child: Stack(
+          
           children: [
             Column(
               children: [
@@ -76,6 +83,45 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                       child: Stack(
                         clipBehavior: Clip.none, // مهم جداً
                         children: [
+                          // ========= DRAWING BACKGROUND =========
+Positioned.fill(
+  child: IgnorePointer(
+    ignoring: !isDrawingMode,
+    child: GestureDetector(
+      onPanStart: (details) {
+        if (!isDrawingMode) return;
+        setState(() {
+          redoStack.clear();
+          drawingPoints.add(DrawPoint(
+            position: details.localPosition,
+            color: selectedColor,
+            width: strokeWidth,
+          ));
+        });
+      },
+      onPanUpdate: (details) {
+        if (!isDrawingMode) return;
+        setState(() {
+          drawingPoints.add(DrawPoint(
+            position: details.localPosition,
+            color: selectedColor,
+            width: strokeWidth,
+          ));
+        });
+      },
+      onPanEnd: (_) {
+        if (!isDrawingMode) return;
+        setState(() {
+          drawingPoints.add(DrawPoint(position: null));
+        });
+      },
+      child: CustomPaint(
+        painter: DrawPainter(drawingPoints),
+      ),
+    ),
+  ),
+),
+
                           ...canvasElements.map((item) {
                             // ===== TEXT ELEMENT =====
                             if (item["type"] == "text") {
@@ -198,6 +244,10 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                 _buildBottomToolbar(),
               ],
             ),
+
+
+            // ===== DRAWING TOOLS OVERLAY =====
+if (isDrawingMode) _drawingToolsOverlay(),
 
             // ---------- LEFT SIDE TOOLS BUTTON ----------
             Positioned(
@@ -350,18 +400,13 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
                     Navigator.pop(context);
                     _showImageAssetsPicker();
                   }),
-                  _toolOption(Icons.draw, "Draw", () async {
-    Navigator.pop(context);
-
-    final drawnBytes = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const DrawPage()),
-    );
-
-    if (drawnBytes != null) {
-      _addDrawnImage(drawnBytes);
-    }
+                 _toolOption(Icons.draw, "Draw", () {
+  Navigator.pop(context);
+  setState(() {
+    isDrawingMode = true;
+  });
 }),
+
                   _toolOption(Icons.upload_file, "Upload Picture", () {}),
                   _toolOption(Icons.auto_fix_high, "AI Generated Image", () {}),
                 ],
@@ -584,4 +629,130 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
 }
 
 
+Widget _drawingToolsOverlay() {
+  return Positioned(
+    top: 80,
+    right: 10,
+    child: Container(
+      width: 90,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          // Colors
+          _colorDot(Colors.black),
+          _colorDot(Colors.red),
+          _colorDot(Colors.blue),
+          _colorDot(Colors.green),
+          _colorDot(Colors.orange),
+          SizedBox(height: 10),
+
+          Text("Size", style: TextStyle(fontSize: 12)),
+          Slider(
+            value: strokeWidth,
+            min: 2,
+            max: 20,
+            onChanged: (v) => setState(() => strokeWidth = v),
+          ),
+
+          IconButton(
+            icon: Icon(Icons.undo),
+            onPressed: _undoDraw,
+          ),
+          IconButton(
+            icon: Icon(Icons.redo),
+            onPressed: _redoDraw,
+          ),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF9182FA),
+            ),
+            onPressed: () => setState(() => isDrawingMode = false),
+            child: Text("Done"),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+Widget _colorDot(Color color) {
+  return GestureDetector(
+    onTap: () => setState(() => selectedColor = color),
+    child: Container(
+      width: 26,
+      height: 26,
+      margin: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+    ),
+  );
+}
+
+
+void _undoDraw() {
+  if (drawingPoints.isEmpty) return;
+  setState(() {
+    int last = drawingPoints.lastIndexWhere((p) => p.position == null);
+    redoStack.addAll(drawingPoints.sublist(last + 1));
+    drawingPoints.removeRange(last + 1, drawingPoints.length);
+    drawingPoints.removeLast();
+  });
+}
+
+void _redoDraw() {
+  if (redoStack.isEmpty) return;
+  setState(() {
+    drawingPoints.addAll(redoStack);
+    redoStack.clear();
+  });
+}
+
+
+}
+
+// for drawing 
+
+class DrawPoint {
+  final Offset? position;
+  final Color? color;
+  final double? width;
+
+  DrawPoint({this.position, this.color, this.width});
+}
+
+class DrawPainter extends CustomPainter {
+  final List<DrawPoint> points;
+  DrawPainter(this.points);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i].position != null && points[i + 1].position != null) {
+        final paint = Paint()
+          ..color = points[i].color!
+          ..strokeWidth = points[i].width!
+          ..strokeCap = StrokeCap.round;
+
+        canvas.drawLine(points[i].position!, points[i + 1].position!, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant DrawPainter oldDelegate) => true;
 }
