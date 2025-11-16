@@ -62,11 +62,62 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       top: y,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () {
-          setState(() {
-            showDeleteButton = !showDeleteButton;
-          });
-        },
+       onTap: () async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFFF3F0FF),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: const [
+          Icon(Icons.delete_forever_rounded, color: Color(0xFF9182FA), size: 30),
+          SizedBox(width: 10),
+          Text(
+            "Delete this text?",
+            style: TextStyle(
+              color: Color(0xFF3C2E7E),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+      content: const Text(
+        "Are you sure you want to delete this text from your story? 😢",
+        style: TextStyle(
+          color: Color(0xFF3C2E7E),
+          fontSize: 16,
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.spaceEvenly,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF9182FA),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
+          ),
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text("Yes, Delete", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
+    widget.onDelete();
+  }
+},
+
         onPanUpdate: (details) {
           setState(() {
             x += details.delta.dx;
@@ -94,7 +145,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
             ),
 
             // ===================== DELETE BUTTON =====================
-            if (showDeleteButton)
+          /*  if (showDeleteButton)
               Positioned(
                 top: -20,
                 right: -20,
@@ -116,6 +167,9 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
                   ),
                 ),
               ),
+              */
+ 
+
           ],
         ),
       ),

@@ -3,6 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
 import 'package:bright_minds/widgets/DraggableImageWidget.dart';
 import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+
+
 
 
 class CreateStoryPage extends StatefulWidget {
@@ -23,7 +33,19 @@ List<DrawPoint> redoStack = [];
 
 
   // عناصر الكانفاس: نصوص + صور
-  List<Map<String, dynamic>> canvasElements = [];
+  //List<Map<String, dynamic>> canvasElements = [];
+  int currentPageIndex = 0;
+  List<List<Map<String, dynamic>>> pages = [[]]; // كل صفحة تحتوي عناصرها
+
+bool isRecording = false;
+
+final _audioRecorder = AudioRecorder();
+String? recordedFilePath;
+
+late stt.SpeechToText _speech;
+bool _isListening = false;
+String _spokenText = "";
+
 
   final TextEditingController _textController = TextEditingController();
 
@@ -36,6 +58,14 @@ List<DrawPoint> redoStack = [];
     'assets/story_images/energy.png',
     'assets/story_images/Games2.png',
   ];
+
+ @override
+void initState() {
+  super.initState();
+  _speech = stt.SpeechToText();
+}
+
+
 
   @override
   void dispose() {
@@ -80,160 +110,242 @@ List<DrawPoint> redoStack = [];
                           ),
                         ],
                       ),
-                      child: Stack(
-                        clipBehavior: Clip.none, // مهم جداً
-                        children: [
-                          // ========= DRAWING BACKGROUND =========
-Positioned.fill(
-  child: IgnorePointer(
-    ignoring: !isDrawingMode,
-    child: GestureDetector(
-      onPanStart: (details) {
-        if (!isDrawingMode) return;
-        setState(() {
-          redoStack.clear();
-          drawingPoints.add(DrawPoint(
-            position: details.localPosition,
-            color: selectedColor,
-            width: strokeWidth,
-          ));
-        });
-      },
-      onPanUpdate: (details) {
-        if (!isDrawingMode) return;
-        setState(() {
-          drawingPoints.add(DrawPoint(
-            position: details.localPosition,
-            color: selectedColor,
-            width: strokeWidth,
-          ));
-        });
-      },
-      onPanEnd: (_) {
-        if (!isDrawingMode) return;
-        setState(() {
-          drawingPoints.add(DrawPoint(position: null));
-        });
-      },
-      child: CustomPaint(
-        painter: DrawPainter(drawingPoints),
+                    child: Stack(
+  clipBehavior: Clip.none, // مهم جداً
+  children: [
+    // ========= DRAWING BACKGROUND =========
+    Positioned.fill(
+      child: AbsorbPointer( // ✅ بدّلنا IgnorePointer بـ AbsorbPointer
+        absorbing: !isDrawingMode, // يمنع الرسم فقط عندما لا نكون في وضع الرسم
+        child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+          onPanStart: (details) {
+            if (!isDrawingMode) return;
+            setState(() {
+              redoStack.clear();
+              drawingPoints.add(DrawPoint(
+                position: details.localPosition,
+                color: selectedColor,
+                width: strokeWidth,
+              ));
+            });
+          },
+          onPanUpdate: (details) {
+            if (!isDrawingMode) return;
+            setState(() {
+              drawingPoints.add(DrawPoint(
+                position: details.localPosition,
+                color: selectedColor,
+                width: strokeWidth,
+              ));
+            });
+          },
+          onPanEnd: (_) {
+            if (!isDrawingMode) return;
+            setState(() {
+              drawingPoints.add(DrawPoint(position: null));
+            });
+          },
+          child: CustomPaint(
+            painter: DrawPainter(drawingPoints),
+          ),
+        ),
       ),
     ),
-  ),
-),
 
-                          ...canvasElements.map((item) {
-                            // ===== TEXT ELEMENT =====
-                            if (item["type"] == "text") {
-                              return DraggableTextWidget(
-                                key: item["key"],
-                                text: item["text"],
-                                color: item["color"] ?? Colors.black,
-                                fontSize: item["fontSize"] ?? 20.0,
-                                isBold: item["isBold"] ?? false,
-                                isItalic: item["isItalic"] ?? false,
-                                isUnderlined: item["isUnderlined"] ?? false,
-                                x: item["x"] ?? 50.0,
-                                y: item["y"] ?? 50.0,
-                                onPositionChanged: (newX, newY) {
-                                  setState(() {
-                                    item["x"] = newX;
-                                    item["y"] = newY;
-                                  });
-                                },
-                                onStyleChanged: (color, size, bold, italic, underline) {
-                                  setState(() {
-                                    item["color"] = color;
-                                    item["fontSize"] = size;
-                                    item["isBold"] = bold;
-                                    item["isItalic"] = italic;
-                                    item["isUnderlined"] = underline;
-                                  });
-                                },
-                                onDelete: () {
-                                  setState(() {
-                                    canvasElements.removeWhere(
-                                      (e) => e["key"] == item["key"],
-                                    );
-                                  });
-                                },
-                              );
-                            }
+    // ========= STORY ELEMENTS =========
+    ...pages[currentPageIndex].asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
 
-                            // ===== IMAGE ELEMENT =====
-                            if (item["type"] == "image") {
-                              return DraggableImageWidget(
-                                key: item["key"],
-                                imagePath: item["imagePath"],
-                                x: item["x"] ?? 40.0,
-                                y: item["y"] ?? 40.0,
-                                width: item["width"] ?? 150.0,
-                                height: item["height"] ?? 150.0,
-                                onPositionChanged: (newX, newY) {
-                                  setState(() {
-                                    item["x"] = newX;
-                                    item["y"] = newY;
-                                  });
-                                },
-                                onResize: (newW, newH) {
-                                  setState(() {
-                                    item["width"] = newW;
-                                    item["height"] = newH;
-                                  });
-                                },
-                                onDelete: () {
-                                  setState(() {
-                                    canvasElements.removeWhere(
-                                      (e) => e["key"] == item["key"],
-                                    );
-                                  });
-                                },
-                              );
-                            }
+      // ===== TEXT ELEMENT =====
+      if (item["type"] == "text") {
+        return DraggableTextWidget(
+          key: item["key"],
+          text: item["text"],
+          color: item["color"] ?? Colors.black,
+          fontSize: item["fontSize"] ?? 20.0,
+          isBold: item["isBold"] ?? false,
+          isItalic: item["isItalic"] ?? false,
+          isUnderlined: item["isUnderlined"] ?? false,
+          x: item["x"] ?? 50.0,
+          y: item["y"] ?? 50.0,
+          onPositionChanged: (newX, newY) {
+            setState(() {
+              item["x"] = newX;
+              item["y"] = newY;
+            });
+          },
+          onStyleChanged: (color, size, bold, italic, underline) {
+            setState(() {
+              item["color"] = color;
+              item["fontSize"] = size;
+              item["isBold"] = bold;
+              item["isItalic"] = italic;
+              item["isUnderlined"] = underline;
+            });
+          },
+          onDelete: () {
+            print("🗑️ onDelete pressed for item type: ${item["type"]}");
+            print("Before delete: ${pages[currentPageIndex].length} elements");
+            setState(() {
+              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+            });
+            print("After delete: ${pages[currentPageIndex].length} elements");
+          },
+        );
+      }
 
-                           if (item["type"] == "drawn_image") {
-  return DraggableImageWidget(
-    key: item["key"],
-    bytes: item["bytes"],
-    x: item["x"] ?? 40.0,
-    y: item["y"] ?? 40.0,
-    width: item["width"] ?? 150.0,
-    height: item["height"] ?? 150.0,
-    onPositionChanged: (newX, newY) {
-      setState(() {
-        item["x"] = newX;
-        item["y"] = newY;
-      });
-    },
-    onResize: (newW, newH) {
-      setState(() {
-        item["width"] = newW;
-        item["height"] = newH;
-      });
-    },
-    onDelete: () {
-      setState(() {
-        canvasElements.removeWhere((e) => e["key"] == item["key"]);
-      });
-    },
+      // ===== IMAGE ELEMENT =====
+      if (item["type"] == "image") {
+        return DraggableImageWidget(
+          key: item["key"],
+          imagePath: item["imagePath"],
+          x: item["x"] ?? 40.0,
+          y: item["y"] ?? 40.0,
+          width: item["width"] ?? 150.0,
+          height: item["height"] ?? 150.0,
+          onPositionChanged: (newX, newY) {
+            setState(() {
+              item["x"] = newX;
+              item["y"] = newY;
+            });
+          },
+          onResize: (newW, newH) {
+            setState(() {
+              item["width"] = newW;
+              item["height"] = newH;
+            });
+          },
+          onDelete: () {
+            setState(() {
+              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+            });
+          },
+        );
+      }
+
+      // ===== DRAWN IMAGE =====
+      if (item["type"] == "drawn_image") {
+        return DraggableImageWidget(
+          key: item["key"],
+          bytes: item["bytes"],
+          x: item["x"] ?? 40.0,
+          y: item["y"] ?? 40.0,
+          width: item["width"] ?? 150.0,
+          height: item["height"] ?? 150.0,
+          onPositionChanged: (newX, newY) {
+            setState(() {
+              item["x"] = newX;
+              item["y"] = newY;
+            });
+          },
+          onResize: (newW, newH) {
+            setState(() {
+              item["width"] = newW;
+              item["height"] = newH;
+            });
+          },
+          onDelete: () {
+            setState(() {
+              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+            });
+          },
+        );
+      }
+
+      // ===== UPLOADED IMAGE =====
+      if (item["type"] == "uploaded_image") {
+        return DraggableImageWidget(
+          key: item["key"],
+          bytes: item["bytes"],
+          x: item["x"] ?? 40.0,
+          y: item["y"] ?? 40.0,
+          width: item["width"] ?? 150.0,
+          height: item["height"] ?? 150.0,
+          onPositionChanged: (newX, newY) {
+            setState(() {
+              item["x"] = newX;
+              item["y"] = newY;
+            });
+          },
+          onResize: (newW, newH) {
+            setState(() {
+              item["width"] = newW;
+              item["height"] = newH;
+            });
+          },
+          onDelete: () {
+            setState(() {
+              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+            });
+          },
+        );
+      }
+
+
+
+      // ===== AUDIO ELEMENT =====
+if (item["type"] == "audio") {
+  return Positioned(
+    left: item["x"] ?? 40.0,
+    top: item["y"] ?? 40.0,
+    child: Container(
+      width: 200,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEE9FF),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.audiotrack, color: Color(0xFF9182FA)),
+          const SizedBox(width: 8),
+          Text(
+            "Voice note",
+            style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
+          ),
+          IconButton(
+            icon: const Icon(Icons.play_arrow, color: Color(0xFF9182FA)),
+            onPressed: () async {
+              // 🔊 شغّل الصوت
+              final file = File(item["path"]);
+              if (await file.exists()) {
+                await Process.run('start', [file.path], runInShell: true);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("File not found!")),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    ),
   );
 }
 
-                            return const SizedBox();
-                          }).toList(),
 
-                          if (canvasElements.isEmpty)
-                            Center(
-                              child: Text(
-                                "Tap tools to add elements",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.grey[400],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+      return const SizedBox();
+    }).toList(),
+
+    if (pages[currentPageIndex].isEmpty)
+      Center(
+        child: Text(
+          "Tap tools to add elements",
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[400],
+          ),
+        ),
+      ),
+  ],
+),
+
                     ),
                   ),
                 ),
@@ -241,7 +353,18 @@ Positioned.fill(
                 const SizedBox(height: 10),
 
                 // ---------- BOTTOM TOOLBAR ----------
-                _buildBottomToolbar(),
+                //_buildBottomToolbar(),
+                // ---------- BOTTOM TOOLBAR ----------
+Positioned(
+  bottom: 0,
+  left: 0,
+  right: 0,
+  child: IgnorePointer(
+    ignoring: isDrawingMode, // عشان ما يغطي أثناء الرسم
+    child: _buildBottomToolbar(),
+  ),
+),
+
               ],
             ),
 
@@ -301,31 +424,300 @@ if (isDrawingMode) _drawingToolsOverlay(),
   // ============================================================
   Widget _buildPageIndicator() {
     return Text(
-      "Page 1 / 1",
-      style: GoogleFonts.poppins(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: mainPurple,
-      ),
-    );
+  "Page ${currentPageIndex + 1} / ${pages.length}",
+  style: GoogleFonts.poppins(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: mainPurple,
+  ),
+);
+
   }
 
   // ============================================================
   //                   BOTTOM CONTROL TOOLBAR
   // ============================================================
   Widget _buildBottomToolbar() {
+    print("🧩 Building bottom toolbar...");
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       color: const Color(0xFFE8E3FF),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(icon: Icon(Icons.mic, color: mainPurple), onPressed: () {}),
-          IconButton(icon: Icon(Icons.play_arrow, color: mainPurple), onPressed: () {}),
-          IconButton(icon: Icon(Icons.undo, color: mainPurple), onPressed: () {}),
-          IconButton(icon: Icon(Icons.redo, color: mainPurple), onPressed: () {}),
-          IconButton(icon: Icon(Icons.delete, color: mainPurple), onPressed: () {}),
-          IconButton(icon: Icon(Icons.add, color: mainPurple), onPressed: () {}),
+
+          // record story 
+IconButton(
+  icon: Icon(
+    (_isListening || isRecording) ? Icons.stop_circle_outlined : Icons.mic,
+    color: (_isListening || isRecording)
+        ? Colors.redAccent
+        : const Color(0xFF9182FA),
+    size: 32,
+  ),
+  tooltip: "Add Voice or Speech",
+  onPressed: () async {
+    print("🎤 Button pressed | isListening=$_isListening | isRecording=$isRecording");
+
+    // لو فعلاً في تسجيل أو استماع حالي، أوقفه
+    if (_isListening) {
+      print("🛑 Stopping speech recognition...");
+      await _stopListening();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    if (isRecording) {
+      print("🛑 Stopping voice recording...");
+      await _stopRecording();
+      setState(() => isRecording = false);
+      return;
+    }
+
+    // ✅ إذا ما في أي عملية شغالة، اعرض الـ dialog
+    print("📢 Opening choice dialog...");
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF3F0FF),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          "Choose an action 🎙️",
+          style: TextStyle(
+            color: Color(0xFF3C2E7E),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          "Would you like to record your voice or speak to write the story?",
+          style: TextStyle(color: Color(0xFF3C2E7E)),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF9182FA),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(context, "record"),
+            icon: const Icon(Icons.mic, color: Colors.white),
+            label: const Text("Record Voice",
+                style: TextStyle(color: Colors.white)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(context, "speech"),
+            icon: const Icon(Icons.record_voice_over,
+                color: Color(0xFF9182FA)),
+            label: const Text("Speak to Write",
+                style: TextStyle(color: Color(0xFF9182FA))),
+          ),
+        ],
+      ),
+    );
+
+    print("👉 User selected: $choice");
+
+    // تنفيذ الخيار
+    if (choice == "record") {
+      setState(() => isRecording = true);
+      await _startRecording();
+    } else if (choice == "speech") {
+      setState(() => _isListening = true);
+      await _startListening();
+    }
+  },
+),
+
+
+
+
+
+       //   IconButton(icon: Icon(Icons.play_arrow, color: mainPurple), onPressed: () {}),
+         
+         // previous and next page 
+         IconButton(
+  icon: const Icon(Icons.undo, color: Color(0xFF9182FA)),
+  tooltip: "Previous Page",
+  onPressed: currentPageIndex > 0
+      ? () {
+          setState(() {
+            currentPageIndex--;
+          });
+        }
+      : null, 
+),
+IconButton(
+  icon: const Icon(Icons.redo, color: Color(0xFF9182FA)),
+  tooltip: "Next Page",
+  onPressed: currentPageIndex < pages.length - 1
+      ? () {
+          setState(() {
+            currentPageIndex++;
+          });
+        }
+      : null, 
+),
+
+
+// delete the page 
+  IconButton(
+  icon: const Icon(Icons.delete, color: Color(0xFF9182FA)),
+  tooltip: "Delete this page",
+  onPressed: () async {
+    if (pages.isEmpty) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFF3F0FF),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Color(0xFF9182FA), size: 30),
+            SizedBox(width: 10),
+            Text(
+              "Delete Page?",
+              style: TextStyle(
+                color: Color(0xFF3C2E7E),
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to delete this entire page and all its content? 😢",
+          style: TextStyle(
+            color: Color(0xFF3C2E7E),
+            fontSize: 16,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Color(0xFF9182FA),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() {
+        pages.removeAt(currentPageIndex);
+
+        // لو حذفنا آخر صفحة، نرجع لصفحة موجودة
+        if (currentPageIndex >= pages.length) {
+          currentPageIndex = pages.isEmpty ? 0 : pages.length - 1;
+        }
+
+        // لو ما ظل صفحات، نضيف صفحة فاضية
+        if (pages.isEmpty) {
+          pages.add([]);
+          currentPageIndex = 0;
+        }
+      });
+    }
+  },
+),
+
+
+         // icon + to add another pages 
+IconButton(
+  tooltip: "Add New Page",
+  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF7A6FF0)),
+  onPressed: () async {
+    print("🟣 Add button pressed!");
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        print("🟢 Dialog opened!");
+        return AlertDialog(
+          backgroundColor: const Color(0xFFF3F0FF),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.add_circle_rounded, color: Color(0xFF9182FA), size: 30),
+              SizedBox(width: 10),
+              Text(
+                "Add New Page?",
+                style: TextStyle(
+                  color: Color(0xFF3C2E7E),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            "Do you want to add a new blank page for your story?",
+            style: TextStyle(
+              color: Color(0xFF3C2E7E),
+              fontSize: 16,
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF9182FA),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF7A6FF0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text("Add", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    print("🟡 Dialog result: $confirm");
+
+    if (confirm == true) {
+      setState(() {
+        pages.add([]);
+        currentPageIndex = pages.length - 1;
+      });
+      print("✅ Added new page — total: ${pages.length}, now at: $currentPageIndex");
+    }
+  },
+),
+
+
+
         ],
       ),
     );
@@ -407,7 +799,31 @@ if (isDrawingMode) _drawingToolsOverlay(),
   });
 }),
 
-                  _toolOption(Icons.upload_file, "Upload Picture", () {}),
+             _toolOption(Icons.upload_file, "Upload Picture", () async {
+  Navigator.pop(context);
+
+  if (kIsWeb) {
+    //  الرفع من المتصفح
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      final bytes = result.files.first.bytes!;
+      _addUploadedImageFromBytes(bytes);
+    }
+  } else {
+    //  الرفع من الهاتف (باستخدام image_picker)
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      final file = File(picked.path);
+      final bytes = await file.readAsBytes();
+      _addUploadedImageFromBytes(bytes);
+    }
+  }
+}),
+
                   _toolOption(Icons.auto_fix_high, "AI Generated Image", () {}),
                 ],
               ),
@@ -480,7 +896,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
     final elementKey = UniqueKey();
 
     setState(() {
-      canvasElements.add({
+      pages[currentPageIndex].add({
         "key": elementKey,
         "type": "text",
         "text": text,
@@ -555,7 +971,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
     final elementKey = UniqueKey();
 
     setState(() {
-      canvasElements.add({
+      pages[currentPageIndex].add({
         "key": elementKey,
         "type": "image",
         "imagePath": assetPath,
@@ -616,7 +1032,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
   final elementKey = UniqueKey();
 
   setState(() {
-    canvasElements.add({
+    pages[currentPageIndex].add({
       "key": elementKey,
       "type": "drawn_image",
       "bytes": bytes,
@@ -643,48 +1059,134 @@ Widget _drawingToolsOverlay() {
           BoxShadow(
             color: Colors.black.withOpacity(0.15),
             blurRadius: 8,
-          )
+          ),
         ],
       ),
       child: Column(
         children: [
-          // Colors
+          // 🎨 Colors
           _colorDot(Colors.black),
           _colorDot(Colors.red),
           _colorDot(Colors.blue),
           _colorDot(Colors.green),
           _colorDot(Colors.orange),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-          Text("Size", style: TextStyle(fontSize: 12)),
+          // ✏️ Brush size
+          const Text("Size", style: TextStyle(fontSize: 12)),
           Slider(
             value: strokeWidth,
             min: 2,
             max: 20,
+            activeColor: const Color(0xFF9182FA),
             onChanged: (v) => setState(() => strokeWidth = v),
           ),
 
+          const SizedBox(height: 5),
+
+          // ↩️ Undo / Redo
           IconButton(
-            icon: Icon(Icons.undo),
+            tooltip: "Undo",
+            icon: const Icon(Icons.undo, color: Color(0xFF7A6FF0), size: 26),
             onPressed: _undoDraw,
           ),
           IconButton(
-            icon: Icon(Icons.redo),
+            tooltip: "Redo",
+            icon: const Icon(Icons.redo, color: Color(0xFF7A6FF0), size: 26),
             onPressed: _redoDraw,
           ),
 
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF9182FA),
-            ),
+          const Divider(
+            color: Color(0xFFD3CCFA),
+            thickness: 1,
+            height: 15,
+          ),
+
+          // ✅ Done button
+          IconButton(
+            tooltip: "Done Drawing",
+            icon: const Icon(Icons.check_circle_rounded,
+                color: Color(0xFF7A6FF0), size: 30),
             onPressed: () => setState(() => isDrawingMode = false),
-            child: Text("Done"),
+          ),
+
+          const SizedBox(height: 8),
+
+          // 🗑️ Delete button
+          IconButton(
+            tooltip: "Delete Drawing",
+            icon: const Icon(Icons.delete_forever_rounded,
+                color: Colors.redAccent, size: 30),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: const Color(0xFFF3F0FF),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  title: Row(
+                    children: const [
+                      Icon(Icons.warning_amber_rounded,
+                          color: Color(0xFF9182FA), size: 30),
+                      SizedBox(width: 10),
+                      Text(
+                        "Delete drawing?",
+                        style: TextStyle(
+                          color: Color(0xFF3C2E7E),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: const Text(
+                    "Are you sure you want to clear your drawing? 😢",
+                    style: TextStyle(
+                      color: Color(0xFF3C2E7E),
+                      fontSize: 16,
+                    ),
+                  ),
+                  actionsAlignment: MainAxisAlignment.spaceEvenly,
+                  actions: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF9182FA),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text("Delete",
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                setState(() {
+                  drawingPoints.clear();
+                  redoStack.clear();
+                });
+              }
+            },
           ),
         ],
       ),
     ),
   );
 }
+
 
 
 Widget _colorDot(Color color) {
@@ -722,6 +1224,154 @@ void _redoDraw() {
   });
 }
 
+
+
+void _addUploadedImage(File imageFile) async {
+  final elementKey = UniqueKey();
+  final bytes = await imageFile.readAsBytes(); 
+
+  setState(() {
+    pages[currentPageIndex].add({
+      "key": elementKey,
+      "type": "uploaded_image",
+      "bytes": bytes, 
+      "x": 40.0,
+      "y": 40.0,
+      "width": 150.0,
+      "height": 150.0,
+    });
+  });
+}
+
+
+void _addUploadedImageFromBytes(Uint8List bytes) {
+  final elementKey = UniqueKey();
+  setState(() {
+    pages[currentPageIndex].add({
+      "key": elementKey,
+      "type": "uploaded_image",
+      "bytes": bytes,
+      "x": 40.0,
+      "y": 40.0,
+      "width": 150.0,
+      "height": 150.0,
+    });
+  });
+}
+
+
+
+Future<void> _startRecording() async {
+  final hasPermission = await _audioRecorder.hasPermission();
+  if (!hasPermission) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Microphone permission denied")),
+    );
+    return;
+  }
+
+  final dir = await getApplicationDocumentsDirectory();
+  final filePath = '${dir.path}/story_record_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+  await _audioRecorder.start(const RecordConfig(), path: filePath);
+  setState(() {
+    isRecording = true;
+    recordedFilePath = filePath;
+  });
+}
+
+Future<void> _stopRecording() async {
+  final path = await _audioRecorder.stop();
+  setState(() {
+    isRecording = false;
+    recordedFilePath = path;
+  });
+
+  if (path != null) {
+    // ✅ أضف تسجيل الصوت كعنصر في الصفحة
+    setState(() {
+      pages[currentPageIndex].add({
+        "type": "audio",
+        "path": path,
+        "x": 50.0,
+        "y": 50.0,
+        "key": UniqueKey(),
+      });
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("🎧 Voice recording added to your story!"),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+
+
+Future<void> _startListening() async {
+  bool available = await _speech.initialize(
+    onStatus: (status) => print("STATUS: $status"),
+    onError: (error) => print("ERROR: $error"),
+  );
+
+  if (available) {
+    setState(() => _isListening = true);
+    _speech.listen(
+      onResult: (result) {
+        setState(() {
+          _spokenText = result.recognizedWords;
+        });
+      },
+      localeId: "ar_SA", // ✅ عربي
+      listenMode: stt.ListenMode.confirmation,
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("⚠️ Speech recognition not available")),
+    );
+  }
+}
+
+Future<void> _stopListening() async {
+  await _speech.stop();
+  setState(() => _isListening = false);
+
+  if (_spokenText.isNotEmpty) {
+    setState(() {
+      pages[currentPageIndex].add({
+        "type": "text",
+        "text": _spokenText,
+        "x": 50.0,
+        "y": 50.0,
+        "key": UniqueKey(),
+      });
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("📝 Text added from your voice!")),
+    );
+    _spokenText = "";
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("😶 No speech detected! Try again.")),
+    );
+  }
+}
+
+
+
+
+  
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////
 
 }
 

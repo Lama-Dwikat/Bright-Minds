@@ -56,11 +56,62 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
       top: y,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () {
-          setState(() {
-            showDelete = !showDelete;
-          });
-        },
+       onTap: () async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFFF3F0FF),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Row(
+        children: const [
+          Icon(Icons.photo_rounded, color: Color(0xFF9182FA), size: 30),
+          SizedBox(width: 10),
+          Text(
+            "Delete this image?",
+            style: TextStyle(
+              color: Color(0xFF3C2E7E),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+      content: const Text(
+        "Do you want to remove this image from your story? 🖼️",
+        style: TextStyle(
+          color: Color(0xFF3C2E7E),
+          fontSize: 16,
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.spaceEvenly,
+      actions: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF9182FA),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 0,
+          ),
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text("Yes, Delete", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
+    widget.onDelete(); // call the parent delete function
+  }
+},
+
         onPanUpdate: (details) {
           setState(() {
             x += details.delta.dx;
@@ -86,30 +137,7 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
               ),
             ),
 
-            // ===== DELETE BUTTON =====
-            if (showDelete)
-              Positioned(
-                top: -20,
-                right: -20,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: widget.onDelete,
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ),
-
+           
             // ===== RESIZE HANDLE =====
             if (showDelete)
               Positioned(

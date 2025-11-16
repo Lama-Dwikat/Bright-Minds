@@ -23,8 +23,10 @@ cloudinary.v2.config({
 // ===== Rate limiter =====
 export const aiLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: (req) => req.user.role === "supervisor" ? 20 : 5, // supervisors can generate more
-  message: {
+    max: (req) => req.user.role === "supervisor" ? 20 : 5, // supervisors can generate more
+ //max: (req) => req.user.role === "supervisor" ? 999 : 999,
+
+    message: {
     success: false,
     message: "You have reached the temporary limit for AI image generation. Try again later.",
   },
