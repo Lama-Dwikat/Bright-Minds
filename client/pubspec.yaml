@@ -12,14 +12,21 @@ dependencies:
   cupertino_icons: ^1.0.2
   icons_plus: ^4.0.0
   http: ^1.5.0
-  image_picker: ^1.0.7
-  file_picker: ^8.1.2
+  image_picker: ^1.2.1
+  file_picker: ^10.3.6
   file_selector: ^1.0.3
   google_fonts: ^6.3.2
   shared_preferences: ^2.2.3
   jwt_decoder: ^2.0.1
+<<<<<<< HEAD
   youtube_player_flutter: ^9.0.1
   intl: ^0.19.0
+=======
+  record: ^6.1.2
+  path_provider: ^2.1.5
+  speech_to_text: ^7.3.0
+  
+>>>>>>> origin/fatima_nasser
 
 
 dev_dependencies:
@@ -31,3 +38,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/story_images/

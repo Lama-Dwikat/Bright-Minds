@@ -4,56 +4,78 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import cloudinaryService from "../services/cloudinary.service.js";
 import jwt from "jsonwebtoken";
+import ActivityLog from "../models/activityLog.model.js";
 
 
 
 export const storyController ={
 
-    async createStory (req, res) {
-        try {
-            const { title, templateId ,childId: childIdFromBody} = req.body;
-            const { _id: userId, role } = req.user;
-              let childId;
-             if (role === "child") {
-                childId = userId;
-                }
-                 else if (role === "supervisor") {
-                   if (!childIdFromBody) {
-                 throw new Error("Child ID is required when supervisor creates a story");
-                   }
-                  childId = childIdFromBody;
-                  }
-                   else {
-                      throw new Error("You are not allowed to create stories");
-                      }
+  async createStory(req, res) {
 
-            const story = await storyService.createStory({ title, childId, templateId, role });
-            res.status(201).json(story);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    },
+  try {
+    const { title, templateId, pages, childId: childIdFromBody } = req.body;
+    const { _id: userId, role } = req.user;
 
-     async updateStory (req, res)  {
-        try {
-            const { storyId } = req.params;
-            const storyData = req.body;
-            const userId = req.user._id;
-            const role = req.user.role;
-            if (!storyId) {
-             return res.status(400).json({ message: "Story ID is required" });
-             }
-              if (!["child", "supervisor", "admin"].includes(role)) {
-              return res.status(403).json({ message: "You are not allowed to update stories" });
-               }
+    let childId;
+    if (role === "child") {
+      childId = userId;
+    } else if (role === "supervisor") {
+      if (!childIdFromBody) {
+        throw new Error("Child ID is required when supervisor creates a story");
+      }
+      childId = childIdFromBody;
+    } else {
+      throw new Error("You are not allowed to create stories");
+    }
+
+    // 🧩 إنشاء القصة في الـ service فقط
+    const story = await storyService.createStory({
+      title,
+      childId,
+      templateId,
+      role,
+    });
+
+    console.log("✅ Created Story:", story);
+
+   
+
+    // 🎯 الرد النهائي
+    res.status(201).json({
+      message: "Story created successfully",
+      storyId: story.storyId || story._id,
+      title: story.title,
+      status: story.status,
+    });
+  } catch (error) {
+    console.error("❌ Error creating story:", error);
+    res.status(400).json({ message: error.message });
+  }
+},
 
 
-            const story = await storyService.updateStory({ storyId,  userId, role, storyData });
-            res.status(200).json(story);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    },
+
+  async updateStory(req, res) {
+  try {
+    const { storyId } = req.params;
+    const storyData = req.body;
+    const userId = req.user._id.toString(); // تحويل الـ ObjectId إلى string
+    const role = req.user.role;
+
+    if (!storyId) {
+      return res.status(400).json({ message: "Story ID is required" });
+    }
+    if (!["child", "supervisor", "admin"].includes(role)) {
+      return res.status(403).json({ message: "You are not allowed to update stories" });
+    }
+
+    const story = await storyService.updateStory({ storyId, userId, role, storyData });
+    res.status(200).json(story);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+},
+
 
 
     async submitStory (req, res) {

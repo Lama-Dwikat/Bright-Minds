@@ -181,9 +181,9 @@ class _HomeSupervisorState extends State<HomeSupervisor> {
 
               // 2x2 grid of smaller square buttons
             // 2x2 grid of smaller square buttons
-Column(
-  children: [
-    Row(
+      Column(
+     children: [
+      Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildSquareButton(
