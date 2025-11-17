@@ -9,6 +9,7 @@ export const storyService = {
 
     // Create a new story
      async createStory({ title, childId, templateId = null, role }) {
+
     try {
       if (!["child", "admin", "supervisor"].includes(role)) {
         throw new Error("You are not allowed to create stories");
@@ -57,6 +58,7 @@ export const storyService = {
 
  async updateStory({ storyId, userId, role, storyData }) {
     try {
+
       const story = await Story.findById(storyId)
       .populate("childId", "_id name parentId")
       .populate("supervisorId", "_id name");

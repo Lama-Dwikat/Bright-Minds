@@ -10,6 +10,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'dart:convert'; 
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart'; 
+
 
 
 
@@ -58,6 +62,19 @@ String _spokenText = "";
     'assets/story_images/energy.png',
     'assets/story_images/Games2.png',
   ];
+
+
+
+String getBackendUrl() {
+  if (kIsWeb) {
+    return "http://localhost:3000";
+  } else if (Platform.isAndroid) {
+    return "http://10.0.2.2:3000";
+  } else {
+    return "http://localhost:3000";
+  }
+}
+
 
  @override
 void initState() {
@@ -387,37 +404,102 @@ if (isDrawingMode) _drawingToolsOverlay(),
   // ============================================================
   //                          TITLE BAR
   // ============================================================
-  Widget _buildTitleBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8E3FF),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.edit, color: mainPurple),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                onChanged: (value) => setState(() => storyTitle = value),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: "Story Title",
-                ),
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+ Widget _buildTitleBar() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8E3FF),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.edit, color: mainPurple),
+          const SizedBox(width: 10),
+
+          // ---------- Editable Story Title ----------
+          Expanded(
+            child: TextField(
+              onChanged: (value) => setState(() => storyTitle = value),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: "Story Title",
+              ),
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ],
-        ),
+          ),
+
+          // ---------- Save Button ----------
+          IconButton(
+            icon: const Icon(Icons.save_rounded, color: Color(0xFF6C55F9), size: 28),
+            tooltip: "Save your story",
+            onPressed: () async {
+              final choice = await showDialog<String>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: const Color(0xFFF3F0FF),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: Row(
+                    children: const [
+                      Icon(Icons.save_rounded, color: Color(0xFF9182FA), size: 30),
+                      SizedBox(width: 10),
+                      Text(
+                        "Save Story",
+                        style: TextStyle(
+                          color: Color(0xFF3C2E7E),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: const Text(
+                    "Would you like to send your story to your supervisor or save it as a draft?",
+                    style: TextStyle(
+                      color: Color(0xFF3C2E7E),
+                      fontSize: 16,
+                    ),
+                  ),
+                  actionsAlignment: MainAxisAlignment.spaceEvenly,
+                  actions: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF9182FA),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => Navigator.pop(context, "send"),
+                      child: const Text("Send to Supervisor"),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF9182FA),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      onPressed: () => Navigator.pop(context, "draft"),
+                      child: const Text("Save as Draft"),
+                    ),
+                  ],
+                ),
+              );
+
+              if (choice == "send") {
+                _saveStory(sendToSupervisor: true);
+              } else if (choice == "draft") {
+                _saveStory(sendToSupervisor: false);
+              }
+            },
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ============================================================
   //                      PAGE INDICATOR
@@ -1358,6 +1440,136 @@ Future<void> _stopListening() async {
     );
   }
 }
+
+
+
+// 
+Future<void> _saveStory({required bool sendToSupervisor}) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final storyId = prefs.getString('currentStoryId');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ Please log in first")),
+      );
+      return;
+    }
+
+    final headers = {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    };
+
+    // بناء بيانات القصة
+    final storyData = {
+      "title": storyTitle,
+      "pages": pages.asMap().entries.map((entry) {
+        final pageIndex = entry.key;
+        final elements = entry.value;
+
+        return {
+          "pageNumber": pageIndex + 1,
+          "elements": elements.map((item) {
+            return {
+              "type": item["type"],
+              "content": item["text"] ?? "",
+              "x": item["x"],
+              "y": item["y"],
+              "width": item["width"],
+              "height": item["height"],
+              "fontSize": item["fontSize"],
+            };
+          }).toList(),
+        };
+      }).toList(),
+    };
+
+    http.Response response;
+
+    // ---------------------------------------------------------------------
+    // ------------------------- CREATE STORY ------------------------------
+    // ---------------------------------------------------------------------
+    if (storyId == null) {
+      print("🆕 Creating new story...");
+
+      response = await http.post(
+        Uri.parse("${getBackendUrl()}/api/story/create"),
+        headers: headers,
+        body: jsonEncode({
+          "title": storyTitle,
+          "pages": storyData["pages"],
+        }),
+      );
+
+      print("📦 Server response: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+
+        // استخراج ID القصة
+        final newStoryId = data["storyId"] ??
+            data["_id"] ??
+            data["story"]?["_id"];
+
+        if (newStoryId != null) {
+          await prefs.setString('currentStoryId', newStoryId);
+          print("✅ New story saved with ID: $newStoryId");
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(sendToSupervisor
+                  ? "📤 Story sent to supervisor!"
+                  : "💾 Story saved as draft."),
+              backgroundColor: const Color(0xFF9182FA),
+            ),
+          );
+        } else {
+          print("⚠️ Story ID not found in response.");
+        }
+      } else {
+        print("❌ Error creating story: ${response.body}");
+      }
+
+      // ⛔ RETURN لمنع الـ UPDATE
+      return;
+    }
+
+    // ---------------------------------------------------------------------
+    // ------------------------------ UPDATE --------------------------------
+    // ---------------------------------------------------------------------
+    print("✏️ Updating existing story: $storyId");
+
+    response = await http.put(
+      Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
+      headers: headers,
+      body: jsonEncode(storyData),
+    );
+
+    print("📩 Update response: ${response.body}");
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(sendToSupervisor
+              ? "📤 Story sent to supervisor!"
+              : "💾 Story updated."),
+          backgroundColor: const Color(0xFF9182FA),
+        ),
+      );
+    } else {
+      print("❌ Error updating: ${response.body}");
+    }
+  } catch (e, stack) {
+    print("⚠️ Exception while saving story: $e");
+    print(stack);
+  }
+}
+
+
+
+
 
 
 

@@ -10,31 +10,50 @@ import ActivityLog from "../models/activityLog.model.js";
 
 export const storyController ={
 
-    async createStory (req, res) {
-        try {
-            const { title, templateId ,childId: childIdFromBody} = req.body;
-            const { _id: userId, role } = req.user;
-              let childId;
-             if (role === "child") {
-                childId = userId;
-                }
-                 else if (role === "supervisor") {
-                   if (!childIdFromBody) {
-                 throw new Error("Child ID is required when supervisor creates a story");
-                   }
-                  childId = childIdFromBody;
-                  }
-                   else {
-                      throw new Error("You are not allowed to create stories");
-                      }
+  async createStory(req, res) {
 
-            const story = await storyService.createStory({ title, childId, templateId, role });
-            
-            res.status(201).json(story);
-        } catch (error) {
-            res.status(400).json({ message: error.message });
-        }
-    },
+  try {
+    const { title, templateId, pages, childId: childIdFromBody } = req.body;
+    const { _id: userId, role } = req.user;
+
+    let childId;
+    if (role === "child") {
+      childId = userId;
+    } else if (role === "supervisor") {
+      if (!childIdFromBody) {
+        throw new Error("Child ID is required when supervisor creates a story");
+      }
+      childId = childIdFromBody;
+    } else {
+      throw new Error("You are not allowed to create stories");
+    }
+
+    // 🧩 إنشاء القصة في الـ service فقط
+    const story = await storyService.createStory({
+      title,
+      childId,
+      templateId,
+      role,
+    });
+
+    console.log("✅ Created Story:", story);
+
+   
+
+    // 🎯 الرد النهائي
+    res.status(201).json({
+      message: "Story created successfully",
+      storyId: story.storyId || story._id,
+      title: story.title,
+      status: story.status,
+    });
+  } catch (error) {
+    console.error("❌ Error creating story:", error);
+    res.status(400).json({ message: error.message });
+  }
+},
+
+
 
   async updateStory(req, res) {
   try {
