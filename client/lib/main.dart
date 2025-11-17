@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/welcome.dart';
+import 'package:bright_minds/screens/tasksList.dart';
+
 
 
 
@@ -22,7 +24,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:  WelcomeScreen(),
+      home:  MyApp()
+      // WelcomeScreen(),
     );
   }
 }
