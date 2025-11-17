@@ -1,4 +1,5 @@
 import 'package:bright_minds/screens/supervisorKids.dart';
+import 'package:bright_minds/screens/supervisorVideo.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -189,7 +190,7 @@ Column(
           label: "Videos",
           icon: Icons.video_library,
           color: Colors.orange[200]!,
-          onPressed: () { },
+          onPressed: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosScreen()));},
         ),
         const SizedBox(width: 16),
         _buildSquareButton(

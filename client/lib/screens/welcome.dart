@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/signin.dart';
 import 'package:bright_minds/screens/signup.dart';
 import 'package:flutter/gestures.dart';//to use TapGestureRecognizer for clickable text
+import 'package:bright_minds/theme/colors.dart';
 
 
 class WelcomeScreen extends StatelessWidget {
@@ -11,22 +12,24 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  final Size screenSize=MediaQuery.of(context).size;
+  final double screenHeight=screenSize.height;
+  final double screenWidth=screenSize.width;
 
    return  Scaffold(
       body:Stack(
         children:[
-          Image.asset(("assets/images/mobile.png"), 
+          Image.asset(("assets/images/welcome.png"), 
           fit:BoxFit.cover,
-          width:double.infinity,
-          height:double.infinity,
+          width:screenWidth,
+          height:screenHeight,
           ),
                Positioned(
-                  bottom:220,
-                  left:220,
-                       
+              bottom: screenHeight * 0.22, // 25% from bottom
+              left: screenWidth * 0.51 ,
            child:   Container(
-                width: 200,
-                height: 70,
+              width: screenWidth * 0.43,  // 40% of screen width
+              height: screenHeight * 0.07, // 8% of screen height
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color:Colors.white,
@@ -34,30 +37,36 @@ class WelcomeScreen extends StatelessWidget {
            child: MaterialButton(onPressed: (){
             Navigator.push(context,MaterialPageRoute(builder:(context)=>SignInScreen()));
            },
-           textColor: Colors.deepPurple,
-           child:Text("Sign In",style:TextStyle(fontSize:25,fontWeight:FontWeight.bold) ,),
+           textColor: AppColors.bgSoftPinkVeryDark,
+           child:Text("Sign In",style:TextStyle(
+            //fontSize:26,
+               fontSize: screenWidth * 0.065, 
+            fontWeight:FontWeight.bold) ,),
             ),
               ),
                ),
               Positioned(
-                bottom:130,
+             bottom: screenHeight * 0.15,          
                 left:0,
-                  right:0,
+                right:0,
                 child:Center(
              child:  RichText(
               text: TextSpan(
                 children:[
                   TextSpan(text:"Don't have an account ? ",
                    style:TextStyle(
+                    fontWeight:FontWeight.bold,
                     color:Colors.white,
-                    fontSize:22,
+                   // fontSize:24,
+                     fontSize: screenWidth * 0.055,
                   )
                   ),
                 TextSpan(
                   text:"Sign Up",
                   style:TextStyle(
                     color:Colors.white,
-                    fontSize:24,
+                   // fontSize:26,
+                     fontSize: screenWidth * 0.060,
                     fontWeight:FontWeight.bold,
                     decoration:TextDecoration.underline
                 )   ,  

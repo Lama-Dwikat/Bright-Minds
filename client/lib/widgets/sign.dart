@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:bright_minds/theme/colors.dart';
 
 class Sign extends StatelessWidget {
   const Sign({super.key, this.child});
@@ -15,8 +16,11 @@ class Sign extends StatelessWidget {
      body:Stack(
   children:[
     Container(
-color: const Color.fromARGB(255, 149, 138, 252),     
-      width: double.infinity,
+ decoration: BoxDecoration(
+    gradient: AppColors.pinkToPeach, // use the gradient here
+    borderRadius: BorderRadius.circular(10),
+  ),
+        width: double.infinity,
       height: double.infinity,),
     Positioned(
       top: screenHeight * 0.05, // 5% from top     
