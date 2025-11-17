@@ -190,7 +190,7 @@ class _HomeSupervisorState extends State<HomeSupervisor> {
           label: "Videos",
           icon: Icons.video_library,
           color: Colors.orange[200]!,
-          onPressed: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosScreen()));},
+          onPressed: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorKidsScreen()));},
         ),
         const SizedBox(width: 16),
         _buildSquareButton(
