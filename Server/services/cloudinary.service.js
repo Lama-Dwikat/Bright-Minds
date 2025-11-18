@@ -1,5 +1,5 @@
+// services/cloudinary.service.js
 import cloudinary from "../utils/cloudinary.js";
-import storyService from "../services/story.service.js";
 import fs from "fs";
 
 export const cloudinaryService = {
@@ -7,16 +7,17 @@ export const cloudinaryService = {
     try {
       const result = await cloudinary.uploader.upload(filePath, {
         folder,
-        resource_type: "auto"
+        resource_type: "auto",
       });
 
-      fs.unlinkSync(filePath); 
+      // احذف الملف من السيرفر بعد الرفع
+      fs.unlinkSync(filePath);
 
       return result.secure_url;
     } catch (error) {
       throw new Error("Cloudinary upload failed: " + error.message);
     }
-  }
+  },
 };
 
 export default cloudinaryService;

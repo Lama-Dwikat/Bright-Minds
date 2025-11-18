@@ -51,6 +51,8 @@ String? recordedFilePath;
 late stt.SpeechToText _speech;
 bool _isListening = false;
 String _spokenText = "";
+final TextEditingController _titleController = TextEditingController();
+
 
 
   final TextEditingController _textController = TextEditingController();
@@ -81,18 +83,23 @@ String getBackendUrl() {
  @override
 void initState() {
   super.initState();
+  _speech = stt.SpeechToText();
 
-  // storyId من الـ widget لو وجد
   if (widget.storyId != null) {
+    _loadStoryData(widget.storyId!);
+
     SharedPreferences.getInstance().then((prefs) {
       prefs.setString('currentStoryId', widget.storyId!);
     });
+
   } else {
     SharedPreferences.getInstance().then((prefs) {
-      prefs.remove('currentStoryId'); // 🟢 مسح عند إنشاء قصة جديدة
+      prefs.remove('currentStoryId');
     });
   }
 }
+
+
 
 
 
@@ -433,19 +440,21 @@ if (isDrawingMode) _drawingToolsOverlay(),
           const SizedBox(width: 10),
 
           // ---------- Editable Story Title ----------
-          Expanded(
-            child: TextField(
-              onChanged: (value) => setState(() => storyTitle = value),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: "Story Title",
-              ),
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+         Expanded(
+  child: TextField(
+    controller: _titleController,    
+    onChanged: (value) => storyTitle = value,
+    decoration: const InputDecoration(
+      border: InputBorder.none,
+      hintText: "Story Title",
+    ),
+    style: GoogleFonts.poppins(
+      fontSize: 20,
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+),
+
 
 
           // ---------- Save Button ----------
@@ -1463,7 +1472,7 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    final storyId = prefs.getString('currentStoryId');
+    String? storyId = prefs.getString('currentStoryId');
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1477,89 +1486,194 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       "Content-Type": "application/json",
     };
 
-    // ------------------ BUILD STORY DATA ------------------
-    String? coverImage = _getCoverImageFromPages();
+    // ============= 1) نبني الـ pages مع الميديا =============
+    final List<Map<String, dynamic>> pagesJson = [];
+
+    for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+      final pageElements = <Map<String, dynamic>>[];
+      final elements = pages[pageIndex];
+
+      for (int i = 0; i < elements.length; i++) {
+        final item = elements[i];
+        final type = item["type"];
+
+        // ---------- TEXT ----------
+        if (type == "text") {
+          pageElements.add({
+            "type": "text",
+            "content": item["text"] ?? "",
+            "x": item["x"] ?? 50.0,
+            "y": item["y"] ?? 50.0,
+            "width": item["width"],
+            "height": item["height"],
+            "fontSize": item["fontSize"] ?? 20.0,
+            "align": "left",
+            "order": i,
+          });
+        }
+
+        // ---------- IMAGE FROM ASSETS ----------
+        else if (type == "image") {
+          final String assetPath = item["imagePath"];
+
+          pageElements.add({
+            "type": "image",
+            "content": "",
+            "x": item["x"] ?? 40.0,
+            "y": item["y"] ?? 40.0,
+            "width": item["width"] ?? 150.0,
+            "height": item["height"] ?? 150.0,
+            "fontSize": null,
+            "align": "left",
+            "order": i,
+            "media": {
+              "mediaType": "image",
+              "url": assetPath, // نخزن مسار الـ asset
+              "page": pageIndex + 1,
+              "elementOrder": i,
+            },
+          });
+        }
+
+        // ---------- UPLOADED IMAGE / DRAWN IMAGE ----------
+        else if (type == "uploaded_image" || type == "drawn_image") {
+          final Uint8List bytes = item["bytes"];
+          final String fileName =
+              "story_image_${DateTime.now().millisecondsSinceEpoch}.png";
+
+          final url = await _uploadBytesToCloudinary(bytes, fileName);
+
+          if (url == null) {
+            print("⚠️ Failed to upload image, skipping element");
+            continue;
+          }
+
+          pageElements.add({
+            "type": "image",
+            "content": "",
+            "x": item["x"] ?? 40.0,
+            "y": item["y"] ?? 40.0,
+            "width": item["width"] ?? 150.0,
+            "height": item["height"] ?? 150.0,
+            "fontSize": null,
+            "align": "left",
+            "order": i,
+            "media": {
+              "mediaType": "image",
+              "url": url,
+              "page": pageIndex + 1,
+              "elementOrder": i,
+            },
+          });
+        }
+
+        // ---------- AUDIO ----------
+        else if (type == "audio") {
+          final String path = item["path"];
+          final String fileName =
+              "story_audio_${DateTime.now().millisecondsSinceEpoch}.m4a";
+
+          final url = await _uploadFilePathToCloudinary(path, fileName);
+
+          if (url == null) {
+            print("⚠️ Failed to upload audio, skipping element");
+            continue;
+          }
+
+          pageElements.add({
+            "type": "audio",
+            "content": "",
+            "x": item["x"] ?? 50.0,
+            "y": item["y"] ?? 50.0,
+            "width": null,
+            "height": null,
+            "fontSize": null,
+            "align": "left",
+            "order": i,
+            "media": {
+              "mediaType": "audio",
+              "url": url,
+              "page": pageIndex + 1,
+              "elementOrder": i,
+            },
+          });
+        }
+      }
+
+      pagesJson.add({
+        "pageNumber": pageIndex + 1,
+        "elements": pageElements,
+      });
+    }
+
+    // ============= 2) نختار coverImage =============
+    String? coverImage;
+    for (final page in pagesJson) {
+      for (final el in (page["elements"] as List)) {
+        if (el["type"] == "image" && el["media"]?["url"] != null) {
+          coverImage = el["media"]["url"];
+          break;
+        }
+      }
+      if (coverImage != null) break;
+    }
 
     final storyData = {
       "title": storyTitle,
       "coverImage": coverImage,
-      "pages": pages.asMap().entries.map((entry) {
-        final pageIndex = entry.key;
-        final elements = entry.value;
-
-        return {
-          "pageNumber": pageIndex + 1,
-          "elements": elements.map((item) {
-            return {
-              "type": item["type"],
-              "content": item["text"] ?? "",
-              "x": item["x"],
-              "y": item["y"],
-              "width": item["width"],
-              "height": item["height"],
-              "fontSize": item["fontSize"],
-            };
-          }).toList(),
-        };
-      }).toList(),
+      "pages": pagesJson,
     };
 
+    // ============= 3) CREATE لو ما في storyId =============
     http.Response response;
 
-    // ======================================================
-    // ===============    CREATE STORY      =================
-    // ======================================================
     if (storyId == null) {
       print("🆕 Creating new story...");
 
-      // ❗ لا ترسل pages للـ create
       response = await http.post(
         Uri.parse("${getBackendUrl()}/api/story/create"),
         headers: headers,
-        body: jsonEncode({
-          "title": storyTitle,
-        }),
+        body: jsonEncode({"title": storyTitle}),
       );
 
       print("📦 Server response: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
+        storyId = data["storyId"] ?? data["_id"];
 
-        final newStoryId = data["storyId"] ?? data["_id"];
-
-        if (newStoryId != null) {
-          await prefs.setString('currentStoryId', newStoryId);
-          print("✅ New story saved with ID: $newStoryId");
-
-          // الآن نعمل update لإضافة الـ pages
-          await _updateStoryPages(newStoryId, storyData, token);
-
-          // إذا بده يرسل للسوبرفايزر
-          if (sendToSupervisor) {
-            await _submitStory(newStoryId, token);
-          }
-
-          return;
+        if (storyId != null) {
+          await prefs.setString('currentStoryId', storyId!);
+          print("✅ New story saved with ID: $storyId");
         } else {
           print("⚠️ Story ID not found in create response.");
+          return;
         }
       } else {
         print("❌ Error creating story: ${response.body}");
+        return;
       }
+    }
 
+    // ============= 4) UPDATE PAGES =============
+    print("✏️ Updating existing story: $storyId");
+
+    final updateResponse = await http.put(
+      Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
+      headers: headers,
+      body: jsonEncode(storyData),
+    );
+
+    print("📩 Update response: ${updateResponse.body}");
+
+    if (updateResponse.statusCode != 200) {
+      print("❌ Error updating story: ${updateResponse.body}");
       return;
     }
 
-    // ======================================================
-    // ==================   UPDATE STORY   ==================
-    // ======================================================
-    print("✏️ Updating existing story: $storyId");
-
-    await _updateStoryPages(storyId, storyData, token);
-
+    // ============= 5) SUBMIT لو بده يرسل للسوبرفايزر =============
     if (sendToSupervisor) {
-      await _submitStory(storyId, token);
+      await _submitStory(storyId!, token);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1570,7 +1684,6 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
         backgroundColor: const Color(0xFF9182FA),
       ),
     );
-
   } catch (e, stack) {
     print("⚠️ Exception while saving story: $e");
     print(stack);
@@ -1578,7 +1691,8 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
 }
 
 
-Future<void> _updateStoryPages(String storyId, Map storyData, String token) async {
+
+/*Future<void> _updateStoryPages(String storyId, Map storyData, String token) async {
   final response = await http.put(
     Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
     headers: {
@@ -1594,7 +1708,7 @@ Future<void> _updateStoryPages(String storyId, Map storyData, String token) asyn
     print("❌ Error updating story: ${response.body}");
   }
 }
-
+*/
 
 Future<void> _submitStory(String storyId, String token) async {
   final response = await http.post(
@@ -1627,16 +1741,186 @@ String? _getCoverImageFromPages() {
   return null;
 }
 
-/*Future<void> pickCoverImage() async {
-  final ImagePicker picker = ImagePicker();
-  final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+Future<void> _loadStoryData(String storyId) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
 
-  if (file != null) {
-    setState(() {
-     //coverImageUrl = file.path;   // أو رفعيه لـ Cloudinary
-    });
+    final response = await http.get(
+      Uri.parse("${getBackendUrl()}/api/story/getstorybyid/$storyId"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    print("🟣 LOAD STORY RESPONSE: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // -------- SET TITLE ----------
+      storyTitle = data["title"] ?? "My Story";
+      _titleController.text = storyTitle;       
+
+      // -------- LOAD PAGES ----------
+      final List<List<Map<String, dynamic>>> loadedPages = [];
+
+      final pagesFromApi = data["pages"] as List? ?? [];
+
+      for (final page in pagesFromApi) {
+        final List<Map<String, dynamic>> pageElements = [];
+        final elements = page["elements"] as List? ?? [];
+
+        for (final el in elements) {
+          final String type = el["type"] ?? "text";
+          final media = el["media"];
+          final double x = (el["x"] ?? 40).toDouble();
+          final double y = (el["y"] ?? 40).toDouble();
+          final double width =
+              el["width"] != null ? (el["width"] as num).toDouble() : 150;
+          final double height =
+              el["height"] != null ? (el["height"] as num).toDouble() : 150;
+
+          // ---------- TEXT ----------
+          if (type == "text") {
+            pageElements.add({
+              "key": UniqueKey(),
+              "type": "text",
+              "text": el["content"] ?? "",
+              "x": x,
+              "y": y,
+              "width": el["width"],
+              "height": el["height"],
+              "fontSize": el["fontSize"] != null
+                  ? (el["fontSize"] as num).toDouble()
+                  : 20.0,
+            });
+          }
+
+          // ---------- IMAGE ----------
+          else if (type == "image") {
+            final String? mediaUrl = media?["url"];
+
+            if (mediaUrl != null && mediaUrl.startsWith("assets/")) {
+              // IMAGE FROM ASSETS
+              pageElements.add({
+                "key": UniqueKey(),
+                "type": "image",
+                "imagePath": mediaUrl,
+                "x": x,
+                "y": y,
+                "width": width,
+                "height": height,
+              });
+            } else if (mediaUrl != null && mediaUrl.startsWith("http")) {
+              // IMAGE FROM CLOUDINARY
+              pageElements.add({
+                "key": UniqueKey(),
+                "type": "uploaded_image",
+                "networkUrl": mediaUrl,
+                "x": x,
+                "y": y,
+                "width": width,
+                "height": height,
+              });
+            }
+          }
+
+          // ---------- AUDIO ----------
+          else if (type == "audio") {
+            pageElements.add({
+              "key": UniqueKey(),
+              "type": "audio",
+              "path": media?["url"] ?? "",
+              "x": x,
+              "y": y,
+            });
+          }
+        }
+
+        loadedPages.add(pageElements);
+      }
+
+      setState(() {
+        pages = loadedPages.isEmpty ? [[]] : loadedPages;
+        currentPageIndex = 0;
+      });
+    } 
+    else {
+      print("❌ Error loading story: ${response.statusCode} — ${response.body}");
+    }
+  } catch (e) {
+    print("⚠️ Error: $e");
   }
-}*/
+}
+
+
+
+
+Future<String?> _uploadBytesToCloudinary(Uint8List bytes, String fileName) async {
+  try {
+    final uri = Uri.parse("${getBackendUrl()}/api/upload/story-media");
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final request = http.MultipartRequest("POST", uri);
+
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: fileName,
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data["url"];
+    } else {
+      print("❌ Cloudinary upload failed: ${response.body}");
+      return null;
+    }
+  } catch (e) {
+    print("⚠️ Upload error: $e");
+    return null;
+  }
+}
+
+Future<String?> _uploadFilePathToCloudinary(String filePath, String fileName) async {
+  final file = File(filePath);
+  if (!await file.exists()) return null;
+  final bytes = await file.readAsBytes();
+  return _uploadBytesToCloudinary(bytes, fileName);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

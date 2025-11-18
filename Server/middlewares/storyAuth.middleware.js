@@ -45,6 +45,21 @@ export const authorizeStory = (roles = [], operation = "") => async (req, res, n
 
     switch (operation) {
 
+
+       case "view":
+        if (role === "child" && !isChildOwner) {
+          return res.status(403).json({ message: "You cannot view this story" });
+        }
+
+        if (role === "parent") {
+          const parentId = story.childId?.parentId?.toString();
+          if (parentId !== userIdStr) {
+            return res.status(403).json({ message: "You cannot view this story" });
+          }
+        }
+
+        return next();
+
       case "update":
         if (role === "child" && !isChildOwner)
           return res.status(403).json({ message: "You can only edit your own story" });
@@ -73,6 +88,8 @@ export const authorizeStory = (roles = [], operation = "") => async (req, res, n
         if (role !== "child" || !isChildOwner)
           return res.status(403).json({ message: "You can only resubmit your own story" });
         break;
+     
+
     }
 
     req.story = story;

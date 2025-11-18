@@ -12,6 +12,7 @@ import { aiRouter } from './routes/ai.route.js';
 import { reviewStoryRouter } from './routes/reviewStory.route.js';
 import { storyLikeRouter } from './routes/storyLike.route.js';
 import { templateRouter } from './routes/template.route.js';
+import uploadRouter from './routes/upload.routes.js';
 
 const app = express()
 const server = http.createServer(app);
@@ -44,6 +45,8 @@ app.use('/api', aiRouter);
 app.use('/api', reviewStoryRouter);
 app.use('/api', storyLikeRouter );
 app.use('/api', templateRouter );
+app.use("/api/upload", uploadRouter);
+
 
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");

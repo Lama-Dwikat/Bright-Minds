@@ -156,46 +156,62 @@ async deleteStory({ storyId, userId, role }) {
 
 
     async getStoryById({ storyId, userId = null, role }) {
-    try {
-      const story = await Story.findById(storyId)
-        .populate("childId", "name parentId")
-        .populate("supervisorId", "name")
-        .populate("templateId", "name defaultTheme")
-        .lean();
-      if (!story) throw new Error("Story not found");
+  try {
+    const story = await Story.findById(storyId)
+      .populate("childId", "name parentId")
+      .populate("supervisorId", "name")
+      .populate("templateId", "name defaultTheme")
+      .lean();
 
-      if (role !== "admin") {
-        const isChildOwner = story.childId?._id?.toString() === userId;
-        const isSupervisorAssigned = story.supervisorId?._id?.toString() === userId;
-        const isParentOfChild = story.childId?.parentId?._id?.toString() === userId;
+    if (!story) throw new Error("Story not found");
 
-        if (!isChildOwner && !isAdmin) {
-  throw new Error("You are not allowed to delete this story");
-}
+    const isAdmin = role === "admin";   // 🔥 هذا كان ناقص
 
+    console.log("CHILD OWNER CHECK");
+console.log("UserId:", userId);
+console.log("Story childId:", story.childId?._id?.toString());
+console.log("role:", role);
+
+    if (!isAdmin) {
+const isChildOwner = story.childId?._id?.toString() === userId.toString();
+      const isSupervisorAssigned = story.supervisorId?._id?.toString() === userId;
+      const isParentOfChild = story.childId?.parentId?._id?.toString() === userId;
+
+      if (!isChildOwner && !isSupervisorAssigned && !isParentOfChild) {
+        throw new Error("You are not allowed to view this story");
       }
-
-      const [reviews, likesCount, userLiked] = await Promise.all([
-        StoryReview.find({ storyId: story._id }).populate("supervisorId", "name email").sort({ createdAt: -1 }),
-        StoryLike.countDocuments({ storyId }),
-        userId ? StoryLike.findOne({ storyId, userId: new mongoose.Types.ObjectId(userId) }) : Promise.resolve(null)
-      ]);
-
-      story.reviews = reviews;
-      story.likesCount = likesCount;
-      story.userLiked = !!userLiked;
-
-      return story;
-    } catch (error) {
-      throw new Error("Error fetching story: " + error.message);
     }
-  },
+
+    const [reviews, likesCount, userLiked] = await Promise.all([
+      StoryReview.find({ storyId: story._id })
+        .populate("supervisorId", "name email")
+        .sort({ createdAt: -1 }),
+
+      StoryLike.countDocuments({ storyId }),
+
+      userId
+        ? StoryLike.findOne({
+            storyId,
+            userId: new mongoose.Types.ObjectId(userId),
+          })
+        : Promise.resolve(null),
+    ]);
+
+    story.reviews = reviews;
+    story.likesCount = likesCount;
+    story.userLiked = !!userLiked;
+
+    return story;
+  } catch (error) {
+    throw new Error("Error fetching story: " + error.message);
+  }
+},
 
 async getStoriesByChild({ childId, status = null, userId = null, role }) {
   try {
     const childIdStr = childId.toString();
     const userIdStr = userId?.toString();
-
+       
     if (role !== "admin") {
       if (role === "child" && userIdStr !== childIdStr) {
         throw new Error("You are not allowed to view other children's stories");

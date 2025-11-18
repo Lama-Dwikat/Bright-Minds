@@ -200,7 +200,18 @@ void _confirmDelete(String storyId) {
     return Stack(
   children: [
     GestureDetector(
-      onTap: () {},
+      onTap: () async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('currentStoryId', story['_id']);  // ضروري
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => CreateStoryPage(storyId: story['_id']),
+    ),
+  ).then((_) => _fetchChildStories()); // بعد التعديل رجّعي تحديث
+},
+
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
