@@ -1462,7 +1462,7 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       "Content-Type": "application/json",
     };
 
-    // بناء بيانات القصة
+    // ------------------ BUILD STORY DATA ------------------
     final storyData = {
       "title": storyTitle,
       "pages": pages.asMap().entries.map((entry) {
@@ -1488,18 +1488,18 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
 
     http.Response response;
 
-    // ---------------------------------------------------------------------
-    // ------------------------- CREATE STORY ------------------------------
-    // ---------------------------------------------------------------------
+    // ======================================================
+    // ===============    CREATE STORY      =================
+    // ======================================================
     if (storyId == null) {
       print("🆕 Creating new story...");
 
+      // ❗ لا ترسل pages للـ create
       response = await http.post(
         Uri.parse("${getBackendUrl()}/api/story/create"),
         headers: headers,
         body: jsonEncode({
           "title": storyTitle,
-          "pages": storyData["pages"],
         }),
       );
 
@@ -1508,65 +1508,91 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
 
-        // استخراج ID القصة
-        final newStoryId = data["storyId"] ??
-            data["_id"] ??
-            data["story"]?["_id"];
+        final newStoryId = data["storyId"] ?? data["_id"];
 
         if (newStoryId != null) {
           await prefs.setString('currentStoryId', newStoryId);
           print("✅ New story saved with ID: $newStoryId");
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(sendToSupervisor
-                  ? "📤 Story sent to supervisor!"
-                  : "💾 Story saved as draft."),
-              backgroundColor: const Color(0xFF9182FA),
-            ),
-          );
+          // الآن نعمل update لإضافة الـ pages
+          await _updateStoryPages(newStoryId, storyData, token);
+
+          // إذا بده يرسل للسوبرفايزر
+          if (sendToSupervisor) {
+            await _submitStory(newStoryId, token);
+          }
+
+          return;
         } else {
-          print("⚠️ Story ID not found in response.");
+          print("⚠️ Story ID not found in create response.");
         }
       } else {
         print("❌ Error creating story: ${response.body}");
       }
 
-      // ⛔ RETURN لمنع الـ UPDATE
       return;
     }
 
-    // ---------------------------------------------------------------------
-    // ------------------------------ UPDATE --------------------------------
-    // ---------------------------------------------------------------------
+    // ======================================================
+    // ==================   UPDATE STORY   ==================
+    // ======================================================
     print("✏️ Updating existing story: $storyId");
 
-    response = await http.put(
-      Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
-      headers: headers,
-      body: jsonEncode(storyData),
+    await _updateStoryPages(storyId, storyData, token);
+
+    if (sendToSupervisor) {
+      await _submitStory(storyId, token);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(sendToSupervisor
+            ? "📤 Story sent to supervisor!"
+            : "💾 Story saved."),
+        backgroundColor: const Color(0xFF9182FA),
+      ),
     );
 
-    print("📩 Update response: ${response.body}");
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(sendToSupervisor
-              ? "📤 Story sent to supervisor!"
-              : "💾 Story updated."),
-          backgroundColor: const Color(0xFF9182FA),
-        ),
-      );
-    } else {
-      print("❌ Error updating: ${response.body}");
-    }
   } catch (e, stack) {
     print("⚠️ Exception while saving story: $e");
     print(stack);
   }
 }
 
+
+Future<void> _updateStoryPages(String storyId, Map storyData, String token) async {
+  final response = await http.put(
+    Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+    body: jsonEncode(storyData),
+  );
+
+  print("📩 Update response: ${response.body}");
+
+  if (response.statusCode != 200) {
+    print("❌ Error updating story: ${response.body}");
+  }
+}
+
+
+Future<void> _submitStory(String storyId, String token) async {
+  final response = await http.post(
+    Uri.parse("${getBackendUrl()}/api/story/submit/$storyId/submit"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    },
+  );
+
+  print("📨 Submit response: ${response.body}");
+
+  if (response.statusCode != 200) {
+    print("❌ Error submitting story: ${response.body}");
+  }
+}
 
 
 

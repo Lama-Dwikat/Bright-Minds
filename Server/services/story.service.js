@@ -103,29 +103,35 @@ export const storyService = {
     }
   },
 
-     async submitStory({ storyId, userId, role }) {
-    try {
-      const story = await Story.findById(storyId);
-      if (!story) throw new Error("Story not found");
+    async submitStory({ storyId, userId, role }) {
+  try {
+    const story = await Story.findById(storyId).populate("childId", "_id");
+    if (!story) throw new Error("Story not found");
 
-      const isChildOwner = story.childId?.toString() === userId;
+    const isChildOwner = story.childId?._id?.toString() === userId.toString();
 
-      if (["parent", "supervisor"].includes(role)) throw new Error("You are not allowed to submit stories");
-      if (role === "child" && !isChildOwner) throw new Error("You are not allowed to submit this story");
+    if (role !== "child")
+      throw new Error("You are not allowed to submit stories");
 
-      if (story.startedBy === "supervisor") story.continuedByChild = true;
+    if (!isChildOwner)
+      throw new Error("You are not allowed to submit this story");
 
-      if (!["draft", "needs_edit"].includes(story.status)) throw new Error("Only draft or needs_edit stories can be submitted");
+    if (story.startedBy === "supervisor")
+      story.continuedByChild = true;
 
-      story.status = "pending";
-      story.isDraft = false;
-      await story.save();
+    if (!["draft", "needs_edit"].includes(story.status))
+      throw new Error("Only draft or needs_edit stories can be submitted");
 
-      return story;
-    } catch (error) {
-      throw new Error("Error submitting story: " + error.message);
-    }
-  },
+    story.status = "pending";
+    story.isDraft = false;
+    await story.save();
+
+    return story;
+
+  } catch (error) {
+    throw new Error("Error submitting story: " + error.message);
+  }
+},
 
     async deleteStory({ storyId, userId, role }) {
     try {
