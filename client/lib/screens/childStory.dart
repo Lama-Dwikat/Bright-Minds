@@ -227,28 +227,35 @@ void _confirmDelete(String storyId) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-                child: imageUrl != null
-                    ? Image.network(
-                        imageUrl!,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        color: Color(0xFFEEE5FF),
-                        child: Icon(
-                          Icons.menu_book_rounded,
-                          color: Color(0xFF673AB7),
-                          size: 50,
-                        ),
-                      ),
-              ),
+           Expanded(
+  child: ClipRRect(
+    borderRadius: const BorderRadius.only(
+      topLeft: Radius.circular(16),
+      topRight: Radius.circular(16),
+    ),
+    child: imageUrl != null
+        ? (imageUrl!.startsWith("assets/")
+            ? Image.asset(
+                imageUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+            : Image.network(
+                imageUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ))
+        : Container(
+            color: const Color(0xFFEEE5FF),
+            child: const Icon(
+              Icons.menu_book_rounded,
+              color: Color(0xFF673AB7),
+              size: 50,
             ),
+          ),
+  ),
+),
+
 
             Padding(
               padding: const EdgeInsets.all(8.0),

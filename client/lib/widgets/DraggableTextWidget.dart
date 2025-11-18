@@ -66,16 +66,16 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
   final confirm = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFFF3F0FF),
+      backgroundColor: const Color(0xFFFFF5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: const [
-          Icon(Icons.delete_forever_rounded, color: Color(0xFF9182FA), size: 30),
+          Icon(Icons.delete_forever_rounded, color: Color(0xFFEBA1AB), size: 30),
           SizedBox(width: 10),
           Text(
             "Delete this text?",
             style: TextStyle(
-              color: Color(0xFF3C2E7E),
+              color: Color.fromARGB(255, 0, 0, 0),
               fontWeight: FontWeight.bold,
               fontSize: 20,
             ),
@@ -85,7 +85,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       content: const Text(
         "Are you sure you want to delete this text from your story? 😢",
         style: TextStyle(
-          color: Color(0xFF3C2E7E),
+          color: Color.fromARGB(255, 0, 0, 0),
           fontSize: 16,
         ),
       ),
@@ -94,7 +94,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF9182FA),
+            foregroundColor: const Color(0xFFEBA1AB),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
@@ -279,7 +279,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
                     // ---------------- SAVE BUTTON ----------------
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9182FA),
+                        backgroundColor: const Color(0xFFEBA1AB),
                         minimumSize: const Size(double.infinity, 45),
                       ),
                       onPressed: () {
@@ -326,7 +326,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       child: CircleAvatar(
         radius: 22,
         backgroundColor:
-            active ? const Color(0xFF9182FA) : Colors.grey[300],
+            active ? const Color(0xFFEBA1AB) : Colors.grey[300],
         child: Icon(icon, color: active ? Colors.white : Colors.black),
       ),
     );

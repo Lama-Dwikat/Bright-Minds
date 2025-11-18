@@ -13,6 +13,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'dart:convert'; 
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:http_parser/http_parser.dart';
 
 
 
@@ -58,7 +59,7 @@ final TextEditingController _titleController = TextEditingController();
   final TextEditingController _textController = TextEditingController();
 
   // Main Brand Color
-  final Color mainPurple = const Color(0xFF9182FA);
+  final Color mainPurple = const Color(0xFFD97B83);
 
   final List<String> storyImageAssets = [
     'assets/story_images/discussion.png',
@@ -113,7 +114,7 @@ void initState() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F0FF), // soft purple background
+      backgroundColor: const Color(0xFFFFF5F5), // soft purple background
       body: SafeArea(
         child: Stack(
           
@@ -234,6 +235,7 @@ void initState() {
       }
 
       // ===== IMAGE ELEMENT =====
+ // ===== IMAGE FROM ASSETS =====
       if (item["type"] == "image") {
         return DraggableImageWidget(
           key: item["key"],
@@ -256,13 +258,14 @@ void initState() {
           },
           onDelete: () {
             setState(() {
-              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+              pages[currentPageIndex]
+                  .removeWhere((e) => e["key"] == item["key"]);
             });
           },
         );
       }
 
-      // ===== DRAWN IMAGE =====
+      // ===== DRAWN IMAGE (BYTES) =====
       if (item["type"] == "drawn_image") {
         return DraggableImageWidget(
           key: item["key"],
@@ -285,16 +288,20 @@ void initState() {
           },
           onDelete: () {
             setState(() {
-              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+              pages[currentPageIndex]
+                  .removeWhere((e) => e["key"] == item["key"]);
             });
           },
         );
       }
 
-      // ===== UPLOADED IMAGE =====
+      // ===== UPLOADED IMAGE (FROM CLOUDINARY OR LOCAL) =====
       if (item["type"] == "uploaded_image") {
         return DraggableImageWidget(
           key: item["key"],
+          // لو رجعت من الباك:
+          networkUrl: item["networkUrl"],
+          // لو لسه جديدة ولسا ما اترفعت:
           bytes: item["bytes"],
           x: item["x"] ?? 40.0,
           y: item["y"] ?? 40.0,
@@ -314,7 +321,8 @@ void initState() {
           },
           onDelete: () {
             setState(() {
-              pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
+              pages[currentPageIndex]
+                  .removeWhere((e) => e["key"] == item["key"]);
             });
           },
         );
@@ -331,7 +339,7 @@ if (item["type"] == "audio") {
       width: 200,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEE9FF),
+        color: const Color(0xFFFFF5F5),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4)
@@ -340,14 +348,14 @@ if (item["type"] == "audio") {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.audiotrack, color: Color(0xFF9182FA)),
+          const Icon(Icons.audiotrack, color: Color(0xFFD97B83)),
           const SizedBox(width: 8),
           Text(
             "Voice note",
             style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
           ),
           IconButton(
-            icon: const Icon(Icons.play_arrow, color: Color(0xFF9182FA)),
+            icon: const Icon(Icons.play_arrow, color: Color(0xFFD97B83)),
             onPressed: () async {
               // 🔊 شغّل الصوت
               final file = File(item["path"]);
@@ -431,12 +439,12 @@ if (isDrawingMode) _drawingToolsOverlay(),
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8E3FF),
+        color: const Color(0xFFFFE0E0),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          Icon(Icons.edit, color: mainPurple),
+          Icon(Icons.edit, color:Color(0xFFD97B83) ),
           const SizedBox(width: 10),
 
           // ---------- Editable Story Title ----------
@@ -459,22 +467,22 @@ if (isDrawingMode) _drawingToolsOverlay(),
 
           // ---------- Save Button ----------
           IconButton(
-            icon: const Icon(Icons.save_rounded, color: Color(0xFF6C55F9), size: 28),
+            icon: const Icon(Icons.save_rounded, color: Color(0xFFD97B83), size: 28),
             tooltip: "Save your story",
             onPressed: () async {
               final choice = await showDialog<String>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFFF3F0FF),
+                  backgroundColor: const Color(0xFFFFE0E0),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   title: Row(
                     children: const [
-                      Icon(Icons.save_rounded, color: Color(0xFF9182FA), size: 30),
+                      Icon(Icons.save_rounded, color: Color(0xFFD97B83), size: 30),
                       SizedBox(width: 10),
                       Text(
                         "Save Story",
                         style: TextStyle(
-                          color: Color(0xFF3C2E7E),
+                          color: Color.fromARGB(255, 0, 0, 0),
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
@@ -484,7 +492,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
                   content: const Text(
                     "Would you like to send your story to your supervisor or save it as a draft?",
                     style: TextStyle(
-                      color: Color(0xFF3C2E7E),
+                      color: Color.fromARGB(255, 0, 0, 0),
                       fontSize: 16,
                     ),
                   ),
@@ -492,7 +500,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
                   actions: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9182FA),
+                        backgroundColor: const Color(0xFFD97B83),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.pop(context, "send"),
@@ -501,7 +509,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF9182FA),
+                        foregroundColor: const Color(0xFFD97B83),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
@@ -534,7 +542,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
   style: GoogleFonts.poppins(
     fontSize: 20,
     fontWeight: FontWeight.w600,
-    color: mainPurple,
+    color:Color(0xFFD97B83) ,
   ),
 );
 
@@ -548,7 +556,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      color: const Color(0xFFE8E3FF),
+      color: const Color(0xFFFFE0E0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -559,7 +567,7 @@ IconButton(
     (_isListening || isRecording) ? Icons.stop_circle_outlined : Icons.mic,
     color: (_isListening || isRecording)
         ? Colors.redAccent
-        : const Color(0xFF9182FA),
+        : const Color(0xFFD97B83),
     size: 32,
   ),
   tooltip: "Add Voice or Speech",
@@ -586,25 +594,25 @@ IconButton(
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFF3F0FF),
+        backgroundColor: const Color(0xFFFFE0E0),
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           "Choose an action 🎙️",
           style: TextStyle(
-            color: Color(0xFF3C2E7E),
+            color: Color.fromARGB(255, 0, 0, 0),
             fontWeight: FontWeight.bold,
           ),
         ),
         content: const Text(
           "Would you like to record your voice or speak to write the story?",
-          style: TextStyle(color: Color(0xFF3C2E7E)),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
         ),
         actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF9182FA),
+              backgroundColor: const Color(0xFFD97B83),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -621,9 +629,9 @@ IconButton(
             ),
             onPressed: () => Navigator.pop(context, "speech"),
             icon: const Icon(Icons.record_voice_over,
-                color: Color(0xFF9182FA)),
+                color: Color(0xFFD97B83)),
             label: const Text("Speak to Write",
-                style: TextStyle(color: Color(0xFF9182FA))),
+                style: TextStyle(color: Color(0xFFD97B83))),
           ),
         ],
       ),
@@ -650,7 +658,7 @@ IconButton(
          
          // previous and next page 
          IconButton(
-  icon: const Icon(Icons.undo, color: Color(0xFF9182FA)),
+  icon: const Icon(Icons.undo, color: Color(0xFFD97B83)),
   tooltip: "Previous Page",
   onPressed: currentPageIndex > 0
       ? () {
@@ -661,7 +669,7 @@ IconButton(
       : null, 
 ),
 IconButton(
-  icon: const Icon(Icons.redo, color: Color(0xFF9182FA)),
+  icon: const Icon(Icons.redo, color: Color(0xFFD97B83)),
   tooltip: "Next Page",
   onPressed: currentPageIndex < pages.length - 1
       ? () {
@@ -675,7 +683,7 @@ IconButton(
 
 // delete the page 
   IconButton(
-  icon: const Icon(Icons.delete, color: Color(0xFF9182FA)),
+  icon: const Icon(Icons.delete, color: Color(0xFFD97B83)),
   tooltip: "Delete this page",
   onPressed: () async {
     if (pages.isEmpty) return;
@@ -683,16 +691,16 @@ IconButton(
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFF3F0FF),
+        backgroundColor: const Color(0xFFFFF8F9),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFF9182FA), size: 30),
+            Icon(Icons.warning_amber_rounded, color: Color(0xFFD97B83), size: 30),
             SizedBox(width: 10),
             Text(
               "Delete Page?",
               style: TextStyle(
-                color: Color(0xFF3C2E7E),
+                color: Color.fromARGB(255, 0, 0, 0),
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -702,7 +710,7 @@ IconButton(
         content: const Text(
           "Are you sure you want to delete this entire page and all its content? 😢",
           style: TextStyle(
-            color: Color(0xFF3C2E7E),
+            color: Color.fromARGB(255, 0, 0, 0),
             fontSize: 16,
           ),
         ),
@@ -711,7 +719,7 @@ IconButton(
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: Color(0xFF9182FA),
+              foregroundColor: Color(0xFFD97B83),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
@@ -753,7 +761,7 @@ IconButton(
          // icon + to add another pages 
 IconButton(
   tooltip: "Add New Page",
-  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFF7A6FF0)),
+  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFFD97B83)),
   onPressed: () async {
     print("🟣 Add button pressed!");
 
@@ -762,16 +770,16 @@ IconButton(
       builder: (context) {
         print("🟢 Dialog opened!");
         return AlertDialog(
-          backgroundColor: const Color(0xFFF3F0FF),
+          backgroundColor: const Color(0xFFFFE0E0),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: const [
-              Icon(Icons.add_circle_rounded, color: Color(0xFF9182FA), size: 30),
+              Icon(Icons.add_circle_rounded, color: Color(0xFFD97B83), size: 30),
               SizedBox(width: 10),
               Text(
                 "Add New Page?",
                 style: TextStyle(
-                  color: Color(0xFF3C2E7E),
+                  color: Color.fromARGB(255, 0, 0, 0),
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -781,7 +789,7 @@ IconButton(
           content: const Text(
             "Do you want to add a new blank page for your story?",
             style: TextStyle(
-              color: Color(0xFF3C2E7E),
+              color: Color.fromARGB(255, 0, 0, 0),
               fontSize: 16,
             ),
           ),
@@ -790,7 +798,7 @@ IconButton(
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF9182FA),
+                foregroundColor: const Color(0xFFD97B83),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
@@ -799,7 +807,7 @@ IconButton(
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF7A6FF0),
+                backgroundColor: Color(0xFFD97B83),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () => Navigator.pop(context, true),
@@ -839,7 +847,7 @@ IconButton(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: mainPurple,
+          color: Color(0xFFD97B83),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -885,7 +893,7 @@ IconButton(
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF9182FA),
+                      color: const Color(0xFFD97B83),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -949,7 +957,7 @@ IconButton(
 
   Widget _toolOption(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF9182FA)),
+      leading: Icon(icon, color: const Color(0xFFD97B83)),
       title: Text(title, style: GoogleFonts.poppins(fontSize: 18)),
       onTap: onTap,
     );
@@ -981,7 +989,7 @@ IconButton(
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9182FA),
+                backgroundColor: const Color(0xFFD97B83),
               ),
               onPressed: () {
                 final input = _textController.text.trim();
@@ -1184,7 +1192,7 @@ Widget _drawingToolsOverlay() {
             value: strokeWidth,
             min: 2,
             max: 20,
-            activeColor: const Color(0xFF9182FA),
+            activeColor: const Color(0xFFD97B83),
             onChanged: (v) => setState(() => strokeWidth = v),
           ),
 
@@ -1193,17 +1201,17 @@ Widget _drawingToolsOverlay() {
           // ↩️ Undo / Redo
           IconButton(
             tooltip: "Undo",
-            icon: const Icon(Icons.undo, color: Color(0xFF7A6FF0), size: 26),
+            icon: const Icon(Icons.undo, color: Color(0xFFD97B83), size: 26),
             onPressed: _undoDraw,
           ),
           IconButton(
             tooltip: "Redo",
-            icon: const Icon(Icons.redo, color: Color(0xFF7A6FF0), size: 26),
+            icon: const Icon(Icons.redo, color: Color(0xFFD97B83), size: 26),
             onPressed: _redoDraw,
           ),
-
+// BACK
           const Divider(
-            color: Color(0xFFD3CCFA),
+            color: Color(0xFFFFE0E0),
             thickness: 1,
             height: 15,
           ),
@@ -1212,7 +1220,7 @@ Widget _drawingToolsOverlay() {
           IconButton(
             tooltip: "Done Drawing",
             icon: const Icon(Icons.check_circle_rounded,
-                color: Color(0xFF7A6FF0), size: 30),
+                color: Color(0xFFD97B83), size: 30),
             onPressed: () => setState(() => isDrawingMode = false),
           ),
 
@@ -1227,18 +1235,18 @@ Widget _drawingToolsOverlay() {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFFF3F0FF),
+                  backgroundColor: const Color(0xFFFFE0E0),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                   title: Row(
                     children: const [
                       Icon(Icons.warning_amber_rounded,
-                          color: Color(0xFF9182FA), size: 30),
+                          color: Color(0xFFD97B83), size: 30),
                       SizedBox(width: 10),
                       Text(
                         "Delete drawing?",
                         style: TextStyle(
-                          color: Color(0xFF3C2E7E),
+                          color: Color.fromARGB(255, 0, 0, 0),
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
                         ),
@@ -1248,7 +1256,7 @@ Widget _drawingToolsOverlay() {
                   content: const Text(
                     "Are you sure you want to clear your drawing? 😢",
                     style: TextStyle(
-                      color: Color(0xFF3C2E7E),
+                      color: Color.fromARGB(255, 0, 0, 0),
                       fontSize: 16,
                     ),
                   ),
@@ -1257,7 +1265,7 @@ Widget _drawingToolsOverlay() {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF9182FA),
+                        foregroundColor: const Color(0xFFD97B83),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
@@ -1486,116 +1494,113 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       "Content-Type": "application/json",
     };
 
-    // ============= 1) نبني الـ pages مع الميديا =============
+    // ================================
+    // 1) Build pages JSON
+    // ================================
     final List<Map<String, dynamic>> pagesJson = [];
 
     for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-      final pageElements = <Map<String, dynamic>>[];
-      final elements = pages[pageIndex];
+      final List<Map<String, dynamic>> pageElements = [];
 
-      for (int i = 0; i < elements.length; i++) {
-        final item = elements[i];
+      for (int i = 0; i < pages[pageIndex].length; i++) {
+        final item = pages[pageIndex][i];
         final type = item["type"];
 
-        // ---------- TEXT ----------
+        // ---------- TEXT ELEMENT ----------
         if (type == "text") {
           pageElements.add({
             "type": "text",
             "content": item["text"] ?? "",
-            "x": item["x"] ?? 50.0,
-            "y": item["y"] ?? 50.0,
+            "x": item["x"],
+            "y": item["y"],
             "width": item["width"],
             "height": item["height"],
             "fontSize": item["fontSize"] ?? 20.0,
-            "align": "left",
             "order": i,
           });
         }
 
         // ---------- IMAGE FROM ASSETS ----------
         else if (type == "image") {
-          final String assetPath = item["imagePath"];
+          final String asset = item["imagePath"];
 
-          pageElements.add({
-            "type": "image",
-            "content": "",
-            "x": item["x"] ?? 40.0,
-            "y": item["y"] ?? 40.0,
-            "width": item["width"] ?? 150.0,
-            "height": item["height"] ?? 150.0,
-            "fontSize": null,
-            "align": "left",
-            "order": i,
-            "media": {
-              "mediaType": "image",
-              "url": assetPath, // نخزن مسار الـ asset
-              "page": pageIndex + 1,
-              "elementOrder": i,
-            },
-          });
+          // 🔥 إصلاح الشرط — التأكد أنه من الـ assets فقط
+          if (asset.startsWith("assets/")) {
+            pageElements.add({
+              "type": "image",
+              "content": "",
+              "x": item["x"],
+              "y": item["y"],
+              "width": item["width"],
+              "height": item["height"],
+              "order": i,
+              "media": {
+                "mediaType": "image",
+                "url": asset,
+                "page": pageIndex + 1,
+                "elementOrder": i,
+              }
+            });
+
+            continue; // مهم جداً
+          }
         }
 
-        // ---------- UPLOADED IMAGE / DRAWN IMAGE ----------
+        // ---------- UPLOADED IMAGE (BYTES) ----------
         else if (type == "uploaded_image" || type == "drawn_image") {
-          final Uint8List bytes = item["bytes"];
-          final String fileName =
-              "story_image_${DateTime.now().millisecondsSinceEpoch}.png";
+          final Uint8List? bytes = item["bytes"];
 
-          final url = await _uploadBytesToCloudinary(bytes, fileName);
-
-          if (url == null) {
-            print("⚠️ Failed to upload image, skipping element");
+          if (bytes == null) {
+            print("⚠️ Skipping image because bytes == null");
             continue;
           }
 
+          final url = await _uploadBytesToCloudinary(
+            bytes,
+            "story_image_${DateTime.now().millisecondsSinceEpoch}.png",
+          );
+
+          if (url == null) continue;
+
           pageElements.add({
             "type": "image",
             "content": "",
-            "x": item["x"] ?? 40.0,
-            "y": item["y"] ?? 40.0,
-            "width": item["width"] ?? 150.0,
-            "height": item["height"] ?? 150.0,
-            "fontSize": null,
-            "align": "left",
+            "x": item["x"],
+            "y": item["y"],
+            "width": item["width"],
+            "height": item["height"],
             "order": i,
             "media": {
               "mediaType": "image",
               "url": url,
               "page": pageIndex + 1,
-              "elementOrder": i,
-            },
+              "elementOrder": i
+            }
           });
         }
 
         // ---------- AUDIO ----------
         else if (type == "audio") {
-          final String path = item["path"];
-          final String fileName =
-              "story_audio_${DateTime.now().millisecondsSinceEpoch}.m4a";
+          final path = item["path"];
+          final url = await _uploadFilePathToCloudinary(
+            path,
+            "story_audio_${DateTime.now().millisecondsSinceEpoch}.m4a",
+          );
 
-          final url = await _uploadFilePathToCloudinary(path, fileName);
-
-          if (url == null) {
-            print("⚠️ Failed to upload audio, skipping element");
-            continue;
-          }
+          if (url == null) continue;
 
           pageElements.add({
             "type": "audio",
             "content": "",
-            "x": item["x"] ?? 50.0,
-            "y": item["y"] ?? 50.0,
-            "width": null,
-            "height": null,
-            "fontSize": null,
-            "align": "left",
+            "x": item["x"],
+            "y": item["y"],
             "order": i,
             "media": {
               "mediaType": "audio",
               "url": url,
               "page": pageIndex + 1,
-              "elementOrder": i,
-            },
+              "elementOrder": i
+            }
           });
         }
       }
@@ -1606,12 +1611,14 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       });
     }
 
-    // ============= 2) نختار coverImage =============
+    // ================================
+    // 2) COVER IMAGE
+    // ================================
     String? coverImage;
-    for (final page in pagesJson) {
-      for (final el in (page["elements"] as List)) {
-        if (el["type"] == "image" && el["media"]?["url"] != null) {
-          coverImage = el["media"]["url"];
+    for (var page in pagesJson) {
+      for (var e in (page["elements"] as List)) {
+        if (e["type"] == "image") {
+          coverImage = e["media"]["url"];
           break;
         }
       }
@@ -1624,71 +1631,50 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
       "pages": pagesJson,
     };
 
-    // ============= 3) CREATE لو ما في storyId =============
-    http.Response response;
-
+    // ================================
+    // 3) CREATE STORY (IF FIRST TIME)
+    // ================================
     if (storyId == null) {
-      print("🆕 Creating new story...");
-
-      response = await http.post(
+      final res = await http.post(
         Uri.parse("${getBackendUrl()}/api/story/create"),
         headers: headers,
         body: jsonEncode({"title": storyTitle}),
       );
 
-      print("📦 Server response: ${response.body}");
+      final data = jsonDecode(res.body);
+      storyId = data["storyId"];
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        storyId = data["storyId"] ?? data["_id"];
-
-        if (storyId != null) {
-          await prefs.setString('currentStoryId', storyId!);
-          print("✅ New story saved with ID: $storyId");
-        } else {
-          print("⚠️ Story ID not found in create response.");
-          return;
-        }
-      } else {
-        print("❌ Error creating story: ${response.body}");
-        return;
-      }
+      await prefs.setString("currentStoryId", storyId!);
     }
 
-    // ============= 4) UPDATE PAGES =============
-    print("✏️ Updating existing story: $storyId");
-
-    final updateResponse = await http.put(
+    // ================================
+    // 4) UPDATE STORY
+    // ================================
+    await http.put(
       Uri.parse("${getBackendUrl()}/api/story/update/$storyId"),
       headers: headers,
       body: jsonEncode(storyData),
     );
 
-    print("📩 Update response: ${updateResponse.body}");
-
-    if (updateResponse.statusCode != 200) {
-      print("❌ Error updating story: ${updateResponse.body}");
-      return;
-    }
-
-    // ============= 5) SUBMIT لو بده يرسل للسوبرفايزر =============
+    // ================================
+    // 5) SUBMIT TO SUPERVISOR
+    // ================================
     if (sendToSupervisor) {
       await _submitStory(storyId!, token);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(sendToSupervisor
-            ? "📤 Story sent to supervisor!"
-            : "💾 Story saved."),
-        backgroundColor: const Color(0xFF9182FA),
+        content: Text(
+          sendToSupervisor ? "📤 Story sent to supervisor!" : "💾 Story saved.",
+        ),
       ),
     );
-  } catch (e, stack) {
-    print("⚠️ Exception while saving story: $e");
-    print(stack);
+  } catch (e) {
+    print("SAVE ERROR: $e");
   }
 }
+
 
 
 
@@ -1756,100 +1742,100 @@ Future<void> _loadStoryData(String storyId) async {
 
     print("🟣 LOAD STORY RESPONSE: ${response.body}");
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      print("❌ Error loading story: ${response.statusCode} — ${response.body}");
+      return;
+    }
 
-      // -------- SET TITLE ----------
-      storyTitle = data["title"] ?? "My Story";
-      _titleController.text = storyTitle;       
+    final data = jsonDecode(response.body);
 
-      // -------- LOAD PAGES ----------
-      final List<List<Map<String, dynamic>>> loadedPages = [];
+    // -------- SET TITLE ----------
+    storyTitle = data["title"] ?? "My Story";
+    _titleController.text = storyTitle;
 
-      final pagesFromApi = data["pages"] as List? ?? [];
+    // -------- LOAD PAGES ----------
+    final List<List<Map<String, dynamic>>> loadedPages = [];
+    final pagesFromApi = data["pages"] as List? ?? [];
 
-      for (final page in pagesFromApi) {
-        final List<Map<String, dynamic>> pageElements = [];
-        final elements = page["elements"] as List? ?? [];
+    for (final page in pagesFromApi) {
+      final List<Map<String, dynamic>> pageElements = [];
+      final elements = page["elements"] as List? ?? [];
 
-        for (final el in elements) {
-          final String type = el["type"] ?? "text";
-          final media = el["media"];
-          final double x = (el["x"] ?? 40).toDouble();
-          final double y = (el["y"] ?? 40).toDouble();
-          final double width =
-              el["width"] != null ? (el["width"] as num).toDouble() : 150;
-          final double height =
-              el["height"] != null ? (el["height"] as num).toDouble() : 150;
+      for (final el in elements) {
+        final String type = el["type"] ?? "text";
+        final media = el["media"];
+        final double x = (el["x"] ?? 40).toDouble();
+        final double y = (el["y"] ?? 40).toDouble();
+        final double width =
+            el["width"] != null ? (el["width"] as num).toDouble() : 150;
+        final double height =
+            el["height"] != null ? (el["height"] as num).toDouble() : 150;
 
-          // ---------- TEXT ----------
-          if (type == "text") {
+        // ---------- TEXT ----------
+        if (type == "text") {
+          pageElements.add({
+            "key": UniqueKey(),
+            "type": "text",
+            "text": el["content"] ?? "",
+            "x": x,
+            "y": y,
+            "width": el["width"],
+            "height": el["height"],
+            "fontSize": el["fontSize"] != null
+                ? (el["fontSize"] as num).toDouble()
+                : 20.0,
+          });
+        }
+
+        // ---------- IMAGE ----------
+        else if (type == "image") {
+          final String? url = media?["url"];
+          if (url == null) continue;
+
+          if (url.startsWith("assets/")) {
+            // 🟣 Asset image
             pageElements.add({
               "key": UniqueKey(),
-              "type": "text",
-              "text": el["content"] ?? "",
+              "type": "image",           // مهم
+              "imagePath": url,          // مهم لـ DraggableImageWidget
               "x": x,
               "y": y,
-              "width": el["width"],
-              "height": el["height"],
-              "fontSize": el["fontSize"] != null
-                  ? (el["fontSize"] as num).toDouble()
-                  : 20.0,
+              "width": width,
+              "height": height,
             });
-          }
-
-          // ---------- IMAGE ----------
-          else if (type == "image") {
-            final String? mediaUrl = media?["url"];
-
-            if (mediaUrl != null && mediaUrl.startsWith("assets/")) {
-              // IMAGE FROM ASSETS
-              pageElements.add({
-                "key": UniqueKey(),
-                "type": "image",
-                "imagePath": mediaUrl,
-                "x": x,
-                "y": y,
-                "width": width,
-                "height": height,
-              });
-            } else if (mediaUrl != null && mediaUrl.startsWith("http")) {
-              // IMAGE FROM CLOUDINARY
-              pageElements.add({
-                "key": UniqueKey(),
-                "type": "uploaded_image",
-                "networkUrl": mediaUrl,
-                "x": x,
-                "y": y,
-                "width": width,
-                "height": height,
-              });
-            }
-          }
-
-          // ---------- AUDIO ----------
-          else if (type == "audio") {
+          } else if (url.startsWith("http")) {
+            // ☁️ Cloudinary image
             pageElements.add({
               "key": UniqueKey(),
-              "type": "audio",
-              "path": media?["url"] ?? "",
+              "type": "uploaded_image",
+              "networkUrl": url,
               "x": x,
               "y": y,
+              "width": width,
+              "height": height,
             });
           }
         }
 
-        loadedPages.add(pageElements);
+        // ---------- AUDIO ----------
+        else if (type == "audio") {
+          pageElements.add({
+            "key": UniqueKey(),
+            "type": "audio",
+            "path": media?["url"] ?? "",
+            "x": x,
+            "y": y,
+          });
+        }
       }
 
-      setState(() {
-        pages = loadedPages.isEmpty ? [[]] : loadedPages;
-        currentPageIndex = 0;
-      });
-    } 
-    else {
-      print("❌ Error loading story: ${response.statusCode} — ${response.body}");
+      loadedPages.add(pageElements);
     }
+
+    setState(() {
+      pages = loadedPages.isEmpty ? [[]] : loadedPages;
+      currentPageIndex = 0;
+    });
   } catch (e) {
     print("⚠️ Error: $e");
   }
@@ -1858,17 +1844,24 @@ Future<void> _loadStoryData(String storyId) async {
 
 
 
+
+
 Future<String?> _uploadBytesToCloudinary(Uint8List bytes, String fileName) async {
   try {
-    final uri = Uri.parse("${getBackendUrl()}/api/upload/story-media");
+    if (bytes.isEmpty) {
+      print("⚠ Cannot upload empty bytes!");
+      return null;
+    }
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
+    final uri = Uri.parse("${getBackendUrl()}/api/upload/story-media");
+
     final request = http.MultipartRequest("POST", uri);
 
     if (token != null) {
-      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Authorization'] = "Bearer $token";
     }
 
     request.files.add(
@@ -1882,6 +1875,8 @@ Future<String?> _uploadBytesToCloudinary(Uint8List bytes, String fileName) async
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
 
+    print("🟣 Upload Response: ${response.body}");
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return data["url"];
@@ -1890,10 +1885,14 @@ Future<String?> _uploadBytesToCloudinary(Uint8List bytes, String fileName) async
       return null;
     }
   } catch (e) {
-    print("⚠️ Upload error: $e");
+    print("⚠ Upload error: $e");
     return null;
   }
 }
+
+
+
+
 
 Future<String?> _uploadFilePathToCloudinary(String filePath, String fileName) async {
   final file = File(filePath);

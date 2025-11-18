@@ -22,7 +22,7 @@ class _HomeChildState extends State<HomeChild> {
           children: [
             const SizedBox(height: 16),
             Text(
-              "  Hi, Lina! 👋",
+              "  Hi, Hiba! 👋",
               style: GoogleFonts.poppins(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,

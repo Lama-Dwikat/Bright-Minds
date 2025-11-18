@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 class DraggableImageWidget extends StatefulWidget {
-  final String? imagePath;        // asset image
-  final String? networkUrl;       // cloudinary image
-  final Uint8List? bytes;         // drawn / uploaded image
+  final String? imagePath;    // asset image
+  final String? networkUrl;   // cloudinary image
+  final Uint8List? bytes;     // drawn / uploaded (محلياً)
 
   final VoidCallback onDelete;
 
@@ -37,7 +37,6 @@ class DraggableImageWidget extends StatefulWidget {
 class _DraggableImageWidgetState extends State<DraggableImageWidget> {
   late double x;
   late double y;
-
   late double width;
   late double height;
 
@@ -52,52 +51,49 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
     height = widget.height;
   }
 
-  // ================================
-  // 🔥 CHOOSE IMAGE SOURCE
-  // ================================
+  // 🔍 اختيار مصدر الصورة
   Widget _buildImage() {
+    // 1) bytes لو موجودة
     if (widget.bytes != null) {
       return Image.memory(widget.bytes!, fit: BoxFit.cover);
     }
 
-    if (widget.networkUrl != null && widget.networkUrl!.isNotEmpty) {
+    // 2) networkUrl حقيقي
+    if (widget.networkUrl != null &&
+        widget.networkUrl!.startsWith("http")) {
       return Image.network(
         widget.networkUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            const Center(child: Icon(Icons.broken_image, size: 40)),
       );
     }
 
-    if (widget.imagePath != null) {
+    // 3) asset
+    if (widget.imagePath != null &&
+        !widget.imagePath!.startsWith("http")) {
       return Image.asset(
         widget.imagePath!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            const Center(child: Icon(Icons.broken_image, size: 40)),
       );
     }
 
-    return const Center(child: Icon(Icons.image_not_supported, size: 40));
+    return const Icon(Icons.image_not_supported);
   }
 
-  // ================================
-  // 🔥 DELETE CONFIRMATION
-  // ================================
   Future<void> _confirmDelete() async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFF3F0FF),
+        backgroundColor: const Color(0xFFFFEAF0),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
-            Icon(Icons.delete_forever_rounded, color: Colors.redAccent, size: 28),
+            Icon(Icons.delete_forever_rounded,
+                color: Color(0xFFD97B83), size: 28),
             SizedBox(width: 10),
             Text(
               "Delete this image?",
               style: TextStyle(
-                color: Color(0xFF3C2E7E),
+                color: Color.fromARGB(255, 0, 0, 0),
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -106,12 +102,12 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
         ),
         content: const Text(
           "Are you sure you want to remove this image?",
-          style: TextStyle(color: Color(0xFF3C2E7E), fontSize: 16),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: const Text("Cancel",style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -126,16 +122,13 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
     }
   }
 
-  // ================================
-  // 🔥 WIDGET BUILD
-  // ================================
   @override
   Widget build(BuildContext context) {
     return Positioned(
       left: x,
       top: y,
       child: GestureDetector(
-        onTap: () => _confirmDelete(),
+        onTap: _confirmDelete,
         onPanUpdate: (details) {
           setState(() {
             x += details.delta.dx;
@@ -146,7 +139,6 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // IMAGE
             Container(
               width: width,
               height: height,
@@ -158,8 +150,6 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
                 child: _buildImage(),
               ),
             ),
-
-            // RESIZE HANDLE
             if (showControls)
               Positioned(
                 bottom: -14,
@@ -180,12 +170,12 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.purple, width: 2),
+                      border: Border.all(color: Color(0xFFEBA1AB), width: 2),
                     ),
                     child: const Icon(
                       Icons.open_in_full,
                       size: 16,
-                      color: Colors.purple,
+                      color: Color(0xFFEBA1AB),
                     ),
                   ),
                 ),
