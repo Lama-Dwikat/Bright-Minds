@@ -80,7 +80,7 @@ export const storyService = {
       let allowedFields = [];
       switch (role) {
         case "child":
-          allowedFields = ["title", "pages", "templateId", "continuedByChild"];
+          allowedFields = ["title", "pages", "templateId", "continuedByChild", "coverImage"];
           break;
         case "supervisor":
           allowedFields = ["status", "reviewNotes", "startedBy"];
@@ -133,27 +133,26 @@ export const storyService = {
   }
 },
 
-    async deleteStory({ storyId, userId, role }) {
-    try {
-      const story = await Story.findById(storyId);
-      if (!story) throw new Error("Story not found or already deleted");
+async deleteStory({ storyId, userId, role }) {
+  try {
+    const story = await Story.findById(storyId);
 
-      const isChildOwner = story.childId?.toString() === userId;
-      const isSupervisorAssigned = story.supervisorId?.toString() === userId;
-      const isAdmin = role === "admin";
+    if (!story) throw new Error("Story not found or already deleted");
 
-      if (role === "parent") throw new Error("Parents are not allowed to delete stories");
-      if (!isChildOwner && !isSupervisorAssigned && !isAdmin) throw new Error("You are not allowed to delete this story");
-      if (!["draft", "needs_edit"].includes(story.status) && !["supervisor", "admin"].includes(role)) {
-        throw new Error("Only stories with status 'draft' or 'needs_edit' can be deleted");
-      }
+    const storyChildId = story.childId?.toString();
+    const isChildOwner = storyChildId === userId.toString();  // ← الحل
+    const isAdmin = role === "admin";
 
-      await Story.deleteOne({ _id: storyId });
-      return { message: "Story deleted successfully" };
-    } catch (error) {
-      throw new Error("Error deleting story: " + error.message);
-    }
-  },
+    if (!isChildOwner && !isAdmin)
+      throw new Error("You are not allowed to delete this story");
+
+    await Story.deleteOne({ _id: storyId });
+
+    return { message: "Story deleted successfully" };
+  } catch (error) {
+    throw new Error("Error deleting story: " + error.message);
+  }
+},
 
 
     async getStoryById({ storyId, userId = null, role }) {
@@ -170,9 +169,10 @@ export const storyService = {
         const isSupervisorAssigned = story.supervisorId?._id?.toString() === userId;
         const isParentOfChild = story.childId?.parentId?._id?.toString() === userId;
 
-        if (!isChildOwner && !isSupervisorAssigned && !isParentOfChild) {
-          throw new Error("You are not allowed to view this story");
-        }
+        if (!isChildOwner && !isAdmin) {
+  throw new Error("You are not allowed to delete this story");
+}
+
       }
 
       const [reviews, likesCount, userLiked] = await Promise.all([

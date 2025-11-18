@@ -20,7 +20,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 
 class CreateStoryPage extends StatefulWidget {
-  const CreateStoryPage({super.key});
+  final String? storyId;
+  const CreateStoryPage({super.key, this.storyId});
 
   @override
   State<CreateStoryPage> createState() => _CreateStoryPageState();
@@ -29,6 +30,7 @@ class CreateStoryPage extends StatefulWidget {
 class _CreateStoryPageState extends State<CreateStoryPage> {
   String storyTitle = "My Story";
   bool isDrawingMode = false;
+  
 
 Color selectedColor = Colors.black;
 double strokeWidth = 4.0;
@@ -79,8 +81,19 @@ String getBackendUrl() {
  @override
 void initState() {
   super.initState();
-  _speech = stt.SpeechToText();
+
+  // storyId من الـ widget لو وجد
+  if (widget.storyId != null) {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('currentStoryId', widget.storyId!);
+    });
+  } else {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('currentStoryId'); // 🟢 مسح عند إنشاء قصة جديدة
+    });
+  }
 }
+
 
 
 
@@ -372,7 +385,11 @@ if (item["type"] == "audio") {
                 // ---------- BOTTOM TOOLBAR ----------
                 //_buildBottomToolbar(),
                 // ---------- BOTTOM TOOLBAR ----------
-Positioned(
+
+
+              ],
+            ),
+            Positioned(
   bottom: 0,
   left: 0,
   right: 0,
@@ -381,9 +398,6 @@ Positioned(
     child: _buildBottomToolbar(),
   ),
 ),
-
-              ],
-            ),
 
 
             // ===== DRAWING TOOLS OVERLAY =====
@@ -432,6 +446,7 @@ if (isDrawingMode) _drawingToolsOverlay(),
               ),
             ),
           ),
+
 
           // ---------- Save Button ----------
           IconButton(
@@ -1463,8 +1478,11 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
     };
 
     // ------------------ BUILD STORY DATA ------------------
+    String? coverImage = _getCoverImageFromPages();
+
     final storyData = {
       "title": storyTitle,
+      "coverImage": coverImage,
       "pages": pages.asMap().entries.map((entry) {
         final pageIndex = entry.key;
         final elements = entry.value;
@@ -1595,6 +1613,30 @@ Future<void> _submitStory(String storyId, String token) async {
 }
 
 
+String? _getCoverImageFromPages() {
+  if (pages.isEmpty) return null;
+
+  final firstPage = pages.first;
+
+  for (var element in firstPage) {
+    if (element["type"] == "image") {
+      return element["url"] ?? element["content"] ?? null;
+    }
+  }
+
+  return null;
+}
+
+/*Future<void> pickCoverImage() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+
+  if (file != null) {
+    setState(() {
+     //coverImageUrl = file.path;   // أو رفعيه لـ Cloudinary
+    });
+  }
+}*/
 
 
 

@@ -76,6 +76,77 @@ class _StoryKidsState extends State<StoryKidsScreen> {
     }
   }
 
+Future<void> _deleteStory(String storyId) async {
+  try {
+    
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.delete(
+      Uri.parse('${getBackendUrl()}/api/story/delete/$storyId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      },
+    );
+
+    print("🔴 DELETE STATUS: ${response.statusCode}");
+    print("🔴 DELETE BODY: ${response.body}");
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _stories.removeWhere((story) => story['_id'] == storyId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(" Story deleted successfully")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(" Failed to delete story: ${response.body}")),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  }
+}
+
+void _confirmDelete(String storyId) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text(
+          "Delete Story?",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          "Are you sure you want to delete this story? This action cannot be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteStory(storyId);
+            },
+            child: const Text(
+              "Delete",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
   Widget _buildStoriesList() {
   if (_isLoading) {
     return const Center(child: CircularProgressIndicator());
@@ -84,7 +155,7 @@ class _StoryKidsState extends State<StoryKidsScreen> {
   if (_stories.isEmpty) {
     return Center(
       child: Text(
-        "😅 لا توجد قصص حتى الآن!",
+        "There is no stories untill now!",
         style: GoogleFonts.poppins(
           fontSize: 18,
           color: Colors.grey[700],
@@ -92,6 +163,9 @@ class _StoryKidsState extends State<StoryKidsScreen> {
       ),
     );
   }
+
+
+
 
   return GridView.builder(
   padding: const EdgeInsets.all(16),
@@ -123,7 +197,9 @@ class _StoryKidsState extends State<StoryKidsScreen> {
       }
     }
 
-    return GestureDetector(
+    return Stack(
+  children: [
+    GestureDetector(
       onTap: () {},
       child: Container(
         decoration: BoxDecoration(
@@ -140,7 +216,6 @@ class _StoryKidsState extends State<StoryKidsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // الصورة المربعة
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
@@ -164,7 +239,6 @@ class _StoryKidsState extends State<StoryKidsScreen> {
               ),
             ),
 
-            // المحتوى النصي
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -180,12 +254,10 @@ class _StoryKidsState extends State<StoryKidsScreen> {
             ),
 
             Padding(
-              padding:
-                  const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // حالة القصة
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 3),
@@ -202,7 +274,6 @@ class _StoryKidsState extends State<StoryKidsScreen> {
                     ),
                   ),
 
-                  // لايكات
                   Row(
                     children: [
                       const Icon(Icons.favorite,
@@ -220,7 +291,50 @@ class _StoryKidsState extends State<StoryKidsScreen> {
           ],
         ),
       ),
-    );
+    ),
+
+    // زر الحذف
+   Positioned(
+  top: 8,
+  right: 6,
+  child: PopupMenuButton<String>(
+    elevation: 4,
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    icon: const Icon(
+      Icons.more_vert,
+      color: Color(0xFF5E35B1), // بنفسجي غامق شوي
+      size: 24,
+    ),
+    onSelected: (value) {
+      if (value == "delete") {
+        _confirmDelete(story['_id']);
+      }
+    },
+    itemBuilder: (context) => [
+      PopupMenuItem(
+        value: "delete",
+        child: Row(
+          children: [
+            const Icon(Icons.delete, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(
+              "Delete Story",
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+)
+
+
+  ],
+);
+
   },
 );
 
@@ -259,12 +373,18 @@ Color _statusColor(String status) {
   bottom: 100,  // الرفع عن الفوتر
   right: 10,
   child: GestureDetector(
-    onTap: () {
+  onTap: () async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('currentStoryId');
+
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => const CreateStoryPage()),
-  );
+    MaterialPageRoute(builder: (context) => CreateStoryPage(storyId: null)),
+  ).then((_) => _fetchChildStories());
 },
+
+
+
 
     child: Container(
       width: 75,
@@ -294,4 +414,6 @@ Color _statusColor(String status) {
 );
 
   }
+
+  
 }
