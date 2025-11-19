@@ -14,6 +14,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; 
 import 'package:http_parser/http_parser.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 
 
 
@@ -1221,7 +1223,29 @@ Widget _drawingToolsOverlay() {
             tooltip: "Done Drawing",
             icon: const Icon(Icons.check_circle_rounded,
                 color: Color(0xFFD97B83), size: 30),
-            onPressed: () => setState(() => isDrawingMode = false),
+            onPressed: () async {
+  // 1) حول الرسم لصورة PNG
+  final pngBytes = await _exportDrawingAsImage();
+
+  if (pngBytes != null) {
+    // 2) أضف الصورة كعنصر في الصفحة
+    _addDrawnImage(pngBytes);
+
+    // 3) امسح الرسم من الشاشة لأنه صار محفوظ
+    setState(() {
+      drawingPoints.clear();
+      redoStack.clear();
+      isDrawingMode = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text(" Drawing added to your story!")),
+    );
+  } else {
+    setState(() => isDrawingMode = false);
+  }
+},
+
           ),
 
           const SizedBox(height: 8),
@@ -1902,6 +1926,39 @@ Future<String?> _uploadFilePathToCloudinary(String filePath, String fileName) as
 }
 
 
+
+Future<Uint8List?> _exportDrawingAsImage() async {
+  try {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    final size = Size(
+      MediaQuery.of(context).size.width * 0.80,
+      MediaQuery.of(context).size.height * 0.60,
+    );
+
+    // White background
+    final bgPaint = Paint()..color = Colors.white;
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+
+    // Draw all points
+    final painter = DrawPainter(drawingPoints);
+    painter.paint(canvas, size);
+
+    final picture = recorder.endRecording();
+
+    final img = await picture.toImage(
+      size.width.toInt(),
+      size.height.toInt(),
+    );
+
+    final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    return pngBytes?.buffer.asUint8List();
+  } catch (e) {
+    print("⚠️ Export drawing error: $e");
+    return null;
+  }
+}
 
 
 
