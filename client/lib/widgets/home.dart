@@ -1,174 +1,322 @@
+
+
+
+
 import 'package:flutter/material.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:bright_minds/widgets/navItem.dart';
+import 'package:bright_minds/theme/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:bright_minds/screens/Signin.dart';
+import 'package:bright_minds/screens/profilePage.dart';
+import 'package:bright_minds/screens/homeParent.dart';
+import 'package:bright_minds/screens/homeChild.dart';
+import 'package:bright_minds/screens/homeSupervisor.dart';
+import 'package:bright_minds/screens/homeAdmin.dart';
 
 
 
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, this.child,this.title = "Home"});
+  final Widget? child;
+  final String title; 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
 
-class homePage extends StatelessWidget {
-  const homePage({super.key, this.child});
-      final Widget? child;
+class _HomePageState extends State<HomePage> {
 
+
+     String? token;
+     String?userId;
+     String ? userName;
+     String ?role ;
+     String? profilePictureBase64= "";
+     String? selectedValue; // <-- add this
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    fetchSupervisorData();
+  }
 
-    const Color primaryPurple = Color(0xFF9182FA);
-    //const Color whiteColor = Colors.white;
-   // final Color inactiveColor = Colors.grey.shade600;
+
+  void fetchSupervisorData() async {
+
+SharedPreferences pref= await SharedPreferences.getInstance();
+String? token= pref.getString('token');
+if (token==null){
+  print("no token found");
+  return;
+} 
+  Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+ // print("DECODED TOKEN CODE 1 = $decodedToken");
+     setState(() {
+       userId= decodedToken['id'];
+     userName= decodedToken['name'];
+     role=decodedToken['role'];
+       profilePictureBase64=decodedToken['profilePicture'];
+     });
+
+}
+
+
+String getBackendUrl() {
+  if (kIsWeb) {
+    return "http://192.168.1.122:3000";
+
+  } else if (Platform.isAndroid) {
+    // Android emulator
+    return "http://10.0.2.2:3000";
+  } else if (Platform.isIOS) {
+    // iOS emulator
+    return "http://localhost:3000";
+  } else {
+    // fallback
+    return "http://localhost:3000";
+  }
+}
+
+
+ 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-     //   preferredSize: const Size.fromHeight(100),
-       preferredSize: Size.fromHeight(MediaQuery.of(context).size.height * 0.07), // 12% of screen height
+        preferredSize:
+            Size.fromHeight(MediaQuery.of(context).size.height * 0.07),
         child: AppBar(
-        backgroundColor: primaryPurple,
-        automaticallyImplyLeading: false,
-       flexibleSpace: 
-       //Padding(
-     //   padding: EdgeInsets.only(left:16,top:14),
-       Align (
-          alignment: Alignment.bottomLeft,
-          child: 
-            Image.asset(
-              'assets/images/logo.png',
-              fit:BoxFit.contain,
-               width: MediaQuery.of(context).size.width * 0.25, // 35% of screen width
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: Container(
+            decoration: BoxDecoration(
+             // gradient: AppColors.pinkToPeach,
+             color:AppColors.peachPink,
             ),
-        )
-     // ),
+
+         //   child:Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.04),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center, 
+                 children: [
+                  Transform.translate(
+           offset: const Offset(0, 10), // move down by 8 pixels
+        child:  Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+             crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+
+
+
+   PopupMenuButton<String>(
+  onSelected: (String value) {
+    setState(() {
+      // store selected value if needed
+      selectedValue = value;
+    });
+
+    if (value == 'myProfile') {
+      // navigate to profile page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfilePage(userId: userId!),
+        ),
+      );
+    } else if (value == 'LogOut') {
+      // clear token and go to sign-in
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.remove('token');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SignInScreen()),
+        );
+      });
+    }
+  },
+  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+    const PopupMenuItem<String>(
+      value: 'myProfile',
+      child: Text("My Profile"),
+    ),
+    const PopupMenuItem<String>(
+      value: 'LogOut',
+      child: Text("Log Out"),
+    ),
+  ],
+    color: AppColors.bgSoftPinkLight, // <-- change background color here
+    offset: const Offset(0, 50), // <-- moves the menu down by 40 pixels
+
+  child: CircleAvatar(
+    radius: 25,
+    backgroundColor: Colors.grey[300],
+    backgroundImage: (profilePictureBase64 != null &&
+            profilePictureBase64!.isNotEmpty)
+        ? MemoryImage(base64Decode(profilePictureBase64!))
+        : null,
+    child: (profilePictureBase64 == null ||
+            profilePictureBase64!.isEmpty)
+        ? const Icon(Icons.person, color: Colors.white)
+        : null,
+  ),
+),
+
+
+   SizedBox(width: 15), // space between image & text
+
+    Text(
+      widget.title,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 23,
+        fontWeight: FontWeight.bold,
       ),
-      ),
-       body:Stack(
-        children:[
-  
-      
-    if (child != null)
-      SafeArea(
-        child: SingleChildScrollView(
-          child: child,
+    ),
+      //  ),
+  ],
+)
+),
+
+                const SizedBox(width: 10),
+
+                  // Logo on the right
+                  Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                    width: MediaQuery.of(context).size.width * 0.25,
+                  ),
+                ],
+              ),
+            ),
+          //  ),
+
+
+
+          ),
         ),
       ),
-       ],
-       ),
-bottomNavigationBar: SizedBox(
-  //height: 83, 
-  height:MediaQuery.of(context).size.height * 0.1, // 10% of screen height
-  child: Stack(
-    clipBehavior: Clip.none, 
-    alignment: Alignment.center,
-    children: [
-      
-      Container(
-      height: MediaQuery.of(context).size.height * 0.09, // slightly less than SizedBox
-        decoration: BoxDecoration(
-          color: primaryPurple,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(0),
-            topRight: Radius.circular(0),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: primaryPurple,
-              blurRadius: 12,
-              offset: const Offset(0, -4),
+    
+      body: SafeArea(
+  child: widget.child ?? const Center(child: Text("No content")),
+),
+
+      bottomNavigationBar: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.1,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height * 0.09,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(0),
+                  topRight: Radius.circular(0),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.peachPink,
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.04),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    navItem(
+                      icon: Icons.emoji_events_outlined,
+                      label: "Competitions",
+                      color: Colors.white,
+                      onTap: () {},
+                      iconSize: MediaQuery.of(context).size.width * 0.09,
+                    ),
+                    navItem(
+                      icon: Icons.notifications_none,
+                      label: "Alerts",
+                      color: Colors.white,
+                      onTap: () {},
+                      iconSize: MediaQuery.of(context).size.width * 0.1,
+                    ),
+                    const SizedBox(width: 29),
+                    navItem(
+                      icon: Icons.chat_outlined,
+                      label: "Messages",
+                      color: Colors.white,
+                      onTap: () {},
+                      iconSize: MediaQuery.of(context).size.width * 0.09,
+                    ),
+                    navItem(
+                      icon: Icons.settings_outlined,
+                      label: "Settings",
+                      color: Colors.white,
+                      onTap: () {},
+                      iconSize: MediaQuery.of(context).size.width * 0.09,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: -MediaQuery.of(context).size.height * 0.02,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.17,
+                height: MediaQuery.of(context).size.width * 0.17,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.bgWarmPink,
+                      AppColors.bgWarmPinkDark
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.bgWarmPinkDark,
+  
+                
+
+
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.home_rounded),
+                  iconSize: MediaQuery.of(context).size.width * 0.1,
+                  color: Colors.white,
+                  onPressed: () {
+                    if(role=='supervisor'){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => HomeSupervisor()));
+                   } else if (role == 'child') {
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => HomeChild()));
+                    } else if (role == 'admin') {
+                       Navigator.push(context, MaterialPageRoute(builder: (context) => HomeAdmin()));
+                       } else if (role == 'parent') {
+                       Navigator.push(context, MaterialPageRoute(builder: (context) => HomeParent()));
+                       }
+
+                  },
+                ),
+              ),
             ),
           ],
         ),
-        child: Padding(
-          //padding: const EdgeInsets.symmetric(horizontal: 15.0),
-           padding: EdgeInsets.symmetric(
-            horizontal: MediaQuery.of(context).size.width * 0.04, // 4% of width
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              navItem(
-                icon: Icons.emoji_events_outlined,
-                label: "Competitions",
-                color: Colors.white,
-                onTap: () {},
-                iconSize: MediaQuery.of(context).size.width * 0.09, // scale icon  
-               // iconSize: 40, 
-              ),
-               navItem(
-                icon: Icons.notifications_none,
-                label: "Alerts",
-                color: Colors.white,
-                onTap: () {},
-               // iconSize: 45,
-                iconSize: MediaQuery.of(context).size.width * 0.1,
-              ),
-
-              const SizedBox(width: 29),
-              navItem(
-                icon: Icons.chat_outlined,
-                label: "Messages",
-                color: Colors.white,
-                onTap: () {},
-               // iconSize: 40,
-                iconSize: MediaQuery.of(context).size.width * 0.09,
-              ),
-              
-              navItem(
-                icon: Icons.settings_outlined,
-                label: "Settings",
-                color: Colors.white,
-                onTap: () {},
-               // iconSize: 40,
-                iconSize: MediaQuery.of(context).size.width * 0.09,
-              ),
-            ],
-          ),
-        ),
       ),
-
-      // Central Home Button
-      Positioned(
-      //  top: -30, // رفعه أكثر للأعلى
-        top: -MediaQuery.of(context).size.height * 0.02, // 4% above the bar
-        child: Container(
-        //  width: 75,
-         // height: 75,
-          width: MediaQuery.of(context).size.width * 0.17, // 15% of screen width
-          height: MediaQuery.of(context).size.width * 0.17, // keep square
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                  Color.fromRGBO(255, 255, 255, 0.95), // equivalent to white.withOpacity(0.95)
-                Color.fromRGBO(255, 255, 255, 0.7),  // equivalent to white.withOpacity(0.7)
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(255, 139, 32, 205).withOpacity(0.5),
-                blurRadius: 15,
-                offset: const Offset(0, 6),
-              ),
-            ],
-            border: Border.all(color: Colors.white, width: 3),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.home_rounded),
-           // iconSize: 50, // أكبر وأوضح
-            iconSize: MediaQuery.of(context).size.width * 0.1, // scale icon
-            color: primaryPurple,
-            onPressed: () {},
-          ),
-        ),
-      ),
-    ],
-  ),
-),
-    
- );
-
-  }   
-
-
-  } 
-
-
+    );
+  }
+}

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/welcome.dart';
 import 'package:bright_minds/screens/tasksList.dart';
+import 'package:bright_minds/screens/homeSupervisor.dart';
 
 
 
@@ -24,8 +25,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:  MyApp()
-      // WelcomeScreen(),
+      home: 
+      //HomeSupervisor(),
+      WelcomeScreen(),
     );
   }
 }

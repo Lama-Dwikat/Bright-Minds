@@ -10,10 +10,13 @@ videoRouter.post('/videos/addVideo',videoController.addVideo);
 videoRouter.get('/videos/getVideoById/:id',videoController.getVideoById);
 videoRouter.get('/videos/getVideoByTitle/:title',videoController.getVideoByTitle);
 videoRouter.get('/videos/getVideoByAge/:ageGroup',videoController.getVideosByAge);
+videoRouter.get('/videos/getVideosByCategory/:category',videoController.getVideosByCategory);
+videoRouter.get('/videos/getSupervisorVideos/:id',videoController.getSupervisorVideos);
 videoRouter.get('/videos/getAllVideos',videoController.getAllVideos);
-videoRouter.get('/videos/updateVideoById/:id',videoController.updateVideoById);
-videoRouter.get('/videos/deleteVideoById/:id',videoController.deleteVideoById);
-videoRouter.get('/videos/deleteAllVideos',videoController.deleteAllVideos);
+videoRouter.put('/videos/updateVideoById/:id',videoController.updateVideoById);
+videoRouter.delete('/videos/deleteVideoById/:id',videoController.deleteVideoById);
+videoRouter.delete('/videos/deleteAllVideos',videoController.deleteAllVideos);
+
 
 
 

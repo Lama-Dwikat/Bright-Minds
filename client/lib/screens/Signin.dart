@@ -12,6 +12,8 @@ import 'package:bright_minds/widgets/home.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bright_minds/theme/colors.dart';
+
 
 
 
@@ -71,7 +73,7 @@ String getBackendUrl() {
 
     try {
       var response = await http.post(
-          Uri.parse('${getBackendUrl()}/api/users/signIn'),
+          Uri.parse('http://10.0.2.2:3000/api/users/signIn'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(SignInBody),
       );
@@ -81,10 +83,23 @@ String getBackendUrl() {
     var data = jsonDecode(response.body);
     var token = data['token']; // GET THE TOKEN
     var userRole = data['user']['role'];
+    //var userId=data['user']['id'];
+    //var profilePicture=data['user']['profilePicture'];
+    var userName=data['user']['name'];
+    var userId=data['user']['id'];
 
     // Save token in SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token); // ✅ store token
+
+     await prefs.setString('userName',userName);
+      await prefs.setString('useerId',userId);
+   //await prefs.setString('profilePicture',profilePicture);
+
+
+
+
+
 
     print("User role: $userRole");
     
@@ -222,20 +237,26 @@ TextFormField(
           label:Text("Password"),
           hintText:"Enter Password",
           hintStyle:TextStyle(
-            color:const Color.fromARGB(111, 0, 0, 0),
+           // color:const Color.fromARGB(111, 0, 0, 0),
+           color:AppColors.bgBlushRoseVeryDark,
           ),
+
           prefixIcon:const Icon(
             (Icons.lock_outline),
-            color:Color.fromARGB(111, 0, 0, 0)
+           // color:Color.fromARGB(111, 0, 0, 0)
+                      color:AppColors.bgBlushRoseVeryDark,
+
           ),
           border:OutlineInputBorder(
             borderSide:BorderSide(
-              color:const Color.fromARGB(77, 0, 0, 0),
+             // color:const Color.fromARGB(77, 0, 0, 0),
+                        color:AppColors.bgBlushRoseVeryDark,
+
             ),
             borderRadius:BorderRadius.circular(10)
           ),
       enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color:const Color.fromARGB(77, 0, 0, 0)),
+        borderSide: BorderSide(color:AppColors.bgBlushRoseVeryDark),
          )
     )
     ),
@@ -265,7 +286,9 @@ TextFormField(
             GestureDetector(
               child:Text("Forget Password ?",style:TextStyle(
                 fontWeight: FontWeight.bold,
-                color:Colors.deepPurple,
+         
+              color:AppColors.bgBlushRoseVeryDark,
+
               ))
             )
 
@@ -280,13 +303,7 @@ TextFormField(
         child:ElevatedButton(
           onPressed: (){
             if(_formSignInKey.currentState!.validate() && rememberPassword){
-              //process data
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   const SnackBar(
-              //     content:Text('Processing Data')
-              //     ),
-              // );
-              // Call SignIn function
+      
               print("Sign In button pressed");
 
               SignIn();
@@ -322,7 +339,7 @@ TextFormField(
                             child: const Text(
                               "Sign Up",
                               style: TextStyle(
-                                color: Colors.deepPurple,
+                               color:AppColors.bgBlushRoseVeryDark,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
