@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:bright_minds/widgets/navItem.dart';
-import 'package:bright_minds/theme/colors.dart'; // <<< أضيفي هذا
+import 'package:bright_minds/theme/colors.dart';
 
 class homePage extends StatelessWidget {
   const homePage({super.key, this.child});
@@ -10,15 +8,12 @@ class homePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✨ بدل اللون البنفسجي الغامق
-    const Color primaryPurple = AppColors.lavenderPurple; 
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize:
             Size.fromHeight(MediaQuery.of(context).size.height * 0.07),
         child: AppBar(
-          backgroundColor: AppColors.bgLavender, // 💜 باكجراوند بنفسجي فاتح
+          backgroundColor: AppColors.bgLavender,
           automaticallyImplyLeading: false,
           flexibleSpace: Align(
             alignment: Alignment.bottomLeft,
@@ -31,18 +26,12 @@ class homePage extends StatelessWidget {
         ),
       ),
 
-      body: Stack(
-        children: [
-          if (child != null)
-            SafeArea(
-              child: SingleChildScrollView(child: child),
-            ),
-        ],
+      // ❌ تم إزالة SingleChildScrollView نهائياً
+      // ✔️ نضع child مباشرة
+      body: SafeArea(
+        child: child ?? const SizedBox(),
       ),
 
-      // ============================
-      // ⭐ Bottom Navigation Bar
-      // ============================
       bottomNavigationBar: SizedBox(
         height: MediaQuery.of(context).size.height * 0.1,
         child: Stack(
@@ -52,12 +41,7 @@ class homePage extends StatelessWidget {
             Container(
               height: MediaQuery.of(context).size.height * 0.09,
               decoration: BoxDecoration(
-                // 🎨 خلفية البوتوم بار بتدرج لطيف
                 gradient: AppColors.bgLavenderToSoftPink,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(0),
-                  topRight: Radius.circular(0),
-                ),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.lavenderPurple.withOpacity(0.4),
@@ -109,7 +93,6 @@ class homePage extends StatelessWidget {
               ),
             ),
 
-            // =============== Home Button ===============
             Positioned(
               top: -MediaQuery.of(context).size.height * 0.02,
               child: Container(
@@ -117,8 +100,6 @@ class homePage extends StatelessWidget {
                 height: MediaQuery.of(context).size.width * 0.17,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-
-                  // 🎨 Gradient جديد لطيف
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -127,7 +108,6 @@ class homePage extends StatelessWidget {
                       AppColors.bgLavenderLight,
                     ],
                   ),
-
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.lavenderPurpleDark.withOpacity(0.5),
@@ -139,11 +119,8 @@ class homePage extends StatelessWidget {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.home_rounded),
-
-                  // 💜 لون أيقونة الهوم
                   iconSize: MediaQuery.of(context).size.width * 0.1,
                   color: AppColors.lavenderPurpleDark,
-
                   onPressed: () {},
                 ),
               ),

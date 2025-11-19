@@ -80,7 +80,7 @@ class AppColors {
   static const Color bgSoftPinkVeryDark = Color(0xFFCF82AC);
 
   // --------------------------------------------------
-  // 🎨 Shades for bgWarmPink fatima used 
+  // 🎨 Shades for bgWarmPink fatima used for story 
   // --------------------------------------------------
   static const Color bgWarmPinkVeryLight = Color(0xFFFFF5F5);
   static const Color bgWarmPinkLight = Color(0xFFFFE0E0);

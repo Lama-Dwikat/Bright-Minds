@@ -21,6 +21,9 @@ class StoryKidsScreen extends StatefulWidget {
 class _StoryKidsState extends State<StoryKidsScreen> {
   List<dynamic> _stories = [];
   bool _isLoading = true;
+  String _searchQuery = "";
+  String _selectedStatus = "all"; // all/draft/pending/approved/rejected
+
 
   String getBackendUrl() {
     if (kIsWeb) {
@@ -75,6 +78,30 @@ class _StoryKidsState extends State<StoryKidsScreen> {
       setState(() => _isLoading = false);
     }
   }
+
+
+  List<dynamic> get _filteredStories {
+  List<dynamic> filtered = _stories;
+
+  // فلترة حسب العنوان أو الكلمات
+  if (_searchQuery.isNotEmpty) {
+    filtered = filtered.where((story) {
+      final title = story['title']?.toLowerCase() ?? "";
+      return title.contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
+  // فلترة حسب الحالة
+  if (_selectedStatus != "all") {
+    filtered = filtered.where((story) {
+      return story['status'] == _selectedStatus;
+    }).toList();
+  }
+
+  return filtered;
+}
+
+
 
 Future<void> _deleteStory(String storyId) async {
   try {
@@ -169,7 +196,7 @@ void _confirmDelete(String storyId) {
 
   return GridView.builder(
   padding: const EdgeInsets.all(16),
-  itemCount: _stories.length,
+itemCount: _filteredStories.length,
   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
     crossAxisCount: 2,        // صفّين
     crossAxisSpacing: 16,     // مسافة بين الأعمدة
@@ -177,7 +204,7 @@ void _confirmDelete(String storyId) {
     childAspectRatio: 0.75,   // نسبة الطول للعرض (لتحتوي الصورة + النص)
   ),
   itemBuilder: (context, index) {
-    final story = _stories[index];
+final story = _filteredStories[index];
 
     String title = story['title'] ?? "بدون عنوان";
     String status = story['status'] ?? "draft";
@@ -249,7 +276,7 @@ void _confirmDelete(String storyId) {
             color: const Color(0xFFEEE5FF),
             child: const Icon(
               Icons.menu_book_rounded,
-              color: Color(0xFF673AB7),
+              color: Color(0xFFD97B83),
               size: 50,
             ),
           ),
@@ -264,9 +291,9 @@ void _confirmDelete(String storyId) {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF4A148C),
+                  color: Color.fromARGB(255, 0, 0, 0),
                 ),
               ),
             ),
@@ -323,7 +350,7 @@ void _confirmDelete(String storyId) {
     ),
     icon: const Icon(
       Icons.more_vert,
-      color: Color(0xFF5E35B1), // بنفسجي غامق شوي
+      color: Color.fromARGB(255, 0, 0, 0), // بنفسجي غامق شوي
       size: 24,
     ),
     onSelected: (value) {
@@ -369,7 +396,7 @@ Color _statusColor(String status) {
     case "needs_edit":
       return Colors.blueGrey;
     default:
-      return Color(0xFF673AB7); // draft
+      return Color(0xFFE3AADD); // draft
   }
 }
 
@@ -380,10 +407,57 @@ Color _statusColor(String status) {
     return Stack(
   children: [
     homePage(
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: _buildStoriesList(),
+      child: Column(
+  children: [
+
+    // 🟣 هنا نضيف مربع البحث والفلترة
+    Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Column(
+        children: [
+          // مربع البحث
+          TextField(
+            decoration: InputDecoration(
+              hintText: "Search your stories...",
+              prefixIcon: Icon(Icons.search, color: Color(0xFFE3AADD)),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          // فلاتر الحالة
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _filterChip("all", "All"),
+              _filterChip("draft", "Draft"),
+              _filterChip("pending", "Pending"),
+              _filterChip("approved", "Approved"),
+              _filterChip("rejected", "Rejected"),
+            ],
+          ),
+        ],
       ),
+    ),
+
+    // 🟣 الآن نعرض GridView
+    Expanded(
+      child: _buildStoriesList(),
+    ),
+  ],
+),
+
     ),
 
     // الزر فوق الواجهة كلها
@@ -408,7 +482,7 @@ Color _statusColor(String status) {
       width: 75,
       height: 75,
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 159, 104, 255),  // بنفسجي
+        color: const Color(0xFFE3AADD),  // بنفسجي
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -432,6 +506,25 @@ Color _statusColor(String status) {
 );
 
   }
+
+
+
+  Widget _filterChip(String value, String label) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: ChoiceChip(
+      label: Text(label),
+      selected: _selectedStatus == value,
+      selectedColor: Color(0xFFE3AADD),
+      onSelected: (selected) {
+        setState(() {
+          _selectedStatus = value;
+        });
+      },
+    ),
+  );
+}
+
 
   
 }
