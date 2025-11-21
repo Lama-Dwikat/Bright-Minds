@@ -14,7 +14,7 @@ class HomeChild extends StatefulWidget {
 class _HomeChildState extends State<HomeChild> {
   @override
   Widget build(BuildContext context) {
-    return homePage(
+    return HomePage(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

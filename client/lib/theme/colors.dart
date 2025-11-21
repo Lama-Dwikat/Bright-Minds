@@ -194,15 +194,12 @@ static const Gradient pinkToPeach = LinearGradient(
      AppColors.bgSoftPink,        
      AppColors.bgWarmPink,   
      AppColors.peachPinkLight,   
-
-
-
-
-
   ],
   begin: Alignment.centerLeft,
   end: Alignment.centerRight,
 );
+
+
 
 
 }

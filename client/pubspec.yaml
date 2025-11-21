@@ -23,6 +23,7 @@ dependencies:
   record: ^6.1.2
   path_provider: ^2.1.5
   speech_to_text: ^7.3.0
+  flutter_svg: ^2.0.7
 
 
 dev_dependencies:

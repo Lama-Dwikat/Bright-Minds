@@ -75,6 +75,27 @@ export const videoController={
     }
       },
 
+
+
+        async getVideosByCategory(req,res){
+      try{
+     const videos =await videoService.getVideosByCategory(req.params.category);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+      async getSupervisorVideos(req,res){
+      try{
+     const videos =await videoService.getSupervisorVideos(req.params.id)
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+
      async getAllVideos(req,res){
       try{
      const videos =await videoService.getAllVideos();
@@ -85,10 +106,13 @@ export const videoController={
     }
     },
 
+
+
+
     async updateVideoById(req,res){
       try{
     const updatedVideo=await videoService.updateVideoById(req.params.id,req.body);
-    if(!video)
+    if(!updatedVideo)
        return res.status(404).json({message:"video not found"});
      res.status(200).json(updatedVideo);
 

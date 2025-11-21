@@ -34,7 +34,7 @@ String getBackendUrl() {
     // Android emulator
     return "http://10.0.2.2:3000";
   } else if (Platform.isIOS) {
-    // iOS emulator
+    // iOS emulatorz
     return "http://localhost:3000";
   } else {
     // fallback
@@ -449,35 +449,7 @@ if (_cvXFile != null) {
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        // onTap:()async{
-                        //   DateTime today=DateTime.now();
-                        //   DateTime firstDate=DateTime(today.year-12);
-                        //   DateTime lastDate=DateTime(today.year-5);
-
-                        //   DateTime? pickedDate=await showDatePicker(
-                        //     context:context,
-                        //     initialDate:firstDate,
-                        //     firstDate:firstDate,
-                        //     lastDate:lastDate,
-                        //     );
-                        //     if(pickedDate!=null){
-                        //       setState((){
-                        //         ageController.text="${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
-                        //         int age=today.year-pickedDate.year;
-                        //         if(today.month<pickedDate.month || (today.month==pickedDate.month && today.day<pickedDate.day)){
-                        //           age--;
-                        //         }
-                        //         if(age>=5 && age<=8){
-                        //           ageGroup="5-8";
-                        //         }
-                        //         else if(age>=9 && age<=12){
-                        //           ageGroup="9-12";
-                        //         }else{
-                        //           ageGroup=null;
-                        //         }
-                        //       });
-                        //     }
-                        // }
+       
                         onTap: () async {
   DateTime today = DateTime.now();
   DateTime firstDate = DateTime(today.year - 12);

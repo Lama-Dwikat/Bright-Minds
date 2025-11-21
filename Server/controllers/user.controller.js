@@ -44,7 +44,11 @@ if (userData.cv) {
 
       const user = await userService.signin(email, password);
       const token = jwt.sign(
-        { id: user._id, role: user.role }, 
+        { id: user._id, role: user.role ,name:user.name,  
+        profilePicture: user.profilePicture
+      ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
+      : null
+    }, 
         process.env.JWT_SECRET,           
         { expiresIn: "7d" }               
       );
@@ -58,7 +62,8 @@ if (userData.cv) {
           name: user.name,
           email: user.email,
           role: user.role,
-          cvStatus: user.cvStatus
+          cvStatus: user.cvStatus,
+          // profilePicture: user.profilePicture
         },
       });
         }

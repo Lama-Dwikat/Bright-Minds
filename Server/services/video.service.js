@@ -45,10 +45,19 @@ export const videoService={
      return await Video.find({ageGroup:group});
     },
 
+        async getVideosByCategory(cat){
+        return await Video.find({category:cat});
+      },
+          async getSupervisorVideos(supervisorId){
+        return await Video.find({createdBy:supervisorId});
+      },
+
     async getAllVideos(){
      return await Video.find();
     },
 
+
+  
     async updateVideoById(videoId,updateData){
       return await Video.findByIdAndUpdate(videoId, updateData,{new:true});
     },

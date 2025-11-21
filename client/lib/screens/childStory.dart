@@ -406,7 +406,8 @@ Color _statusColor(String status) {
     // هنا نغلف ListView بـ SizedBox ليأخذ ارتفاع الشاشة كاملة
     return Stack(
   children: [
-    homePage(
+    HomePage(
+      title:"Stories",
       child: Column(
   children: [
 
