@@ -43,29 +43,31 @@ if (userData.cv) {
       const password=req.body.password;
 
       const user = await userService.signin(email, password);
-      const token = jwt.sign(
-        { id: user._id, role: user.role ,name:user.name,  
-        profilePicture: user.profilePicture
-      ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
-      : null
-    }, 
-        process.env.JWT_SECRET,           
-        { expiresIn: "7d" }               
-      );
+    const token = jwt.sign(
+  { 
+    id: user._id, 
+    role: user.role,
+    name: user.name
+  }, 
+  process.env.JWT_SECRET,
+  { expiresIn: "7d" }
+);
+
        
       //res.status(200).send("Signin Successful");
-       res.status(200).json({
-        message: "Signin Successful",
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          cvStatus: user.cvStatus,
-          // profilePicture: user.profilePicture
-        },
-      });
+      res.status(200).json({
+  message: "Signin Successful",
+  token,
+  user: {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    cvStatus: user.cvStatus,
+    // profilePicture: user.profilePicture ? user.profilePicture.data.toString("base64") : null,
+  },
+});
+
         }
         catch(error){
             res.status(400).send({error:error.message });

@@ -61,7 +61,7 @@ mongoose.connect("mongodb+srv://fatima2004nasser_db_user:ddLRmTvoPt6mmpRJ@cluste
 
     // first connect to the DB then start the server
        console.log("connected to DB");
-       app.listen(3000,() => {
+       app.listen(3000, "0.0.0.0",() => {
            console.log('server is running on port 3000');
         });
 })

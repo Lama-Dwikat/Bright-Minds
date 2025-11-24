@@ -79,50 +79,54 @@ String getBackendUrl() {
       );
 
 
-      if (response.statusCode == 200) {
-    var data = jsonDecode(response.body);
-    var token = data['token']; // GET THE TOKEN
-    var userRole = data['user']['role'];
-    //var userId=data['user']['id'];
-    //var profilePicture=data['user']['profilePicture'];
-    var userName=data['user']['name'];
-    var userId=data['user']['id'];
+     if (response.statusCode == 200) {
+  var data = jsonDecode(response.body);
+  var token = data['token'];
+  var userRole = data['user']['role'];
+  var userName = data['user']['name'];
+  var userId = data['user']['id'];
 
-    // Save token in SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token); // ✅ store token
+  SharedPreferences prefs = await SharedPreferences.getInstance();
 
-     await prefs.setString('userName',userName);
-      await prefs.setString('useerId',userId);
-   //await prefs.setString('profilePicture',profilePicture);
+  print("TOKEN SAVED AFTER LOGIN: $token");
 
+  // احفظي التوكن قبل أي انتقال
+  await prefs.setString('token', token);
+  await prefs.setString('userName', userName);
+  await prefs.setString('userId', userId);
 
+  print("User role: $userRole");
 
+  // الآن الانتقال
+  Widget nextPage;
 
-
-
-    print("User role: $userRole");
-    
-    // Navigate based on role
-    if (userRole == 'parent') {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeParent()));
-    } else if (userRole == 'supervisor') {
-        if (data['user']['cvStatus'] != 'approved') {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Your CV is not approved yet.')),
-            );
-            return;
-        }
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeSupervisor()));
-    } else if (userRole == 'child') {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeChild()));
-    } else if (userRole == 'admin') {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeAdmin()));
+  if (userRole == 'parent') {
+    nextPage = HomeParent();
+  } else if (userRole == 'supervisor') {
+    if (data['user']['cvStatus'] != 'approved') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your CV is not approved yet.')),
+      );
+      return;
     }
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in successful')),
-    );
+    nextPage = HomeSupervisor();
+  } else if (userRole == 'child') {
+    nextPage = HomeChild();
+  } else if (userRole == 'admin') {
+    nextPage = HomeAdmin();
+  } else {
+    return;
+  }
+
+  // استخدمي pushReplacement عشان ما يظل SignIn ويمسح الـ state
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => nextPage),
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Sign in successful')),
+  );
 }
 
       else {

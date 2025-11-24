@@ -44,6 +44,8 @@ class _StoryKidsState extends State<StoryKidsScreen> {
   Future<void> _fetchChildStories() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+     // await prefs.clear();
+
       final token = prefs.getString('token');
 
       if (token == null) {
@@ -54,6 +56,13 @@ class _StoryKidsState extends State<StoryKidsScreen> {
 
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       final childId = decodedToken['id'];
+
+       print("➡️ URL = ${getBackendUrl()}/api/story/getstoriesbychild/$childId");
+print("➡️ TOKEN = $token");
+print("➡️ HEADERS SENT:");
+print({'Authorization': 'Bearer $token'});
+print("ALL PREFS KEYS = ${prefs.getKeys()}");
+
 
       final response = await http.get(
         Uri.parse('${getBackendUrl()}/api/story/getstoriesbychild/$childId'),
@@ -438,16 +447,19 @@ Color _statusColor(String status) {
           const SizedBox(height: 12),
 
           // فلاتر الحالة
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _filterChip("all", "All"),
-              _filterChip("draft", "Draft"),
-              _filterChip("pending", "Pending"),
-              _filterChip("approved", "Approved"),
-              _filterChip("rejected", "Rejected"),
-            ],
-          ),
+         SingleChildScrollView(
+  scrollDirection: Axis.horizontal,
+  child: Row(
+    children: [
+      _filterChip("all", "All"),
+      _filterChip("draft", "Draft"),
+      _filterChip("pending", "Pending"),
+      _filterChip("approved", "Approved"),
+      _filterChip("rejected", "Rejected"),
+    ],
+  ),
+)
+
         ],
       ),
     ),
