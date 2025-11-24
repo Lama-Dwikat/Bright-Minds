@@ -2,6 +2,7 @@ import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/screens/childStory.dart';
+import 'package:bright_minds/screens/videosKids.dart';
 
 
 class HomeChild extends StatefulWidget {
@@ -112,7 +113,7 @@ class _HomeChildState extends State<HomeChild> {
                  // icon: Icons.ondemand_video_rounded,
                  imagePath: "assets/images/video.png",
                   color:  Colors.orange[100]!,
-                   onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => StoryKidsScreen()));},
+                   onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) =>VideosKidScreen()));},
 
                 ),
                 _mainButton(

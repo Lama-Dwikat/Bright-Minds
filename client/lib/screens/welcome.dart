@@ -28,7 +28,7 @@ class WelcomeScreen extends StatelessWidget {
               bottom: screenHeight * 0.22, // 25% from bottom
               left: screenWidth * 0.51 ,
            child:   Container(
-              width: screenWidth * 0.43,  // 40% of screen width
+              width: screenWidth * 0.43, // 40% of screen width
               height: screenHeight * 0.07, // 8% of screen height
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),

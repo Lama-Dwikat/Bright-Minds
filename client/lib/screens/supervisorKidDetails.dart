@@ -1,29 +1,497 @@
+// // import 'package:bright_minds/screens/supervisorKids.dart';
+// // import 'package:bright_minds/theme/colors.dart';
+// // import 'package:bright_minds/widgets/home.dart';
+// // import 'package:flutter/material.dart';
+// // import 'package:google_fonts/google_fonts.dart';
+// // import 'package:intl/intl.dart'; 
+// // import 'dart:typed_data'; // <-- add this
+
+
+// // class KidDetails extends StatelessWidget {
+// //   final dynamic kid;
+
+// //   const KidDetails({super.key, required this.kid});
+
+// //   int calculateAge(String? dobString) {
+// //     if (dobString == null || dobString.isEmpty) return 0;
+// //     DateTime dob = DateTime.parse(dobString);
+// //     DateTime today = DateTime.now();
+// //     int age = today.year - dob.year;
+// //     if (today.month < dob.month ||
+// //         (today.month == dob.month && today.day < dob.day)) {
+// //       age--;
+// //     }
+// //     return age;
+// //   }
+
+// //   @override
+// //   Widget build(BuildContext context) {
+// //     final age = calculateAge(kid["age"]);
+// //     final profilePictureData = kid["profilePicture"]?["data"];
+// //     final profilePicture = profilePictureData != null
+// //         ? Image.memory(
+// //             Uint8List.fromList(List<int>.from(profilePictureData)),
+// //             fit: BoxFit.cover,
+// //           )
+// //         : null;
+
+// //     return HomePage(
+// //       title: 'Kid Details',
+// //       child: SingleChildScrollView(
+// //         padding: const EdgeInsets.all(12),
+// //         child: Column(
+// //           crossAxisAlignment: CrossAxisAlignment.start,
+// //           children: [
+// //             Center(
+// //               child: CircleAvatar(
+// //                 radius: 50,
+// //                 backgroundColor: AppColors.bgBlushRoseDark,
+// //                 child: profilePicture ??
+// //                     Text(
+// //                       kid["name"][0].toUpperCase(),
+// //                       style: const TextStyle(
+// //                           fontSize: 36,
+// //                           fontWeight: FontWeight.bold,
+// //                           color: Colors.white),
+// //                     ),
+// //               ),
+// //             ),
+// //             const SizedBox(height: 20),
+// //             Text(
+// //               kid["name"] ?? "N/A",
+// //               style: GoogleFonts.robotoSlab(
+// //                   fontSize: 24, fontWeight: FontWeight.bold),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "Age: $age",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "Age Group: ${kid["ageGroup"] ?? "N/A"}",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "Email: ${kid["email"] ?? "N/A"}",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "CV Status: ${kid["cvStatus"] ?? "N/A"}",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "Daily Video Time: ${kid["dailyVidoeTime"] ?? 0} mins",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 8),
+// //             Text(
+// //               "Last Video Date: ${kid["lastVideoDate"] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(kid["lastVideoDate"])) : "N/A"}",
+// //               style: const TextStyle(fontSize: 18),
+// //             ),
+// //             const SizedBox(height: 20),
+// //             const Text(
+// //               "Video History:",
+// //               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+// //             ),
+// //           //   const SizedBox(height: 8),
+// //           //   if (kid["videoHistory"] != null && kid["videoHistory"].isNotEmpty)
+// //           //     ...List.generate(kid["videoHistory"].length, (index) {
+// //           //       final video = kid["videoHistory"][index];
+// //           //       final watchedAt = video["watchedAt"] != null
+// //           //           ? DateFormat('yyyy-MM-dd').format(DateTime.parse(video["watchedAt"]))
+// //           //           : "N/A";
+// //           //       final duration = video["duration"] ?? 0;
+// //           //       return ListTile(
+// //           //         title: Text("Video ID: ${video["video"] ?? "N/A"}"),
+// //           //         subtitle: Text("Watched at: $watchedAt, Duration: $duration mins"),
+// //           //       );
+// //           //     })
+// //           //   else
+// //           //     const Text("No video history available."),
+// //            ],
+// //         ),
+// //       ),
+// //     );
+// //   }
+// // }
+
+
+
+
+// import 'package:bright_minds/screens/supervisorKids.dart';
+// import 'package:bright_minds/theme/colors.dart';
+// import 'package:bright_minds/widgets/home.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:intl/intl.dart'; 
+// import 'dart:typed_data';
+// import 'package:bright_minds/widgets/home.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// import 'dart:io' show Platform;
+// import 'package:flutter/foundation.dart' show kIsWeb;
+
+
+
+
+// class KidDetails extends StatefulWidget {
+//   final Map<String, dynamic> kid;
+
+//   const KidDetails({super.key, required this.kid});
+
+//   @override
+//   State<KidDetails> createState() => _KidDetailsState();
+// }
+
+// class _KidDetailsState extends State<KidDetails> {
+//   String parentName = "Loading...";
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchParentName();
+//   }
+
+//   String getBackendUrl() {
+//   if (kIsWeb) {
+//     // For web, use localhost or network IP
+//    // return "http://localhost:5000";
+//     return "http://localhost:3000";
+
+//   } else if (Platform.isAndroid) {
+//     // Android emulator
+//     return "http://10.0.2.2:3000";
+//   } else if (Platform.isIOS) {
+//     // iOS emulator
+//     return "http://localhost:3000";
+//   } else {
+//     // fallback
+//     return "http://localhost:3000";
+//   }
+// }
+
+//   Future<void> fetchParentName() async {
+//     final parentId = widget.kid["parentId"];
+//     if (parentId == null) {
+//       setState(() {
+//         parentName = "N/A";
+//       });
+//       return;
+//     }
+
+//   //  final backendUrl = "http://10.0.2.2:3000"; // adjust for platform
+
+//     try {
+//       final response = await http.get(Uri.parse('${getBackendUrl()}/api/users/getme/$parentId'));
+//       if (response.statusCode == 200) {
+//         final data = jsonDecode(response.body);
+//         setState(() {
+//           parentName = data["name"] ?? "N/A";
+//         });
+//       } else {
+//         setState(() {
+//           parentName = "N/A";
+//         });
+//       }
+//     } catch (e) {
+//       setState(() {
+//         parentName = "N/A";
+//       });
+//       print("Error fetching parent name: $e");
+//     }
+//   }
+
+//   int calculateAge(String? dobString) {
+//     if (dobString == null || dobString.isEmpty) return 0;
+//     DateTime dob = DateTime.parse(dobString);
+//     DateTime today = DateTime.now();
+//     int age = today.year - dob.year;
+//     if (today.month < dob.month ||
+//         (today.month == dob.month && today.day < dob.day)) {
+//       age--;
+//     }
+//     return age;
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final age = calculateAge(widget.kid["age"]);
+
+//     final profilePictureBytes = widget.kid["profilePicture"]?["data"]?["data"];
+//     final profilePicture = (profilePictureBytes != null && profilePictureBytes is List)
+//         ? Image.memory(
+//             Uint8List.fromList(List<int>.from(profilePictureBytes)),
+//             fit: BoxFit.cover,
+//           )
+//         : null;
+
+//     return HomePage(
+//       title: 'Kid Details',
+//       child: SingleChildScrollView(
+//         padding: const EdgeInsets.all(12),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Center(
+//               child: CircleAvatar(
+//                 radius: 50,
+//                 backgroundColor: AppColors.bgBlushRoseDark,
+//                 child: profilePicture ??
+//                     Text(
+//                       widget.kid["name"][0].toUpperCase(),
+//                       style: const TextStyle(
+//                           fontSize: 36,
+//                           fontWeight: FontWeight.bold,
+//                           color: Colors.white),
+//                     ),
+//               ),
+//             ),
+//             const SizedBox(height: 20),
+//             Text(
+//               widget.kid["name"] ?? "N/A",
+//               style: GoogleFonts.robotoSlab(
+//                   fontSize: 24, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 8),
+//             Text("Age: $age", style: const TextStyle(fontSize: 18)),
+//             const SizedBox(height: 8),
+//             Text("Age Group: ${widget.kid["ageGroup"] ?? "N/A"}",
+//                 style: const TextStyle(fontSize: 18)),
+//             const SizedBox(height: 8),
+//             Text("Email: ${widget.kid["email"] ?? "N/A"}",
+//                 style: const TextStyle(fontSize: 18)),
+//             const SizedBox(height: 8),
+//             Text("Daily Video Time: ${widget.kid["dailyVidoeTime"] ?? 0} mins",
+//                 style: const TextStyle(fontSize: 18)),
+//             const SizedBox(height: 8),
+//             Text(
+//               "Last Video Date: ${widget.kid["lastVideoDate"] != null ? DateFormat('yyyy-MM-dd').format(DateTime.parse(widget.kid["lastVideoDate"])) : "N/A"}",
+//               style: const TextStyle(fontSize: 18),
+//             ),
+//             const SizedBox(height: 8),
+//             Text("Parent Name: $parentName", style: const TextStyle(fontSize: 18)),
+//             const SizedBox(height: 20),
+//             const Text(
+//               "Video History:",
+//               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 import 'package:bright_minds/screens/supervisorKids.dart';
-import 'package:bright_minds/screens/addVideo.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bright_minds/screens/tasksList.dart';
-import 'dart:io';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:intl/intl.dart';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-class KidDetails extends StatelessWidget{
-    final Map kid;
+class KidDetails extends StatefulWidget {
+  final Map<String, dynamic> kid;
 
   const KidDetails({super.key, required this.kid});
-  //const KidDetails({super.key});
+
+  @override
+  State<KidDetails> createState() => _KidDetailsState();
+}
+
+class _KidDetailsState extends State<KidDetails> {
+  String parentName = "Loading...";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchParentName();
+  }
+
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return "http://localhost:3000";
+    } else if (Platform.isAndroid) {
+      return "http://10.0.2.2:3000";
+    } else if (Platform.isIOS) {
+      return "http://localhost:3000";
+    } else {
+      return "http://localhost:3000";
+    }
+  }
+
+  Future<void> fetchParentName() async {
+    final parentId = widget.kid["parentId"];
+    if (parentId == null) {
+      setState(() {
+        parentName = "N/A";
+      });
+      return;
+    }
+
+    try {
+      final response =
+          await http.get(Uri.parse('${getBackendUrl()}/api/users/getme/$parentId'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          parentName = data["name"] ?? "N/A";
+        });
+      } else {
+        setState(() {
+          parentName = "N/A";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        parentName = "N/A";
+      });
+      print("Error fetching parent name: $e");
+    }
+  }
+
+  int calculateAge(String? dobString) {
+    if (dobString == null || dobString.isEmpty) return 0;
+    DateTime dob = DateTime.parse(dobString);
+    DateTime today = DateTime.now();
+    int age = today.year - dob.year;
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(title:Text("kid detial")),
-    body:Text("hello from kid detials "),
+    final age = calculateAge(widget.kid["age"]);
+
+    final profilePictureBytes = widget.kid["profilePicture"]?["data"]?["data"];
+    final profilePicture = (profilePictureBytes != null && profilePictureBytes is List)
+        ? ClipOval(
+            child: Image.memory(
+              Uint8List.fromList(List<int>.from(profilePictureBytes)),
+              fit: BoxFit.cover,
+              width: 120,
+              height: 120,
+            ),
+          )
+        : CircleAvatar(
+            radius: 60,
+            backgroundColor: AppColors.bgBlushRoseDark,
+            child: Text(
+              widget.kid["name"][0].toUpperCase(),
+              style: const TextStyle(
+                  fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          );
+
+     return HomePage(
+      title: 'Kid Details',
+      child: SingleChildScrollView(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Background card for data
+            Container(
+              margin: const EdgeInsets.only(top: 80),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5))
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 70), // Space for profile picture
+                  Text(
+                    widget.kid["name"] ?? "N/A",
+                    style: GoogleFonts.robotoSlab(
+                        fontSize: 26, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Age: $age | Age Group: ${widget.kid["ageGroup"] ?? "N/A"}",
+                    style: const TextStyle(fontSize: 18, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Email: ${widget.kid["email"] ?? "N/A"}",
+                    style: const TextStyle(fontSize: 18, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Daily Video Time: ${widget.kid["dailyVidoeTime"] ?? 0} mins",
+                    style: const TextStyle(fontSize: 18, color: Colors.black87),
+                  ),
+               
+                  const SizedBox(height: 10),
+                  Text(
+                    "Parent: $parentName",
+                    style: const TextStyle(fontSize: 18, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 20),
+                  const Divider(thickness: 1.2),
+                  const SizedBox(height: 10),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Video History",
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  widget.kid["videoHistory"] != null &&
+                          widget.kid["videoHistory"].isNotEmpty
+                      ? Column(
+                          children: List.generate(widget.kid["videoHistory"].length,
+                              (index) {
+                            final video = widget.kid["videoHistory"][index];
+                            final watchedAt = video["watchedAt"] != null
+                                ? DateFormat('yyyy-MM-dd')
+                                    .format(DateTime.parse(video["watchedAt"]))
+                                : "N/A";
+                            final duration = video["duration"] ?? 0;
+                            return ListTile(
+                              leading: const Icon(Icons.play_circle_fill,
+                                  color: AppColors.bgBlushRoseDark),
+                              title: Text("Video ID: ${video["video"] ?? "N/A"}"),
+                              subtitle:
+                                  Text("Watched at: $watchedAt, Duration: $duration mins"),
+                            );
+                          }),
+                        )
+                      : const Text("No video history available."),
+                ],
+              ),
+            ),
+            // Profile picture positioned on top
+            Positioned(
+              top: 20,
+              left: 0,
+              right: 0,
+              child: Center(child: profilePicture),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
-
-

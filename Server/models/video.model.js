@@ -32,7 +32,7 @@ url:{
   thumbnailUrl: {
       type: String, 
     },
-isPuplished:{
+isPublished:{
     type:Boolean,
     default:false
 },
@@ -45,7 +45,14 @@ createdBy:{
    type:mongoose.Schema.Types.ObjectId,
    ref:"User"
 },
+views:{
+    type:Number,
+    default:0},
 
+  recommended:{
+    type:Boolean,
+    default:false
+  }   ,
 
 } , 
 

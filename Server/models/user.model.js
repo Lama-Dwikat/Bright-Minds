@@ -85,7 +85,11 @@ const userSchema = mongoose.Schema(
          {
            video: { type: mongoose.Schema.Types.ObjectId, ref: "Video" },
            watchedAt: { type: Date },
-           duration: { type: Number } // in minutes for each indivisual video
+         }
+       ],
+          favouriteVideos: [
+         {
+           video: { type: mongoose.Schema.Types.ObjectId, ref: "Video" },
          }
        ],
          // Fields to track watch time

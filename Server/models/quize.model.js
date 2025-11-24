@@ -44,11 +44,28 @@ const quizeSchema = new Schema (
                 type:String,
                 required:true,
             },
+            question_image:{
+              type:String,
+              default:null
+            },
+            question_audio:{
+              type:String,
+              default:null,
+            },
+
             options:[{
                 
         optionText:{
             type:String,
             required:true},
+        optionImage:{
+          type:String,
+          default:null,
+        }   ,
+        optionText:{
+          type:String,
+          default:null,
+        },
 
         isCorrect:{
             type:Boolean,       
@@ -62,11 +79,20 @@ const quizeSchema = new Schema (
             }
         }
       ],
-    //   totalMark:{
-    //     type:Number,
-    //     default:0
-    //   }
+   audioUrl: { type: String, default: null },
+
+   
+   quizPublished:Boolean,
+   views:{
+    type:Number,
+    default:0,
+   }
+    
+
+
     },
+
+
     {
         timestamps:true
     }

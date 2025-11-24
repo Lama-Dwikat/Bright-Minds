@@ -31,9 +31,26 @@ async getQuizeById(id){
   async getAllQuizes(){
     return await Quize.find();
   },
-   async updateQuize(id,updatedData){
-    return await Quize.findByIdAndUpdate(id,updatedData,{new:true});
-  },
+
+async updateQuize(id, updatedData) {
+  return await Quize.findByIdAndUpdate(
+    id,
+    { $set: updatedData },
+    { new: true, runValidators: true }
+  );
+},
+async updateSingleQuestion(quizId, questionIndex, updatedData) {
+  let updateFields = {};
+  Object.keys(updatedData).forEach(key => {
+    updateFields[`questions.${questionIndex}.${key}`] = updatedData[key];
+  });
+
+  return await Quize.findByIdAndUpdate(
+    quizId,
+    { $set: updateFields },
+    { new: true }
+  );
+},
 
     async deleteQuize(id){  
     return await Quize.findByIdAndDelete(id);   

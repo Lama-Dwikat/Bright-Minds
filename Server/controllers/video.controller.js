@@ -96,6 +96,17 @@ export const videoController={
     }
     },
 
+      async getPublishedVideos(req,res){
+           try{
+     const videos =await videoService.getPublishedVideos(req.params.ageGroup);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }    
+     },
+
+
      async getAllVideos(req,res){
       try{
      const videos =await videoService.getAllVideos();
@@ -121,6 +132,20 @@ export const videoController={
     }
    },
 
+    async publishVideo(req , res){
+  
+   try{
+    const{ isPuplished}=req.body;
+    const updatedVideo=await videoService.updateVideoById(req.params.id,isPuplished);
+    if(!updatedVideo)
+       return res.status(404).json({message:"video not found"});
+     res.status(200).json(updatedVideo);
+
+    }catch(error){
+    res.status(500).json({ error: error.message });
+    }
+  },
+
 async deleteVideoById(req,res){
   try{
     const deletedVideo=await videoService.deleteVideoById(req.params.id);
@@ -144,8 +169,23 @@ async deleteAllVideos(req,res){
     },   
 
 
+  async incrementViews(req,res){
+       try{
+     const video= await videoService.incrementViews(req.params.id);
+      res.status(200).json(video);
+    }catch(error){
+ res.status(500).json({error:error.message});
+    } 
+   },
 
-
+  async setRecommend(req,res){
+       try{
+        const {recommended} =req.body
+      const video=await videoService.setRecommend(requestAnimationFrame.params.id,recommended);
+      res.status(200).json(video);
+     }catch(error){
+     res.status(500).json({error:error.message});
+    }  }
 
 
 

@@ -69,6 +69,31 @@ export const quizeController={
 
 
     },
+
+   async  updateSingleQuestion (req, res) {
+  try {
+    const { quizId, questionIndex } = req.params;
+    const updatedData = req.body;
+
+    const updatedQuiz = await quizeService.updateSingleQuestion(
+      quizId,
+      questionIndex,
+      updatedData
+    );
+
+    if (!updatedQuiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    return res.status(200).json({
+      message: "Question updated successfully",
+      quiz: updatedQuiz,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }},
+
+  
     async deleteQuize(req,res){         
         try{
         const deletedQuize=await quizeService.deleteQuize(req.params.id);

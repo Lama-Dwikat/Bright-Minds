@@ -44,10 +44,13 @@ if (userData.cv) {
 
       const user = await userService.signin(email, password);
       const token = jwt.sign(
-        { id: user._id, role: user.role ,name:user.name,  
-        profilePicture: user.profilePicture
-      ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
-      : null
+        { id: user._id, role: user.role ,name:user.name,ageGroup:user.ageGroup,  
+    //     profilePicture: user.profilePicture
+    //   ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
+    // : null
+    profilePicture: user.profilePicture?.data?.toString('base64') ?? null
+
+      
     }, 
         process.env.JWT_SECRET,           
         { expiresIn: "7d" }               
@@ -62,8 +65,7 @@ if (userData.cv) {
           name: user.name,
           email: user.email,
           role: user.role,
-          cvStatus: user.cvStatus,
-          // profilePicture: user.profilePicture
+           cvStatus: user.cvStatus ?? "not_required",          // profilePicture: user.profilePicture
         },
       });
         }

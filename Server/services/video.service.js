@@ -52,16 +52,22 @@ export const videoService={
         return await Video.find({createdBy:supervisorId});
       },
 
+       async getPublishedVideos(age){
+        return await Video.find({isPublished:true,ageGroup:age});
+       },
+
     async getAllVideos(){
      return await Video.find();
     },
 
 
-  
     async updateVideoById(videoId,updateData){
       return await Video.findByIdAndUpdate(videoId, updateData,{new:true});
     },
   
+    async publishVideo(id , isPub){
+       return await Video.findByIdAndUpdate(id , {isPublished:isPub},{new:true})
+    },
     async deleteVideoById(id){
      return await Video.findByIdAndDelete(id);
     },
@@ -70,6 +76,13 @@ export const videoService={
         return await Video.deleteMany();
 
     },   
+
+  async incrementViews(id){
+    return await Video.findByIdAndUpdate(id,{$inc:{views:1}},{new:true});
+  },
+  async setRecommend(id ,rec){
+    return await Video.findByIdAndUpdate(id,{recommended:rec},{new:true});
+  }
 
 
 }

@@ -14,6 +14,7 @@ import { storyLikeRouter } from './routes/storyLike.route.js';
 import { templateRouter } from './routes/template.route.js';
 import uploadRouter from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
+import { playlistRouter } from "./routes/playlist.route.js";    
 
 
 const app = express()
@@ -49,6 +50,9 @@ app.use('/api', storyLikeRouter );
 app.use('/api', templateRouter );
 app.use("/api/upload", uploadRouter);
 app.use('/api', taskRouter );
+app.use('/api', playlistRouter);
+
+
 
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");
