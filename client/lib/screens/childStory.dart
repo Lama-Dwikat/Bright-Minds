@@ -285,7 +285,7 @@ final story = _filteredStories[index];
             color: const Color(0xFFEEE5FF),
             child: const Icon(
               Icons.menu_book_rounded,
-              color: Color(0xFFD97B83),
+              color: Color(0xFFEBA1AB),
               size: 50,
             ),
           ),
@@ -405,7 +405,7 @@ Color _statusColor(String status) {
     case "needs_edit":
       return Colors.blueGrey;
     default:
-      return Color(0xFFE3AADD); // draft
+      return Color(0xFFEBA1AB); // draft
   }
 }
 
@@ -429,7 +429,7 @@ Color _statusColor(String status) {
           TextField(
             decoration: InputDecoration(
               hintText: "Search your stories...",
-              prefixIcon: Icon(Icons.search, color: Color(0xFFE3AADD)),
+              prefixIcon: Icon(Icons.search, color: Color(0xFFEBA1AB)),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -495,7 +495,7 @@ Color _statusColor(String status) {
       width: 75,
       height: 75,
       decoration: BoxDecoration(
-        color: const Color(0xFFE3AADD),  // بنفسجي
+        color: const Color(0xFFEBA1AB),  // بنفسجي
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -528,7 +528,7 @@ Color _statusColor(String status) {
     child: ChoiceChip(
       label: Text(label),
       selected: _selectedStatus == value,
-      selectedColor: Color(0xFFE3AADD),
+      selectedColor: Color(0xFFEBA1AB),
       onSelected: (selected) {
         setState(() {
           _selectedStatus = value;
