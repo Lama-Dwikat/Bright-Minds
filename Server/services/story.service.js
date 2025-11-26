@@ -4,57 +4,80 @@ import StoryReview from "../models/reviewStory.model.js";
 import StoryLike from "../models/storyLike.model.js";
 import mongoose from "mongoose";
 import ActivityLog from "../models/activityLog.model.js";
+import User from "../models/user.model.js";
 
 export const storyService = {
 
     // Create a new story
-     async createStory({ title, childId, templateId = null, role }) {
-
-    try {
-      if (!["child", "admin", "supervisor"].includes(role)) {
-        throw new Error("You are not allowed to create stories");
-      }
-
-      let pages = [];
-      const startedBy = role === "supervisor" ? "supervisor" : "child";
-      const continuedByChild = role === "child";
-
-      if (templateId) {
-        const template = await Template.findById(templateId);
-        if (!template) throw new Error("Template not found");
-        pages = Array.isArray(template.defaultPages) ? template.defaultPages : [];
-      }
-
-      const story = new Story({
-        title,
-        childId: new mongoose.Types.ObjectId(childId),
-        pages,
-        templateId,
-        status: "draft",
-        isDraft: true,
-        startedBy,
-        continuedByChild
-      });
-
-      await story.save();
-
-      await ActivityLog.create({
-        userId: childId,
-        type: "create_story",
-        timestamp: new Date(),
-        status: "success"
-      });
-
-      return {
-        storyId: story._id,
-        title: story.title,
-        pages: story.pages,
-        status: story.status
-      };
-    } catch (error) {
-      throw new Error("Error creating story: " + error.message);
+  async createStory({ title, childId, templateId = null, role }) {
+  try {
+    if (!["child", "admin", "supervisor"].includes(role)) {
+      throw new Error("You are not allowed to create stories");
     }
-  },
+
+    let pages = [];
+    const startedBy = role === "supervisor" ? "supervisor" : "child";
+    const continuedByChild = role === "child";
+
+    // ✅ نحاول نجيب الطفل ونأخذ supervisorId لو موجود
+    let supervisorId = null;
+    try {
+      const Child = mongoose.model("User"); // نفس اللي مستخدماه في getStoriesByChild
+      const child = await User.findById(childId).select("supervisorId");
+
+      if (!child) {
+        console.warn("⚠️ Child not found when creating story, childId =", childId);
+      } else if (!child.supervisorId) {
+        console.warn("⚠️ Child has no supervisorId yet, story will be created without supervisorId");
+      } else {
+        supervisorId = child.supervisorId;
+      }
+    } catch (innerErr) {
+      console.error("⚠️ Error while fetching child for supervisorId:", innerErr.message);
+      // ما بنرمي error هون عشان ما نكسر إنشاء القصة
+    }
+
+    // 🧩 لو في template
+    if (templateId) {
+      const template = await Template.findById(templateId);
+      if (!template) throw new Error("Template not found");
+      pages = Array.isArray(template.defaultPages) ? template.defaultPages : [];
+    }
+
+    // ✅ إنشاء القصة (نضيف supervisorId بس لو موجود)
+    const story = new Story({
+      title,
+      childId: new mongoose.Types.ObjectId(childId),
+      supervisorId: supervisorId || undefined, // لو null ما ينحط
+      pages,
+      templateId,
+      status: "draft",
+      isDraft: true,
+      startedBy,
+      continuedByChild,
+    });
+
+    await story.save();
+
+    await ActivityLog.create({
+      userId: childId,
+      type: "create_story",
+      timestamp: new Date(),
+      status: "success",
+    });
+
+    return {
+      storyId: story._id,
+      title: story.title,
+      pages: story.pages,
+      status: story.status,
+      supervisorId: story.supervisorId || null,
+    };
+  } catch (error) {
+    throw new Error("Error creating story: " + error.message);
+  }
+}
+,
 
  async updateStory({ storyId, userId, role, storyData }) {
     try {
@@ -155,7 +178,7 @@ async deleteStory({ storyId, userId, role }) {
 },
 
 
-    async getStoryById({ storyId, userId = null, role }) {
+   async getStoryById({ storyId, userId = null, role }) {
   try {
     const story = await Story.findById(storyId)
       .populate("childId", "name parentId")
@@ -165,17 +188,30 @@ async deleteStory({ storyId, userId, role }) {
 
     if (!story) throw new Error("Story not found");
 
-    const isAdmin = role === "admin";   // 🔥 هذا كان ناقص
+    const isAdmin = role === "admin";
+
+    // 🧠 نحول كل الإيَدات لـ string عشان المقارنة تكون صح
+    const userIdStr = userId ? userId.toString() : null;
+    const childIdStr = story.childId?._id?.toString() || null;
+    const supervisorIdStr = story.supervisorId?._id?.toString() || null;
+    const parentIdStr = story.childId?.parentId?._id?.toString() || null;
 
     console.log("CHILD OWNER CHECK");
-console.log("UserId:", userId);
-console.log("Story childId:", story.childId?._id?.toString());
-console.log("role:", role);
+    console.log("UserId:", userIdStr);
+    console.log("Story childId:", childIdStr);
+    console.log("Story supervisorId:", supervisorIdStr);
+    console.log("Story parentId:", parentIdStr);
+    console.log("role:", role);
 
     if (!isAdmin) {
-const isChildOwner = story.childId?._id?.toString() === userId.toString();
-      const isSupervisorAssigned = story.supervisorId?._id?.toString() === userId;
-      const isParentOfChild = story.childId?.parentId?._id?.toString() === userId;
+      const isChildOwner =
+        userIdStr && childIdStr && childIdStr === userIdStr;
+
+      const isSupervisorAssigned =
+        userIdStr && supervisorIdStr && supervisorIdStr === userIdStr;
+
+      const isParentOfChild =
+        userIdStr && parentIdStr && parentIdStr === userIdStr;
 
       if (!isChildOwner && !isSupervisorAssigned && !isParentOfChild) {
         throw new Error("You are not allowed to view this story");
@@ -187,12 +223,12 @@ const isChildOwner = story.childId?._id?.toString() === userId.toString();
         .populate("supervisorId", "name email")
         .sort({ createdAt: -1 }),
 
-      StoryLike.countDocuments({ storyId }),
+      StoryLike.countDocuments({ storyId: story._id }),
 
-      userId
+      userIdStr
         ? StoryLike.findOne({
-            storyId,
-            userId: new mongoose.Types.ObjectId(userId),
+            storyId: story._id,
+            userId: new mongoose.Types.ObjectId(userIdStr),
           })
         : Promise.resolve(null),
     ]);
@@ -347,7 +383,51 @@ async getStoriesByChild({ childId, status = null, userId = null, role }) {
     } catch (error) {
       throw new Error("Error resubmitting story: " + error.message);
     }
+  },
+  
+
+async getStoriesForSupervisor({ supervisorId, role, status = null }) {
+  try {
+    if (role !== "supervisor" && role !== "admin") {
+      throw new Error("Only supervisors or admins can view these stories");
+    }
+
+    const query = {
+      supervisorId: new mongoose.Types.ObjectId(supervisorId),
+    };
+
+    if (status) {
+      query.status = status; // اختياري لو حبيتي تدعمي فلترة من الفرونت
+    }
+
+    let stories = await Story.find(query)
+      .populate("childId", "name")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    // نخلي الـ pending أول شي
+    const statusOrder = {
+      pending: 0,
+      needs_edit: 1,
+      approved: 2,
+      rejected: 3,
+    };
+
+    stories.sort((a, b) => {
+      const sa = statusOrder[a.status] ?? 99;
+      const sb = statusOrder[b.status] ?? 99;
+      if (sa !== sb) return sa - sb;
+      const da = a.updatedAt ? new Date(a.updatedAt) : 0;
+      const db = b.updatedAt ? new Date(b.updatedAt) : 0;
+      return db - da; // الأحدث أولاً
+    });
+
+    return stories;
+  } catch (error) {
+    throw new Error("Error fetching supervisor stories: " + error.message);
   }
+},
+
 
 
 

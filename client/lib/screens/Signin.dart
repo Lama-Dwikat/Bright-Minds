@@ -94,6 +94,8 @@ String getBackendUrl() {
   await prefs.setString('token', token);
   await prefs.setString('userName', userName);
   await prefs.setString('userId', userId);
+  prefs.setString("userRole", userRole);   
+
 
   print("User role: $userRole");
 

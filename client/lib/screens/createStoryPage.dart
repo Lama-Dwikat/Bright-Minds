@@ -41,6 +41,7 @@ List<DrawPoint> drawingPoints = [];
 List<DrawPoint> redoStack = [];
 
 
+
   // عناصر الكانفاس: نصوص + صور
   //List<Map<String, dynamic>> canvasElements = [];
   int currentPageIndex = 0;
@@ -1776,6 +1777,9 @@ Future<void> _loadStoryData(String storyId) async {
     // -------- SET TITLE ----------
     storyTitle = data["title"] ?? "My Story";
     _titleController.text = storyTitle;
+    // -------- SET REVIEWS ----------
+    List reviews = data["reviews"] ?? [];
+
 
     // -------- LOAD PAGES ----------
     final List<List<Map<String, dynamic>>> loadedPages = [];

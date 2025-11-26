@@ -208,7 +208,26 @@ export const storyController ={
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-}
+},
+
+async getStoriesForSupervisor(req, res) {
+  try {
+    const supervisorId = req.user._id;
+    const role = req.user.role;
+    const { status } = req.query; 
+
+    const stories = await storyService.getStoriesForSupervisor({
+      supervisorId,
+      role,
+      status,
+    });
+
+    res.status(200).json(stories);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+},
+
 
 
 
