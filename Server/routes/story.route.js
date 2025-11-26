@@ -13,4 +13,4 @@ storyRouter.get("/story/getstoriesbychild/:childId", authMiddleware.authenticati
 storyRouter.post("/story/addmedia/:storyId/media", authMiddleware.authentication, authorizeStory(["child","supervisor"], "addMedia"), storyController.addMediaToStory);
 storyRouter.post("/story/submit/:storyId/submit", authMiddleware.authentication,authorizeStory(["child"], "submit"), storyController.submitStory); 
 storyRouter.post( "/story/resubmit/:storyId/resubmit",authMiddleware.authentication,authorizeStory(["child"], "resubmit"),storyController.resubmitStory);
-
+storyRouter.get( "/story/supervisor/all",authMiddleware.authentication,storyController.getStoriesForSupervisor);

@@ -12,7 +12,7 @@ import { aiRouter } from './routes/ai.route.js';
 import { reviewStoryRouter } from './routes/reviewStory.route.js';
 import { storyLikeRouter } from './routes/storyLike.route.js';
 import { templateRouter } from './routes/template.route.js';
-import uploadRouter from './routes/upload.routes.js';
+import uploadRouter  from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
 
 
@@ -61,7 +61,7 @@ mongoose.connect("mongodb+srv://fatima2004nasser_db_user:ddLRmTvoPt6mmpRJ@cluste
 
     // first connect to the DB then start the server
        console.log("connected to DB");
-       app.listen(3000,() => {
+       app.listen(3000, "0.0.0.0",() => {
            console.log('server is running on port 3000');
         });
 })

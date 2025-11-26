@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../models/story_model.dart';
 import 'package:bright_minds/screens/createStoryPage.dart';
+import 'package:bright_minds/screens/readOnlyStoryPage.dart';
 
 
 class StoryKidsScreen extends StatefulWidget {
@@ -44,6 +45,8 @@ class _StoryKidsState extends State<StoryKidsScreen> {
   Future<void> _fetchChildStories() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+     // await prefs.clear();
+
       final token = prefs.getString('token');
 
       if (token == null) {
@@ -54,6 +57,13 @@ class _StoryKidsState extends State<StoryKidsScreen> {
 
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       final childId = decodedToken['id'];
+
+       print("➡️ URL = ${getBackendUrl()}/api/story/getstoriesbychild/$childId");
+print("➡️ TOKEN = $token");
+print("➡️ HEADERS SENT:");
+print({'Authorization': 'Bearer $token'});
+print("ALL PREFS KEYS = ${prefs.getKeys()}");
+
 
       final response = await http.get(
         Uri.parse('${getBackendUrl()}/api/story/getstoriesbychild/$childId'),
@@ -140,6 +150,103 @@ Future<void> _deleteStory(String storyId) async {
   }
 }
 
+
+void _showReviewDialog(Map<String, dynamic> review) {
+  int rating = review["rating"] ?? 0;
+  String comment = review["comment"] ?? "No comment";
+  String supervisorName = review["supervisorId"]?["name"] ?? "Unknown Supervisor";
+  String date = review["createdAt"] != null
+      ? DateTime.parse(review["createdAt"]).toLocal().toString().substring(0, 16)
+      : "Unknown date";
+
+  showDialog(
+    context: context,
+    builder: (_) {
+      return AlertDialog(
+        backgroundColor: Color(0xFFFFE0E0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const SizedBox(width: 10),
+            Text(
+              "Supervisor Review",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (i) {
+                return Icon(
+                  i < rating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 30,
+                );
+              }),
+            ),
+
+            const SizedBox(height: 15),
+
+            Row(
+              children: [
+                const Icon(Icons.person, color: Colors.grey, size: 22),
+                const SizedBox(width: 6),
+                Text(
+                  supervisorName,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, color: Colors.grey, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  date,
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 15),
+
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF2F2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                comment,
+                style: GoogleFonts.poppins(
+                  fontSize: 30,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+
+
 void _confirmDelete(String storyId) {
   showDialog(
     context: context,
@@ -206,7 +313,7 @@ itemCount: _filteredStories.length,
   itemBuilder: (context, index) {
 final story = _filteredStories[index];
 
-    String title = story['title'] ?? "بدون عنوان";
+    String title = story['title'] ?? "Untitled Story";
     String status = story['status'] ?? "draft";
     int likesCount = story['likesCount'] ?? 0;
 
@@ -227,17 +334,31 @@ final story = _filteredStories[index];
     return Stack(
   children: [
     GestureDetector(
-      onTap: () async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('currentStoryId', story['_id']);  // ضروري
+     onTap: () async {
+  final status = story['status'];
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => CreateStoryPage(storyId: story['_id']),
-    ),
-  ).then((_) => _fetchChildStories()); // بعد التعديل رجّعي تحديث
+  if (status == "approved" || status == "pending") {
+    // افتح صفحة قراءة فقط
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReadOnlyStoryPage(storyId: story['_id']),
+      ),
+    );
+  } else {
+    // افتح صفحة التعديل
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('currentStoryId', story['_id']);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateStoryPage(storyId: story['_id']),
+      ),
+    ).then((_) => _fetchChildStories());
+  }
 },
+
 
       child: Container(
         decoration: BoxDecoration(
@@ -276,7 +397,7 @@ final story = _filteredStories[index];
             color: const Color(0xFFEEE5FF),
             child: const Icon(
               Icons.menu_book_rounded,
-              color: Color(0xFFD97B83),
+              color: Color(0xFFEBA1AB),
               size: 50,
             ),
           ),
@@ -298,45 +419,54 @@ final story = _filteredStories[index];
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _statusColor(status),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      status,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+           Padding(
+  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      // -------- STATUS BADGE --------
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: _statusColor(status),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          status,
+          style: const TextStyle(fontSize: 10, color: Colors.white),
+        ),
+      ),
 
-                  Row(
-                    children: [
-                      const Icon(Icons.favorite,
-                          color: Colors.pink, size: 16),
-                      const SizedBox(width: 2),
-                      Text(
-                        likesCount.toString(),
-                        style: GoogleFonts.poppins(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      Row(
+        children: [
+
+          // -------- ⭐ REVIEW BUTTON --------
+          if (story['reviews'] != null && story['reviews'].isNotEmpty)
+            GestureDetector(
+              onTap: () => _showReviewDialog(story['reviews'][0]),
+              child: Icon(Icons.star, color: Colors.amber, size: 26),
             ),
+
+          const SizedBox(width: 10),
+
+          // -------- ❤️ LIKES --------
+          const Icon(Icons.favorite, color: Colors.pink, size: 16),
+          const SizedBox(width: 2),
+          Text(
+            likesCount.toString(),
+            style: GoogleFonts.poppins(fontSize: 12),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+
           ],
         ),
       ),
     ),
+
 
     // زر الحذف
    Positioned(
@@ -396,7 +526,7 @@ Color _statusColor(String status) {
     case "needs_edit":
       return Colors.blueGrey;
     default:
-      return Color(0xFFE3AADD); // draft
+      return Color(0xFFEBA1AB); // draft
   }
 }
 
@@ -420,7 +550,7 @@ Color _statusColor(String status) {
           TextField(
             decoration: InputDecoration(
               hintText: "Search your stories...",
-              prefixIcon: Icon(Icons.search, color: Color(0xFFE3AADD)),
+              prefixIcon: Icon(Icons.search, color: Color(0xFFEBA1AB)),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -438,16 +568,20 @@ Color _statusColor(String status) {
           const SizedBox(height: 12),
 
           // فلاتر الحالة
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _filterChip("all", "All"),
-              _filterChip("draft", "Draft"),
-              _filterChip("pending", "Pending"),
-              _filterChip("approved", "Approved"),
-              _filterChip("rejected", "Rejected"),
-            ],
-          ),
+         SingleChildScrollView(
+  scrollDirection: Axis.horizontal,
+  child: Row(
+    children: [
+      _filterChip("all", "All"),
+      _filterChip("draft", "Draft"),
+      _filterChip("pending", "Pending"),
+      _filterChip("needs_edit", "Needs Edit"),
+      _filterChip("approved", "Approved"),
+      _filterChip("rejected", "Rejected"),
+    ],
+  ),
+)
+
         ],
       ),
     ),
@@ -483,7 +617,7 @@ Color _statusColor(String status) {
       width: 75,
       height: 75,
       decoration: BoxDecoration(
-        color: const Color(0xFFE3AADD),  // بنفسجي
+        color: const Color(0xFFEBA1AB),  // بنفسجي
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -516,7 +650,7 @@ Color _statusColor(String status) {
     child: ChoiceChip(
       label: Text(label),
       selected: _selectedStatus == value,
-      selectedColor: Color(0xFFE3AADD),
+      selectedColor: Color(0xFFEBA1AB),
       onSelected: (selected) {
         setState(() {
           _selectedStatus = value;
