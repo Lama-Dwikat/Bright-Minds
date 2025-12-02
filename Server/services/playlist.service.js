@@ -50,10 +50,20 @@ async deleteAllPlaylists(){
     return await PlayList.deleteMany();
 },
 
- async getPlaylistsNumbers(supervisorId){
-  return await PlayList.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId)});
- },
+//  async getPlaylistsNumbers(supervisorId){
+//   return await PlayList.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId)});
+//  },
 
+// Get total number of playlists
+async getPlaylistsNumbers(supervisorId = null) {
+  const filter = {};
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  return await PlayList.countDocuments(filter);
+},
 
  async publishPlaylist(id , isPub){
        return await PlayList.findByIdAndUpdate(id , {isPublished:isPub},{new:true})

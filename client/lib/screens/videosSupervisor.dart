@@ -11,7 +11,7 @@ import 'package:bright_minds/widgets/home.dart';
 import 'package:bright_minds/screens/addVideo.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/screens/addQuiz.dart';
-import 'package:bright_minds/screens/solveQuiz.dart';
+import 'package:bright_minds/screens/editQuiz.dart';
 import 'package:bright_minds/screens/playlistSupervisor.dart';
 import 'package:bright_minds/screens/analytics.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -639,7 +639,7 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => SolveQuizPage(videoId: video["_id"]), // Your solve quiz page
+          builder: (_) => EditQuizPage(videoId: video["_id"]), // Your solve quiz page
         ),
       );
     } else {

@@ -104,31 +104,144 @@ export const videoService={
  },
 
 
- async getTopViews(supervisorId){
-  return await Video.find({createdBy:new mongoose.Types.ObjectId(supervisorId)}).sort({views:-1}).limit(5).select("title views -_id");
- },
-  async getVideosDistribution(supervisorId){
-return await Video.aggregate([
-{$match:{createdBy:new mongoose.Types.ObjectId(supervisorId)}},
-{$group:{_id:"$category",count:{$sum:1}}},
-{$project:{_id:0,category:"$_id",count:1}}
-]);
- },
 
 
- async getVideosNumbers(supervisorId){
-  return await Video.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId), isPublished:true});
- },
-  async getTotalVideos(supervisorId){
-  return await Video.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId)});
- },
-  async getViewsNumbers(supervisorId){
-   return await Video.aggregate([
-    {$match: {createdBy:new mongoose.Types.ObjectId(supervisorId)}},
-    {$group:{_id:null,totalViews:{$sum:"$views"}}},
-    {$project:{_id:0,totalViews:1}},
-   ]);
-  },
+// Get top 5 videos by views
+// async  getTopViews(supervisorId = null) {
+//   const filter = supervisorId
+//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
+//     : {}; // no filter => all supervisors
+
+//   return await Video.find(filter)
+//     .sort({ views: -1 })
+//     .limit(5)
+//     .select("title views -_id");
+// },
+
+// // Get videos distribution by category
+// async  getVideosDistribution(supervisorId = null) {
+//   const matchStage = supervisorId
+//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
+//     : {};
+
+//   return await Video.aggregate([
+//     { $match: matchStage },
+//     { $group: { _id: "$category", count: { $sum: 1 } } },
+//     { $project: { _id: 0, category: "$_id", count: 1 } },
+//   ]);
+// },
+
+// // Get number of published videos
+// async getVideosNumbers(supervisorId = null) {
+//   const filter = {
+//     isPublished: true,
+//     ...(supervisorId && { createdBy: new mongoose.Types.ObjectId(supervisorId) }),
+//   };
+
+//   return await Video.countDocuments(filter);
+// },
+async  getVideosNumbers(supervisorId = null) {
+  let filter = { isPublished: true };
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  return await Video.countDocuments(filter);
+},
+
+
+// // Get total number of videos
+// async getTotalVideos(supervisorId = null) {
+//   const filter = supervisorId
+//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
+//     : {};
+//   return await Video.countDocuments(filter);
+// },
+
+// Get total number of videos
+// async getTotalVideos(supervisorId = null) {
+//   let filter = {};
+
+//   if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+//     filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
+//   }
+
+//   return await Video.countDocuments(filter);
+// },
+
+// // Get total views
+// async getViewsNumbers(supervisorId = null) {
+//   const matchStage = supervisorId
+//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
+//     : {};
+
+//   const result = await Video.aggregate([
+//     { $match: matchStage },
+//     { $group: { _id: null, totalViews: { $sum: "$views" } } },
+//     { $project: { _id: 0, totalViews: 1 } },
+//   ]);
+
+//   return result.length > 0 ? result[0].totalViews : 0;
+// },
+// Get total number of videos
+async getTotalVideos(supervisorId = null) {
+  let filter = {};
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  return await Video.countDocuments(filter);
+},
+
+// Get total views
+async getViewsNumbers(supervisorId = null) {
+  let matchStage = {};
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    matchStage.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  const result = await Video.aggregate([
+    { $match: matchStage },
+    { $group: { _id: null, totalViews: { $sum: "$views" } } },
+    { $project: { _id: 0, totalViews: 1 } },
+  ]);
+
+  return result.length > 0 ? result[0].totalViews : 0;
+},
+
+
+// Get top 5 videos by views
+async getTopViews(supervisorId = null) {
+  let filter = {};
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  return await Video.find(filter)
+    .sort({ views: -1 })
+    .limit(5)
+    .select("title views -_id");
+},
+
+// Get videos distribution by category
+async getVideosDistribution(supervisorId = null) {
+  let matchStage = {};
+
+  if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
+    matchStage.createdBy = new mongoose.Types.ObjectId(supervisorId);
+  }
+
+  return await Video.aggregate([
+    { $match: matchStage },
+    { $group: { _id: "$category", count: { $sum: 1 } } },
+    { $project: { _id: 0, category: "$_id", count: 1 } },
+  ]);
+},
+
 
        async getPublishSupervisorVideos(supervisorId){
         return await Video.find({createdBy:supervisorId,isPublished:true});

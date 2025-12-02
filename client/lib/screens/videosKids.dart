@@ -12,6 +12,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'dart:async';
+import 'package:bright_minds/screens/solveQuiz.dart';
 
 
 
@@ -753,34 +754,81 @@ loading
             ),
           ),
 
-          // 👉 Date + Favorite **same row**
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Created Date
-                Text(
-                  video["createdAt"] != null
-                      ? "Created: ${DateTime.parse(video["createdAt"]).toLocal().toString().split(' ')[0]}"
-                      : "",
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey,
-                  ),
-                ),
+          // // 👉 Date + Favorite **same row**
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       // Created Date
+          //       Text(
+          //         video["createdAt"] != null
+          //             ? "Created: ${DateTime.parse(video["createdAt"]).toLocal().toString().split(' ')[0]}"
+          //             : "",
+          //         style: const TextStyle(
+          //           fontSize: 11,
+          //           color: Colors.grey,
+          //         ),
+          //       ),
 
-                // Favorite
-                IconButton(
-                  icon: Icon(
-                    isFav ? Icons.favorite : Icons.favorite_border,
-                    color: Colors.red,
-                  ),
-                  onPressed: () => toggleFavorite(video),
-                ),
-              ],
+          //       // Favorite
+          //       IconButton(
+          //         icon: Icon(
+          //           isFav ? Icons.favorite : Icons.favorite_border,
+          //           color: Colors.red,
+          //         ),
+          //         onPressed: () => toggleFavorite(video),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          // 👉 Date + Favorite + Quiz Icon **same row**
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      // Created Date
+      Text(
+        video["createdAt"] != null
+            ? "Created: ${DateTime.parse(video["createdAt"]).toLocal().toString().split(' ')[0]}"
+            : "",
+        style: const TextStyle(
+          fontSize: 11,
+          color: Colors.grey,
+        ),
+      ),
+
+      Row(
+        children: [
+          // Favorite
+          IconButton(
+            icon: Icon(
+              isFav ? Icons.favorite : Icons.favorite_border,
+              color: Colors.red,
             ),
+            onPressed: () => toggleFavorite(video),
           ),
+
+          // Quiz Icon
+         // if (video["hasQuiz"] == true) // <-- check your API field
+            IconButton(
+              icon: const Icon(Icons.quiz, color: Colors.blue),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SolveQuizPage(videoId: video['_id']),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    ],
+  ),
+),
+
         ],
       ),
     ),

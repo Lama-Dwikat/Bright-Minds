@@ -136,7 +136,7 @@ const optionSchema = new Schema({
 const questionSchema = new Schema({
   question_type: {
     type: String,
-    enum: ["multiple-choice", "true-false", "pronunciation"],
+    enum: ["multiple-choice", "true-false", "voice-answer"],
     required: true
   },
   question_text: { type: String, required: true },

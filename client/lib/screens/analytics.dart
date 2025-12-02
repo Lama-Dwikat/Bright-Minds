@@ -39,7 +39,7 @@ int totalPublished=0;
   if (kIsWeb) {
     // For web, use localhost or network IP
    // return "http://localhost:5000";
-    return "http://localhost:3000";
+    return "http://192.168.1.63:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -97,22 +97,42 @@ headers:{"Content-Type":"application/json"},);
 }
 }
 
-Future <void> ViewsNumbers()async{
-try{
-final response= await http.get(Uri.parse('${getBackendUrl()}/api/videos/getViewsNumbers/$userId'),
-headers:{"Content-Type":"application/json"},);
+// Future <void> ViewsNumbers()async{
+// try{
+// final response= await http.get(Uri.parse('${getBackendUrl()}/api/videos/getViewsNumbers/$userId'),
+// headers:{"Content-Type":"application/json"},);
   
-  if(response.statusCode==200){
-    final data=jsonDecode(response.body);
-    print("total views : $totalViews");
-    setState((){
-    totalViews=data[0]['totalViews']??0;
-    });;
-  } else {
-    print("Failed to load top views: ${response.statusCode} ${response.body}");}
-}catch(err){
-     print("❌ Error loading videos: $err");
-}
+//   if(response.statusCode==200){
+//     final data=jsonDecode(response.body);
+//     print("total views : $totalViews");
+//     setState((){
+//     totalViews=data[0]['totalViews']??0;
+//     });;
+//   } else {
+//     print("Failed to load top views: ${response.statusCode} ${response.body}");}
+// }catch(err){
+//      print("❌ Error loading videos: $err");
+// }
+// }
+Future<void> ViewsNumbers() async {
+  try {
+    final response = await http.get(
+      Uri.parse('${getBackendUrl()}/api/videos/getViewsNumbers/$userId'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print("total views fetched: $data");
+      setState(() {
+        totalViews = data ?? 0; // ✅ use data directly
+      });
+    } else {
+      print("Failed to load total views: ${response.statusCode} ${response.body}");
+    }
+  } catch (err) {
+    print("❌ Error loading videos: $err");
+  }
 }
 
 
@@ -190,7 +210,7 @@ void initState() {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                  "View insights and performance metrics for age group 5-8",
+                  "View insights and performance metrics",
                   style: TextStyle(color: AppColors.bgBlushRoseVeryDark)),
               const SizedBox(height: 16),
 
