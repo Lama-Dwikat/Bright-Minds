@@ -6,6 +6,7 @@ import cors from 'cors';
 
 
 
+
 export  const userService = {
      
     // Create a new user
@@ -175,6 +176,35 @@ async getUserByParentCode(code) {
         async getKidsForSupervisor(supervisorId) {
         return await User.find({ supervisorId: supervisorId });
     },
+
+       async addFavouriteVideo(userId , videoId){
+         const user = await User.findByIdAndUpdate(userId,
+      {$addToSet:{favouriteVideos:{ video: videoId }}},{new:true});
+       if (!user) {
+        throw new Error("User not found");
+            }
+            return user;
+
+         },
+         async deleteFavouriteVideo(userId , videoId){
+         const user = await User.findByIdAndUpdate(userId,
+         {$pull:{favouriteVideos:{ video: videoId }}},
+         {new:true});
+       
+                if (!user) {
+        throw new Error("User not found");
+            }
+            return user;
+                  },
+
+                  async getUserFavourite(userId){
+            const user = await User.findById(userId);
+     return user?.favouriteVideos.map(v => v.video.toString()) || [];    
+                  },
+
+            async getParentKids(parentId){
+                return await User.find({parentId:parentId});
+            }
 };
 
 

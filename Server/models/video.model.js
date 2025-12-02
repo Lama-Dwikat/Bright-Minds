@@ -8,7 +8,7 @@ import User from "./user.model.js";
 
 
 
-var videoSchema= new mongoose.Schema(
+const videoSchema= new mongoose.Schema(
 
 {
 title:{
@@ -32,7 +32,7 @@ url:{
   thumbnailUrl: {
       type: String, 
     },
-isPuplished:{
+isPublished:{
     type:Boolean,
     default:false
 },
@@ -45,9 +45,24 @@ createdBy:{
    type:mongoose.Schema.Types.ObjectId,
    ref:"User"
 },
+views:{
+    type:Number,
+    default:0},
 
+    viewedBy: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }
+],
+
+  recommended:{
+    type:Boolean,
+    default:false
+  }   ,
 
 } , 
+
 
 
 {

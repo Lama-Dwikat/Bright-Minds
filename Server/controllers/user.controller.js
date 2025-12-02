@@ -1,5 +1,5 @@
 import {userService} from '../services/user.service.js';
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
 import jwt from "jsonwebtoken";
 
 export const userController = {
@@ -43,30 +43,32 @@ if (userData.cv) {
       const password=req.body.password;
 
       const user = await userService.signin(email, password);
-    const token = jwt.sign(
-  { 
-    id: user._id, 
-    role: user.role,
-    name: user.name
-  }, 
-  process.env.JWT_SECRET,
-  { expiresIn: "7d" }
-);
 
+      const token = jwt.sign(
+        { id: user._id, role: user.role ,name:user.name,ageGroup:user.ageGroup,  
+    //     profilePicture: user.profilePicture
+    //   ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
+    // : null
+    profilePicture: user.profilePicture?.data?.toString('base64') ?? null
+
+      
+    }, 
+        process.env.JWT_SECRET,           
+        { expiresIn: "7d" }               
+      );
        
       //res.status(200).send("Signin Successful");
-      res.status(200).json({
-  message: "Signin Successful",
-  token,
-  user: {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    cvStatus: user.cvStatus,
-    // profilePicture: user.profilePicture ? user.profilePicture.data.toString("base64") : null,
-  },
-});
+       res.status(200).json({
+        message: "Signin Successful",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+           cvStatus: user.cvStatus ?? "not_required",          // profilePicture: user.profilePicture
+        },
+      });
 
         }
         catch(error){
@@ -289,7 +291,43 @@ async linkChildToParent(req, res) {
             res.status(500).json({ error: error.message });
         }
     },
+    
+
+       async addFavouriteVideo(req, res) {
+    try {
+      const { videoId } = req.body; // data from client
+      const updatedUser = await userService.addFavouriteVideo(req.params.id, videoId);
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async deleteFavouriteVideo(req, res) {
+    try {
+      const { videoId } = req.body;
+      const updatedUser = await userService.deleteFavouriteVideo(req.params.id, videoId);
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }},
+
+
+     async getUserFavourite(req,res){
+        try{
+     const user = await userService.getUserFavourite(req.params.id);
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
+       
+ async getParentKids(req,res){
+        try{
+     const user = await userService.getParentKids(req.params.parentId);
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
 
 
 }
-

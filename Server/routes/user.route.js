@@ -25,6 +25,11 @@ userRouter.post('/users/link-child', authMiddleware.authentication ,userControll
 userRouter.put("/users/updateCvStatus/:id", authMiddleware.authentication, roleMiddleware(["admin"]), userController.updateCvStatus);
 userRouter.put("/users/addAgeGroup/:id", authMiddleware.authentication, roleMiddleware(["admin"]), userController.addAGeGroupToSupervisor);
 userRouter.get('/users/kidsForSupervisor/:id', userController.getKidsForSupervisor);
+userRouter.post("/users/addFavouriteVideo/:id", userController.addFavouriteVideo);
+userRouter.post("/users/deleteFavouriteVideo/:id", userController.deleteFavouriteVideo);
+userRouter.get("/users/getUserFavourite/:id", userController.getUserFavourite);
+userRouter.get("/users/getParentKids/:parentId", userController.getParentKids);
+
 
 
 

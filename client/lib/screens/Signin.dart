@@ -44,12 +44,10 @@ TextEditingController passwordController=TextEditingController();
 bool _isNotValidate = false;
 
 
-
 String getBackendUrl() {
   if (kIsWeb) {
-    // For web, use localhost or network IP
-   // return "http://localhost:5000";
-    return "http://192.168.1.122:3000";
+
+    return "http://192.168.1.63:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -62,6 +60,7 @@ String getBackendUrl() {
     return "http://localhost:3000";
   }
 }
+
 
 
   void SignIn() async {
