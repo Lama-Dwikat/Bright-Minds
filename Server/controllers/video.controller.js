@@ -19,6 +19,7 @@ export const videoController={
     }
       },
 
+
   async addVideo(req, res) {
   try {
     const newVideo = await videoService.addVideo(req.body);
@@ -64,9 +65,9 @@ export const videoController={
 
      async getVideosByAge(req,res){
          try{
-      const videos=videoService.getVideosByAge(req.params.ageGroup);
-      if (!vedio)
-        return res.status(404).json({message:"no vedios found for the specified age group"});
+      const videos= await videoService.getVideosByAge(req.params.ageGroup);
+      if (!videos)
+        return res.status(404).json({message:"no videos found for the specified age group"});
      res.status(200).json(videos);
 
     }catch(error){
@@ -135,8 +136,8 @@ export const videoController={
     async publishVideo(req , res){
   
    try{
-    const{ isPuplished}=req.body;
-    const updatedVideo=await videoService.updateVideoById(req.params.id,isPuplished);
+    const{ isPublished}=req.body;
+    const updatedVideo=await videoService.publishVideo(req.params.id,isPublished);
     if(!updatedVideo)
        return res.status(404).json({message:"video not found"});
      res.status(200).json(updatedVideo);
@@ -169,23 +170,99 @@ async deleteAllVideos(req,res){
     },   
 
 
-  async incrementViews(req,res){
-       try{
-     const video= await videoService.incrementViews(req.params.id);
-      res.status(200).json(video);
-    }catch(error){
- res.status(500).json({error:error.message});
-    } 
-   },
+
+async incrementViews(req, res) {
+  try {
+    const userId = req.body.userId; // <-- send this from frontend
+    if (!userId) return res.status(400).json({ message: "UserId required" });
+
+    const video = await videoService.incrementViews(req.params.id, userId);
+    res.status(200).json(video);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+},
+
 
   async setRecommend(req,res){
        try{
         const {recommended} =req.body
-      const video=await videoService.setRecommend(requestAnimationFrame.params.id,recommended);
+      const video=await videoService.setRecommend(req.params.id,recommended);
       res.status(200).json(video);
      }catch(error){
      res.status(500).json({error:error.message});
-    }  }
+    }  },
+
+      async getRecommendedVideos(req,res){
+       try{
+      const videos=await videoService.getRecommendedVideos(req.params.age);
+      res.status(200).json(videos);
+     }catch(error){
+     res.status(500).json({error:error.message});
+    }  },
+
+
+
+      async getTopViews(req,res){
+      try{
+     const videos =await videoService.getTopViews(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+      async  getVideosDistribution(req,res){
+      try{
+     const videos =await videoService.getVideosDistribution(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+    
+     async  getViewsNumbers(req,res){
+      try{
+     const videos =await videoService.getViewsNumbers(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+    
+
+         async  getVideosNumbers(req,res){
+      try{
+     const videos =await videoService.getVideosNumbers(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+        async  getTotalVideos(req,res){
+      try{
+     const videos =await videoService.getTotalVideos(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+    
+ 
+
+    async getPublishSupervisorVideos(req,res){
+      try{
+     const videos =await videoService.getPublishSupervisorVideos(req.params.id)
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
 
 
 

@@ -1,4 +1,6 @@
 import PlayList from '../models/playList.model.js';
+import mongoose from "mongoose";
+
 
 
 
@@ -20,8 +22,7 @@ return await PlayList.findByIdAndUpdate(
 },
 
 async updatePlaylist(playlistId,updateData){ 
-    return await findByIdAndUpdate(playlistId,updateData,{new:true})
-
+    return await PlayList.findByIdAndUpdate(playlistId,updateData,{new:true})
 },
 async deleteVideoFromPlayList(playlistId,videoId,){
     return await PlayList.findByIdAndUpdate(
@@ -47,7 +48,19 @@ async getAllPlaylists(){
 },
 async deleteAllPlaylists(){
     return await PlayList.deleteMany();
-}
+},
+
+ async getPlaylistsNumbers(supervisorId){
+  return await PlayList.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId)});
+ },
 
 
+ async publishPlaylist(id , isPub){
+       return await PlayList.findByIdAndUpdate(id , {isPublished:isPub},{new:true})
+ },
+
+ async getPlaylistsByAge(age){
+  return await PlayList.find({isPublished:true,ageGroup:age})
+
+ }
 }

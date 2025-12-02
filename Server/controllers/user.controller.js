@@ -1,5 +1,5 @@
 import {userService} from '../services/user.service.js';
-import mongoose from 'mongoose';
+import mongoose, { get } from 'mongoose';
 import jwt from "jsonwebtoken";
 
 export const userController = {
@@ -289,7 +289,43 @@ async linkChildToParent(req, res) {
             res.status(500).json({ error: error.message });
         }
     },
+    
+
+       async addFavouriteVideo(req, res) {
+    try {
+      const { videoId } = req.body; // data from client
+      const updatedUser = await userService.addFavouriteVideo(req.params.id, videoId);
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  async deleteFavouriteVideo(req, res) {
+    try {
+      const { videoId } = req.body;
+      const updatedUser = await userService.deleteFavouriteVideo(req.params.id, videoId);
+      return res.status(200).json(updatedUser);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }},
+
+
+     async getUserFavourite(req,res){
+        try{
+     const user = await userService.getUserFavourite(req.params.id);
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
+       
+ async getParentKids(req,res){
+        try{
+     const user = await userService.getParentKids(req.params.parentId);
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
 
 
 }
-

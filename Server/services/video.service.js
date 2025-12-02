@@ -3,6 +3,7 @@
 import Video from "../models/video.model.js";
 import axios from "axios";
 import dotenv from 'dotenv';
+import mongoose from "mongoose";
 dotenv.config();
 
 export const videoService={
@@ -15,12 +16,15 @@ export const videoService={
         q:topic,
         key: process.env.YOUTUBE_API_KEY,
         part: "snippet",
-        maxResults: 5,},
+        maxResults: 50,}
+      // pageToken:nextPageToken|| undefined },
        });
 
       return  response.data;
         
     },
+
+
 
     async addVideo(videoData){
        const existingVideo= await Video.findOne({url:videoData.url})
@@ -42,7 +46,7 @@ export const videoService={
           },
 
     async getVideosByAge(group){
-     return await Video.find({ageGroup:group});
+     return await Video.find({ageGroup:group,isPublished:true});
     },
 
         async getVideosByCategory(cat){
@@ -65,8 +69,8 @@ export const videoService={
       return await Video.findByIdAndUpdate(videoId, updateData,{new:true});
     },
   
-    async publishVideo(id , isPub){
-       return await Video.findByIdAndUpdate(id , {isPublished:isPub},{new:true})
+    async publishVideo(id , isPublished){
+       return await Video.findByIdAndUpdate(id , {isPublished:isPublished},{new:true})
     },
     async deleteVideoById(id){
      return await Video.findByIdAndDelete(id);
@@ -77,12 +81,59 @@ export const videoService={
 
     },   
 
-  async incrementViews(id){
-    return await Video.findByIdAndUpdate(id,{$inc:{views:1}},{new:true});
-  },
+ 
+  async incrementViews(videoId, userId) {
+  const video = await Video.findById(videoId);
+  if (!video) throw new Error("Video not found");
+
+  // Only increment if user hasn't viewed yet
+  if (!video.viewedBy.includes(userId)) {
+    video.views += 1;
+    video.viewedBy.push(userId);
+    await video.save();
+  }
+
+  return video;
+},
+
   async setRecommend(id ,rec){
     return await Video.findByIdAndUpdate(id,{recommended:rec},{new:true});
-  }
+  },
+ async getRecommendedVideos(age){
+  return await Video.find({recommended:true,ageGroup:age})
+ },
+
+
+ async getTopViews(supervisorId){
+  return await Video.find({createdBy:new mongoose.Types.ObjectId(supervisorId)}).sort({views:-1}).limit(5).select("title views -_id");
+ },
+  async getVideosDistribution(supervisorId){
+return await Video.aggregate([
+{$match:{createdBy:new mongoose.Types.ObjectId(supervisorId)}},
+{$group:{_id:"$category",count:{$sum:1}}},
+{$project:{_id:0,category:"$_id",count:1}}
+]);
+ },
+
+
+ async getVideosNumbers(supervisorId){
+  return await Video.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId), isPublished:true});
+ },
+  async getTotalVideos(supervisorId){
+  return await Video.countDocuments({createdBy:new mongoose.Types.ObjectId(supervisorId)});
+ },
+  async getViewsNumbers(supervisorId){
+   return await Video.aggregate([
+    {$match: {createdBy:new mongoose.Types.ObjectId(supervisorId)}},
+    {$group:{_id:null,totalViews:{$sum:"$views"}}},
+    {$project:{_id:0,totalViews:1}},
+   ]);
+  },
+
+       async getPublishSupervisorVideos(supervisorId){
+        return await Video.find({createdBy:supervisorId,isPublished:true});
+      },
+
 
 
 }

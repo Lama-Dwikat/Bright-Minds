@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/welcome.dart';
 import 'package:bright_minds/screens/tasksList.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
+import 'package:bright_minds/screens/game.dart';
 
+import 'package:bright_minds/screens/analytics.dart';
 
 
 
@@ -25,7 +27,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: WelcomeScreen(),
+      home:
+      //AnalyticsDashboard(), // use dashboard directly,
+       WelcomeScreen(),
     );
   }
 }

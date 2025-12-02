@@ -28,6 +28,11 @@ isPublished:{
 createdBy:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"User"
+},
+ageGroup:{
+    type:String,
+    required:true,
+    enum:["5-8","9-12"]
 }
 
 },

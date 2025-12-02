@@ -7,7 +7,7 @@ import cors from 'cors';
 import { userRouter } from './routes/user.route.js';
 import { storyRouter } from './routes/story.route.js'; 
 import { videoRouter} from './routes/video.route.js';
-import { quizeRouter} from './routes/quize.route.js';
+import { quizRouter} from './routes/quiz.route.js';
 import { aiRouter } from './routes/ai.route.js'; 
 import { reviewStoryRouter } from './routes/reviewStory.route.js';
 import { storyLikeRouter } from './routes/storyLike.route.js';
@@ -15,6 +15,9 @@ import { templateRouter } from './routes/template.route.js';
 import uploadRouter from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
 import { playlistRouter } from "./routes/playlist.route.js";    
+import { gameRouter } from "./routes/game.route.js";   
+import { historyRouter} from "./routes/videoHistory.route.js"; 
+import {dailywatchRouter} from './routes/dailyWatch.route.js'
 
 
 const app = express()
@@ -24,7 +27,9 @@ app.use(cors());
 
 // إعدادات CORS
 const corsOptions = {
-    origin: [
+    origin:
+    //"*",
+     [
         "http://localhost:3000",
         "http://localhost:3001"
     ],
@@ -43,7 +48,7 @@ app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use('/api', userRouter);
 app.use('/api', storyRouter);
 app.use('/api',videoRouter);
-app.use('/api',quizeRouter);
+app.use('/api',quizRouter);
 app.use('/api', aiRouter);
 app.use('/api', reviewStoryRouter);
 app.use('/api', storyLikeRouter );
@@ -51,6 +56,8 @@ app.use('/api', templateRouter );
 app.use("/api/upload", uploadRouter);
 app.use('/api', taskRouter );
 app.use('/api', playlistRouter);
+app.use('/api', historyRouter);
+app.use('/api', dailywatchRouter);
 
 
 

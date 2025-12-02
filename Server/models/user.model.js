@@ -81,21 +81,12 @@ const userSchema = mongoose.Schema(
 
  
 
-       videoHistory: [
-         {
-           video: { type: mongoose.Schema.Types.ObjectId, ref: "Video" },
-           watchedAt: { type: Date },
-         }
-       ],
           favouriteVideos: [
          {
            video: { type: mongoose.Schema.Types.ObjectId, ref: "Video" },
          }
        ],
-         // Fields to track watch time
-         dailyVidoeTime: { type: Number,default: 0 }, // in minutes
-         lastVideoDate: { type: Date },
-         dailyVideoLimit: { type: Number, default: 20 } // daily limit in minutes
+       
 
 
 

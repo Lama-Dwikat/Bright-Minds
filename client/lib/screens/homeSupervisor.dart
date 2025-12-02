@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:intl/intl.dart';
 import 'package:bright_minds/screens/videosSupervisor.dart';
+import 'package:bright_minds/screens/analytics.dart';
 
 class HomeSupervisor extends StatefulWidget {
   const HomeSupervisor({super.key});
@@ -41,17 +42,22 @@ class _HomeSupervisorState extends State<HomeSupervisor> {
   List tasks = [];
   bool done=false;
 
-  String getBackendUrl() {
-    if (kIsWeb) {
-      return "http://192.168.1.122:3000";
-    } else if (Platform.isAndroid) {
-      return "http://10.0.2.2:3000";
-    } else if (Platform.isIOS) {
-      return "http://localhost:3000";
-    } else {
-      return "http://localhost:3000";
-    }
+String getBackendUrl() {
+  if (kIsWeb) {
+    return "http://192.168.1.63:3000";
+
+  } else if (Platform.isAndroid) {
+    // Android emulator
+    return "http://10.0.2.2:3000";
+  } else if (Platform.isIOS) {
+    // iOS emulator
+    return "http://localhost:3000";
+  } else {
+    // fallback
+    return "http://localhost:3000";
   }
+}
+
 
   @override
   void initState() {
@@ -280,26 +286,9 @@ Container(
                   ),
                 ],
               ),
-// <<<<<<< HEAD
 
-//               const SizedBox(height: 16),
-
-//               // 2x2 grid of smaller square buttons
-//             // 2x2 grid of smaller square buttons
-//       Column(
-//      children: [
-//       Row(
-//       mainAxisAlignment: MainAxisAlignment.center,
-//       children: [
-//         _buildSquareButton(
-//           label: "Videos",
-//           icon: Icons.video_library,
-//           color: Colors.orange[200]!,
-//           onPressed: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosScreen()));},
-// =======
             );
           },
-//>>>>>>> origin/lama
         ),
       ),
     ],
@@ -442,16 +431,16 @@ Container(
                  imagePath: "assets/images/Games.png",
                   color: AppColors.bgWarmPinkLight,
                  onTap: () { }
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => StoryKidsScreen()));},
-
+                 // Navigator.push(context, MaterialPageRoute(builder: (context) => StoryKidsScreen()));},
+                
                 ),
                 _mainButton(
                   label: "Drawing",
                  // icon: Icons.brush_rounded,
                  imagePath: "assets/images/Drawing.png",
                   color: AppColors.bgWarmPink,
-                  onTap: () { }
-                    // Navigator.push(context, MaterialPageRoute(builder: (context) => StoryKidsScreen()));},
+                  onTap: () { 
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => AnalyticsScreen()));},
 
                 ),
                 

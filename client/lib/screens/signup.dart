@@ -23,24 +23,22 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
 
 
-
 String getBackendUrl() {
   if (kIsWeb) {
-    // For web, use localhost or network IP
-    //return "http://localhost:5000"; 
-    return "http://localhost:3000";
- 
+    return "http://192.168.1.63:3000";
+
   } else if (Platform.isAndroid) {
     // Android emulator
     return "http://10.0.2.2:3000";
   } else if (Platform.isIOS) {
-    // iOS emulatorz
+    // iOS emulator
     return "http://localhost:3000";
   } else {
     // fallback
     return "http://localhost:3000";
   }
 }
+
 
   final _formSignUpKey = GlobalKey<FormState>();
 

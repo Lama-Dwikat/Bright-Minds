@@ -44,12 +44,9 @@ TextEditingController passwordController=TextEditingController();
 bool _isNotValidate = false;
 
 
-
 String getBackendUrl() {
   if (kIsWeb) {
-    // For web, use localhost or network IP
-   // return "http://localhost:5000";
-    return "http://localhost:3000";
+    return "http://192.168.1.63:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -64,6 +61,7 @@ String getBackendUrl() {
 }
 
 
+
   void SignIn() async {
    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
     var SignInBody = {
@@ -73,7 +71,7 @@ String getBackendUrl() {
 
     try {
       var response = await http.post(
-          Uri.parse('http://10.0.2.2:3000/api/users/signIn'),
+          Uri.parse('${getBackendUrl()}/api/users/signIn'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(SignInBody),
       );

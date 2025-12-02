@@ -74,7 +74,7 @@ async getPlaylistbySupervisor(req,res){
   try{
 
 const playlist=await  playlistService.getPlaylistbySupervisor(req.params.id)
-    if(!playlist)
+    if(!playlist || playlist.length === 0)
         return res.status(400).json({message:"supervisor not found"});
     return res.status(200).json(playlist)
     }catch(error){
@@ -120,13 +120,43 @@ async deleteAllPlaylists(req,res){
             res.status(500).json({ error: error.message });
 
     }
-}
+},
 
 
 
+    async getPlaylistsNumbers(req,res){
+      try{
+     const videos =await playlistService.getPlaylistsNumbers(req.params.id);
+     res.status(200).json(videos);
+    }catch(error){
+    res.status(500).json({ error: error.message });
+
+    }
+    },
+
+       async publishPlaylist(req , res){
+     
+      try{
+       const{ isPublished}=req.body;
+       const updatedVideo=await playlistService.updatePlaylist(req.params.id,{isPublished});
+       if(!updatedVideo)
+          return res.status(404).json({message:"video not found"});
+        res.status(200).json(updatedVideo);
+   
+       }catch(error){
+       res.status(500).json({ error: error.message });
+       }
+     },
 
 
+    async getPlaylistsByAge(req,res){
+      try{
+     const playlists =await playlistService.getPlaylistsByAge(req.params.age);
+     res.status(200).json(playlists);
+    }catch(error){
+    res.status(500).json({ error: error.message });
 
-
+    }
+    },
 
 }
