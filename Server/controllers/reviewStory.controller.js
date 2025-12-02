@@ -3,10 +3,14 @@ import mongoose from "mongoose";
 import fs from "fs";
 import  cloudinaryService  from "../services/cloudinary.service.js";
 import jwt from "jsonwebtoken";
+import { Notification } from "../models/notification.model.js";
+import Story from "../models/story.model.js";
+
+
 
 
 export const reviewStoryController ={
- async createReview(req, res) {
+ /*async createReview(req, res) {
     try {
       const { storyId, rating, comment } = req.body;
       const supervisorId = req.user._id; 
@@ -34,7 +38,51 @@ export const reviewStoryController ={
         message: error.message || "Failed to create review"
       });
     }
-  },
+  },*/
+  async createReview(req, res) {
+  try {
+    const { storyId, rating, comment } = req.body;
+    const supervisorId = req.user._id;
+
+    if (!storyId) {
+      return res.status(400).json({ success: false, message: "storyId is required" });
+    }
+
+    const story = await Story.findById(storyId).populate("childId");
+    if (!story) {
+      return res.status(404).json({ success: false, message: "Story not found" });
+    }
+
+    const childId = story.childId._id;
+
+    const review = await reviewStoryService.createReview({
+      storyId,
+      supervisorId,
+      rating,
+      comment
+    });
+
+    await Notification.create({
+      childId: childId,
+      storyId: storyId,
+      message: `Your supervisor reviewed your story: ${story.title}`,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Review created successfully and notification sent",
+      data: review
+    });
+
+  } catch (error) {
+    console.error("Error in createReview:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to create review"
+    });
+  }
+}
+,
 
 
   async getReviewsByStory(req, res) {

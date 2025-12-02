@@ -7,9 +7,9 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import '../models/story_model.dart';
-import 'package:bright_minds/screens/createStoryPage.dart';
-import 'package:bright_minds/screens/readOnlyStoryPage.dart';
+import '../../models/story_model.dart';
+import 'package:bright_minds/screens/childStory/createStoryPage.dart';
+import 'package:bright_minds/screens/childStory/readOnlyStoryPage.dart';
 
 
 class StoryKidsScreen extends StatefulWidget {

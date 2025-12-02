@@ -18,6 +18,7 @@ import 'package:bright_minds/screens/homeParent.dart';
 import 'package:bright_minds/screens/homeChild.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
 import 'package:bright_minds/screens/homeAdmin.dart';
+import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
 
 
 
@@ -248,12 +249,20 @@ String getBackendUrl() {
                       iconSize: MediaQuery.of(context).size.width * 0.09,
                     ),
                     navItem(
-                      icon: Icons.notifications_none,
-                      label: "Alerts",
-                      color: Colors.white,
-                      onTap: () {},
-                      iconSize: MediaQuery.of(context).size.width * 0.1,
-                    ),
+  icon: Icons.notifications_none,
+  label: "Alerts",
+  color: Colors.white,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ChildNotificationsScreen(),
+      ),
+    );
+  },
+  iconSize: MediaQuery.of(context).size.width * 0.1,
+),
+
                     const SizedBox(width: 29),
                     navItem(
                       icon: Icons.chat_outlined,

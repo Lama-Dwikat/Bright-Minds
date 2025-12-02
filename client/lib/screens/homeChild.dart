@@ -1,7 +1,7 @@
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:bright_minds/screens/childStory.dart';
+import 'package:bright_minds/screens/childStory/childStory.dart';
 
 
 class HomeChild extends StatefulWidget {

@@ -69,6 +69,10 @@ final TextEditingController _titleController = TextEditingController();
     'assets/story_images/Drawing.png',
     'assets/story_images/energy.png',
     'assets/story_images/Games2.png',
+    'assets/story_images/b.avif',
+    'assets/story_images/a.jpg',
+    'assets/story_images/c.jpg',
+    'assets/story_images/d.webp',
   ];
 
 
@@ -930,7 +934,6 @@ IconButton(
       _addUploadedImageFromBytes(bytes);
     }
   } else {
-    //  الرفع من الهاتف (باستخدام image_picker)
     final picker = ImagePicker();
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -1124,6 +1127,10 @@ IconButton(
               _imageThumb("assets/story_images/castle.png"),
               _imageThumb("assets/story_images/space.png"),
               _imageThumb("assets/story_images/dragon.png"),
+               _imageThumb("assets/story_images/b.avif"),
+              _imageThumb("assets/story_images/a.jpg"),
+              _imageThumb("assets/story_images/c.jpg"),
+              _imageThumb("assets/story_images/d.webp"),
             ],
           ),
         );
