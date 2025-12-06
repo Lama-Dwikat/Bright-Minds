@@ -55,7 +55,14 @@ const StorySchema = new mongoose.Schema({
   startedBy: { type: String, enum: ["child","supervisor"], default: "child" },
  continuedByChild: { type: Boolean, default: false },
  aiGenerated: { type: Boolean, default: false },
- aiPrompts: [String],
+aiPrompts: [
+  {
+    prompt: { type: String, required: false },
+    role: { type: String, required: false },
+    _id: false
+  }
+]
+,
  baseStoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Story" },
  lastEditedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
  lastEditedRole: { type: String, enum: ["child","supervisor","parent","admin"] },

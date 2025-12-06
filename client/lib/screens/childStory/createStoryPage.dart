@@ -16,6 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
+import 'package:bright_minds/screens/childStory/loadingDragon.dart';
+
 
 
 
@@ -39,6 +41,7 @@ Color selectedColor = Colors.black;
 double strokeWidth = 4.0;
 List<DrawPoint> drawingPoints = [];
 List<DrawPoint> redoStack = [];
+bool isGeneratingAI = false;
 
 
 
@@ -424,6 +427,13 @@ if (item["type"] == "audio") {
 
             // ===== DRAWING TOOLS OVERLAY =====
 if (isDrawingMode) _drawingToolsOverlay(),
+if (isGeneratingAI)
+  Container(
+    alignment: Alignment.center,
+    color: Colors.white.withOpacity(0.75),
+    child: const LoadingDragon(),
+  ),
+
 
             // ---------- LEFT SIDE TOOLS BUTTON ----------
             Positioned(
@@ -944,7 +954,11 @@ IconButton(
   }
 }),
 
-                  _toolOption(Icons.auto_fix_high, "AI Generated Image", () {}),
+                  _toolOption(Icons.auto_fix_high, "AI Generated Image", () {
+  Navigator.pop(context);
+  _openAIGenerateDialog();
+}),
+
                 ],
               ),
             ),
@@ -1578,8 +1592,31 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
           }
         }
 
+
+        // ---------- AI or Network Image ----------
+else if (type == "uploaded_image" && item["networkUrl"] != null) {
+  pageElements.add({
+    "type": "image",
+    "content": "",
+    "x": item["x"],
+    "y": item["y"],
+    "width": item["width"],
+    "height": item["height"],
+    "order": i,
+    "media": {
+      "mediaType": "image",
+      "url": item["networkUrl"],   // 
+      "page": pageIndex + 1,
+      "elementOrder": i
+    }
+  });
+
+  continue;
+}
+
+
         // ---------- UPLOADED IMAGE (BYTES) ----------
-        else if (type == "uploaded_image" || type == "drawn_image") {
+       /* else if (type == "uploaded_image" || type == "drawn_image") {
           final Uint8List? bytes = item["bytes"];
 
           if (bytes == null) {
@@ -1609,7 +1646,7 @@ Future<void> _saveStory({required bool sendToSupervisor}) async {
               "elementOrder": i
             }
           });
-        }
+        }*/
 
         // ---------- AUDIO ----------
         else if (type == "audio") {
@@ -1972,7 +2009,135 @@ Future<Uint8List?> _exportDrawingAsImage() async {
 }
 
 
+Future<void> _generateAIImage(String prompt) async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
 
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ Please log in first")),
+      );
+      return;
+    }
+
+    // 🔵 ابدأ اللودينغ
+    setState(() => isGeneratingAI = true);
+
+    String? storyId = prefs.getString("currentStoryId");
+
+    // ---------- إنشاء قصة تلقائيًا لو لم توجد ----------
+    if (storyId == null) {
+      final createRes = await http.post(
+        Uri.parse("${getBackendUrl()}/api/story/create"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"title": storyTitle}),
+      );
+
+      final created = jsonDecode(createRes.body);
+      storyId = created["storyId"];
+      await prefs.setString("currentStoryId", storyId!);
+    }
+
+    // ---------- إرسال طلب إنشاء صورة ----------
+    final body = {
+      "prompt": prompt,
+      "storyId": storyId,
+      "pageNumber": currentPageIndex + 1,
+      "style": "cartoon",
+    };
+
+    final response = await http.post(
+      Uri.parse("${getBackendUrl()}/api/ai/generate-image"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(body),
+    );
+
+    print("🟣 AI Response: ${response.body}");
+
+    if (response.statusCode != 200) {
+      setState(() => isGeneratingAI = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("AI Error: ${response.body}")),
+      );
+      return;
+    }
+
+    // ---------- إضافة الصورة إلى الكانفاس ----------
+    final data = jsonDecode(response.body);
+    final imageUrl = data["imageUrl"];
+
+    _addAIImageToCanvas(imageUrl);
+
+    // 🔵 أوقف اللودينغ
+    setState(() => isGeneratingAI = false);
+
+  } catch (e) {
+    print("AI ERROR: $e");
+    setState(() => isGeneratingAI = false); // 🔥 لازم في كل errors
+  }
+}
+void _addAIImageToCanvas(String url) {
+  final elementKey = UniqueKey();
+
+  setState(() {
+    pages[currentPageIndex].add({
+      "key": elementKey,
+      "type": "uploaded_image",
+      "networkUrl": url,
+      "x": 40.0,
+      "y": 40.0,
+      "width": 250.0,
+      "height": 250.0,
+    });
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("✨ AI Image Added!")),
+  );
+}
+
+
+void _openAIGenerateDialog() {
+  final controller = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Color(0xFFFFE0E0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text("Generate AI Image", style: TextStyle(fontSize: 20)),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: "Write your description..."),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            child: Text("Cancel"),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD97B83)),
+            child: Text("Generate"),
+            onPressed: () {
+              final prompt = controller.text.trim();
+              Navigator.pop(context);
+              if (prompt.isNotEmpty) _generateAIImage(prompt);
+            },
+          )
+        ],
+      );
+    },
+  );
+}
 
 
 
