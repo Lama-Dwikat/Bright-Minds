@@ -15,8 +15,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:intl/intl.dart';
 import 'package:bright_minds/screens/videosSupervisor.dart';
+<<<<<<< HEAD
 
 import 'package:bright_minds/screens/supervisorStories.dart';
+=======
+import 'package:bright_minds/screens/supervisorstory/supervisorStories.dart';
+>>>>>>> origin/fatima_nasser
 
 
 import 'package:bright_minds/screens/analytics.dart';

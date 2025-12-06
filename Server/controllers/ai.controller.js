@@ -56,13 +56,19 @@ export const generateImageFromPrompt = async (req, res) => {
     const story = await Story.findById(storyId);
     if (!story) throw new Error("Story not found");
 
-    // Generate image
-    const fullPrompt = `${prompt}. The image should be in ${style} style suitable for children.`;
-    const imageResp = await openai.images.generate({
-      model: "gpt-image-1",
-      prompt: fullPrompt,
-      size: "1024x1024",
-    });
+ // Generate image
+const fullPrompt = `${prompt}. The image should be in ${style} style suitable for children.`;
+
+console.log("🚀 BEFORE OPENAI CALL");   // 👈 هنا
+
+const imageResp = await openai.images.generate({
+  model: "gpt-image-1",
+  prompt: fullPrompt,
+  size: "1024x1024",
+});
+
+console.log("🚀 AFTER OPENAI CALL");    // 👈 وهنا
+
 
     const b64 = imageResp.data?.[0]?.b64_json;
     if (!b64) throw new Error("No image received from AI provider");
@@ -123,3 +129,93 @@ export const generateImageFromPrompt = async (req, res) => {
 };
 
 export default { aiLimiter, generateImageFromPrompt };
+
+
+/*import axios from "axios";
+import cloudinaryService from "../services/cloudinary.service.js";
+import Story from "../models/story.model.js";
+
+export const generateImageFromPrompt = async (req, res) => {
+  const userId = req.user._id;
+  const userRole = req.user.role || "child";
+  let { prompt, storyId, pageNumber = 1, style = "cartoon" } = req.body;
+
+  if (!prompt || !storyId) {
+    return res.status(400).json({ success: false, message: "prompt and storyId are required" });
+  }
+
+  try {
+    
+      console.log("🔥 USING FLUX MODEL NOW!");
+
+    // Sanitize
+    prompt = prompt.trim().slice(0, 300);
+
+    const story = await Story.findById(storyId);
+    if (!story) throw new Error("Story not found");
+
+    // === Flux.1 image model ===
+    const fluxPrompt = `${prompt}. Style: ${style}. High quality, kids-friendly, colorful illustration.`;
+
+    const fluxResponse = await axios.post(
+      "https://fal.run/fal-ai/flux/schnell",
+      { prompt: fluxPrompt },
+      {
+        headers: {
+          "Authorization": `Key ${process.env.FAL_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const imageUrlFromFlux = fluxResponse.data?.images?.[0]?.url;
+    if (!imageUrlFromFlux) throw new Error("No image received from Flux");
+
+    // Download image → upload to Cloudinary
+    const imageBuffer = (await axios.get(imageUrlFromFlux, { responseType: "arraybuffer" })).data;
+
+    const cloudUrl = await cloudinaryService.uploadBuffer(
+      Buffer.from(imageBuffer),
+      `kids-platform/stories/${storyId}/page-${pageNumber}`
+    );
+
+    // Save to DB
+    let page = story.pages.find(p => p.pageNumber === pageNumber);
+    if (!page) {
+      page = { pageNumber, elements: [], assignedToRole: "child" };
+      story.pages.push(page);
+    }
+
+    const newElement = {
+      type: "image",
+      role: userRole,
+      content: "",
+      media: {
+        mediaType: "image",
+        url: cloudUrl,
+        storyId: storyId,
+        page: pageNumber,
+        elementOrder: (page.elements.length || 0) + 1
+      },
+      x: 0,
+      y: 0,
+      width: 400,
+      height: 400
+    };
+
+    page.elements.push(newElement);
+
+    await story.save();
+
+    return res.json({
+      success: true,
+      imageUrl: cloudUrl,
+      element: newElement
+    });
+
+  } catch (err) {
+    console.error("Flux AI Error:", err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+*/

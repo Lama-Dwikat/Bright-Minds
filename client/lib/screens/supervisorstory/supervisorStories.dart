@@ -8,7 +8,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:bright_minds/screens/supervisorStoryReviewPage.dart';
+import 'package:bright_minds/screens/supervisorstory/supervisorStoryReviewPage.dart';
 
 class SupervisorStoriesScreen extends StatefulWidget {
   const SupervisorStoriesScreen({super.key});
@@ -243,11 +243,12 @@ class _SupervisorStoriesScreenState extends State<SupervisorStoriesScreen> {
                                         topRight: Radius.circular(16),
                                       ),
                                       child: cover != null
-                                          ? Image.network(
-                                              cover,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                            )
+  ? (cover.startsWith("assets/")
+      ? Image.asset(cover, fit: BoxFit.cover)
+      : Image.network(cover, fit: BoxFit.cover))
+  
+
+                                     
                                           : Container(
                                               color: const Color(0xFFEEE5FF),
                                               child: const Icon(
