@@ -14,14 +14,11 @@ import { storyLikeRouter } from './routes/storyLike.route.js';
 import { templateRouter } from './routes/template.route.js';
 import uploadRouter  from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
-<<<<<<< HEAD
 import { playlistRouter } from "./routes/playlist.route.js";    
 import { gameRouter } from "./routes/game.route.js";   
 import { historyRouter} from "./routes/videoHistory.route.js"; 
 import {dailywatchRouter} from './routes/dailyWatch.route.js'
-=======
 import { notificationRouter } from "./routes/notification.routes.js";
->>>>>>> origin/fatima_nasser
 
 
 const app = express()
@@ -52,27 +49,17 @@ app.use(express.urlencoded({ limit: '5mb', extended: true }));
 app.use('/api', userRouter);
 app.use('/api', storyRouter);
 app.use('/api',videoRouter);
-<<<<<<< HEAD
 app.use('/api',quizRouter);
 app.use('/api', aiRouter);
-=======
-app.use('/api',quizeRouter);
-app.use('/api/ai', aiRouter);
->>>>>>> origin/fatima_nasser
 app.use('/api', reviewStoryRouter);
 app.use('/api', storyLikeRouter );
 app.use('/api', templateRouter );
 app.use("/api/upload", uploadRouter);
 app.use('/api', taskRouter );
-<<<<<<< HEAD
 app.use('/api', playlistRouter);
 app.use('/api', historyRouter);
 app.use('/api', dailywatchRouter);
-
-
-=======
 app.use("/api", notificationRouter);
->>>>>>> origin/fatima_nasser
 
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");

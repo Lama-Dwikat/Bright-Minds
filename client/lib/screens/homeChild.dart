@@ -1,12 +1,9 @@
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-<<<<<<< HEAD
-import 'package:bright_minds/screens/childStory.dart';
 import 'package:bright_minds/screens/videosKids.dart';
-=======
 import 'package:bright_minds/screens/childStory/childStory.dart';
->>>>>>> origin/fatima_nasser
+
 
 
 class HomeChild extends StatefulWidget {
