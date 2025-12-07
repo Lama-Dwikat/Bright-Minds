@@ -12,6 +12,9 @@ export const aiRouter = express.Router();
   authorizeStory(["child", "supervisor"], "addMedia"),
   generateImageFromPrompt
 );*/
+
+console.log("AI ROUTES LOADED");
+
 aiRouter.post(
   "/generate-image",
   authMiddleware.authentication,

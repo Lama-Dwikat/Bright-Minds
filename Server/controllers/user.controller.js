@@ -49,7 +49,7 @@ if (userData.cv) {
     //     profilePicture: user.profilePicture
     //   ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
     // : null
-    profilePicture: user.profilePicture?.data?.toString('base64') ?? null
+   // profilePicture: user.profilePicture?.data?.toString('base64') ?? null
 
       
     }, 
@@ -57,6 +57,7 @@ if (userData.cv) {
         { expiresIn: "7d" }               
       );
        
+      
       //res.status(200).send("Signin Successful");
        res.status(200).json({
         message: "Signin Successful",

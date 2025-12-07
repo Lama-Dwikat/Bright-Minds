@@ -50,7 +50,7 @@ app.use('/api', userRouter);
 app.use('/api', storyRouter);
 app.use('/api',videoRouter);
 app.use('/api',quizRouter);
-app.use('/api', aiRouter);
+app.use('/api/ai', aiRouter);
 app.use('/api', reviewStoryRouter);
 app.use('/api', storyLikeRouter );
 app.use('/api', templateRouter );
