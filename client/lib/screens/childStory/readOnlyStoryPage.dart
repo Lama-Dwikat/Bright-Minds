@@ -46,7 +46,9 @@ bool isReviewLoading = true;
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('${getBackendUrl()}/api/story/getstorybyid/${widget.storyId}'),
+     // Uri.parse('${getBackendUrl()}/api/story/getstorybyid/${widget.storyId}'),
+     Uri.parse('${getBackendUrl()}/api/story/${widget.storyId}'),
+
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

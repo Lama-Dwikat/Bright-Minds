@@ -1,9 +1,13 @@
 import storyService from "../services/story.service.js";
 import mongoose from "mongoose";
 import fs from "fs";
-import  cloudinaryService  from "../services/cloudinary.service.js";
+import cloudinaryService from "../services/cloudinary.service.js";
 import jwt from "jsonwebtoken";
 import ActivityLog from "../models/activityLog.model.js";
+import StoryLike from "../models/storyLike.model.js";
+import Story from "../models/story.model.js";
+import { Notification } from "../models/notification.model.js";
+
 
 
 
@@ -125,7 +129,7 @@ export const storyController ={
     },
 
 
-     async getStoryById (req, res)  {
+ /*    async getStoryById (req, res)  {
         try {
             const { storyId } = req.params;
             const userId = req.user ? req.user._id : null;
@@ -135,7 +139,51 @@ export const storyController ={
         } catch (error) {
             res.status(400).json({ message: error.message });
         }
-    },
+    },*/
+    async getStoryById(req, res) {
+  try {
+    const { storyId } = req.params;
+    const requesterId = req.user._id;
+    const role = req.user.role;
+
+    const story = await Story.findById(storyId)
+      .populate("childId", "name parentId")
+      .lean();
+
+    if (!story)
+      return res.status(404).json({ message: "Story not found" });
+
+    const isOwner = story.childId?._id?.toString() === requesterId.toString();
+    const isParent =
+      story.childId?.parentId?.toString() === requesterId.toString();
+
+    // 🔥 IMPORTANT FIX:
+    // Allow access if story is published
+    if (story.publicVisibility === true || story.status === "published") {
+      return res.status(200).json(story);
+    }
+
+    // Normal rules for not published stories
+    if (role === "child" && !isOwner)
+      return res.status(403).json({
+        message: "You are not allowed to view this story",
+      });
+
+    if (role === "parent" && !isParent)
+      return res.status(403).json({
+        message: "You are not allowed to view this story",
+      });
+
+    // otherwise allow access
+    return res.status(200).json(story);
+
+  } catch (error) {
+    res.status(500).json({
+      message: `Error fetching story: ${error.message}`,
+    });
+  }
+}
+,
 
 
 
@@ -227,6 +275,71 @@ async getStoriesForSupervisor(req, res) {
     res.status(400).json({ message: error.message });
   }
 },
+
+async publishStory(req, res) {
+  try {
+    const { storyId } = req.params;
+    const supervisorId = req.user._id;
+
+    const story = await Story.findById(storyId);
+
+    if (!story) {
+      return res.status(404).json({ message: "Story not found" });
+    }
+
+    if (req.user.role !== "supervisor") {
+      return res.status(403).json({ message: "Only supervisors can publish stories" });
+    }
+
+    // 🔥 هنا المشكلة.. لازم تحدث status أيضاً!
+    story.status = "published";       // ← أضف هذا
+    story.publicVisibility = true;    // ← ممتاز عندك
+    story.publishedBy = supervisorId;
+    story.publishedAt = new Date();   // ← optional but useful
+
+    await story.save();
+
+    await Notification.create({
+      childId: story.childId,
+      storyId: storyId,
+      message: `🎉 Your story "${story.title}" has been published for other kids!`,
+    });
+
+    return res.status(200).json({ message: "Story published successfully" });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+},
+async getPublishedStories(req, res) {
+  try {
+    const stories = await Story.find({ publicVisibility: true })
+      .populate("childId", "name ageGroup")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(stories);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+},
+async getTopStories(req, res) {
+  try {
+    const top = await StoryLike.aggregate([
+      { $group: { _id: "$storyId", totalLikes: { $sum: 1 } } },
+      { $sort: { totalLikes: -1 } },
+      { $limit: 5 }
+    ]);
+
+    const storyIds = top.map(t => t._id);
+
+    const stories = await Story.find({ _id: { $in: storyIds } })
+      .populate("childId", "name");
+
+    res.status(200).json(stories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 
 
 

@@ -21,7 +21,18 @@ export const authorizeStory = (roles = [], operation = "") => async (req, res, n
     }
 
     // 4) باقي العمليات تحتاج storyId
-    const storyId = req.params.storyId || req.body.storyId;
+    //const storyId = req.params.storyId || req.body.storyId;
+    const storyId = req.params.storyId || req.body?.storyId;
+// ignore routes that don't need story validation
+if (!operation) return next();
+
+    // 🔥 Routes that don't need story validation
+const skipOps = ["list", "publishedView", "likeView"];
+
+if (!operation || skipOps.includes(operation)) {
+  return next();
+}
+
 
     if (!storyId) {
       return res.status(400).json({ message: "storyId is required" });
@@ -47,9 +58,21 @@ export const authorizeStory = (roles = [], operation = "") => async (req, res, n
 
 
        case "view":
-        if (role === "child" && !isChildOwner) {
+       /* if (role === "child" && !isChildOwner) {
           return res.status(403).json({ message: "You cannot view this story" });
-        }
+        }*/
+  if (role === "child" && !isChildOwner) {
+
+  // allow viewing published stories
+  if (story.status === "published" || story.publicVisibility === true) {
+    return next();
+  }
+
+  return res.status(403).json({ message: "You cannot view this story" });
+}
+
+
+
 
         if (role === "parent") {
           const parentId = story.childId?.parentId?.toString();

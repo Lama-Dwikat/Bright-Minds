@@ -117,6 +117,76 @@ class _SupervisorStoriesScreenState extends State<SupervisorStoriesScreen> {
     });
   }
 
+
+
+void _confirmPublishStory(String storyId) async {
+  final confirm = await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text("Publish Story"),
+      content: const Text(
+          "Are you sure you want to publish this story for all children?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFEBA1AB)),
+          child: const Text("Publish"),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
+    await _publishStory(storyId);
+  }
+}
+
+
+Future<void> _publishStory(String storyId) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final response = await http.patch(
+      Uri.parse("${getBackendUrl()}/api/story/publish/$storyId"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Story published successfully 🎉"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // refresh
+      _fetchSupervisorStories();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to publish: ${response.body}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error publishing story: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
   Color _statusColor(String status) {
     switch (status) {
       case "approved":
@@ -289,32 +359,47 @@ class _SupervisorStoriesScreenState extends State<SupervisorStoriesScreen> {
 
                                   const SizedBox(height: 4),
 
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 8, right: 8, bottom: 8),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: _statusColor(status),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: Text(
-                                            status,
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                 Padding(
+  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: _statusColor(status),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          status,
+          style: const TextStyle(fontSize: 10, color: Colors.white),
+        ),
+      ),
+
+      // 🔥 هنا نضيف زر Publish فقط عندما Approved
+      if (status == "approved")
+        GestureDetector(
+          onTap: () => _confirmPublishStory(story['_id']),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: Color(0xFFEBA1AB),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Text(
+              "Publish",
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+    ],
+  ),
+),
+
                                 ],
                               ),
                             ),

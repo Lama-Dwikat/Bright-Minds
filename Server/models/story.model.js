@@ -55,6 +55,8 @@ const StorySchema = new mongoose.Schema({
   startedBy: { type: String, enum: ["child","supervisor"], default: "child" },
  continuedByChild: { type: Boolean, default: false },
  aiGenerated: { type: Boolean, default: false },
+ publishedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
 aiPrompts: [
   {
     prompt: { type: String, required: false },

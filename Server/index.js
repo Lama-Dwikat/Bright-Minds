@@ -19,6 +19,8 @@ import { gameRouter } from "./routes/game.route.js";
 import { historyRouter} from "./routes/videoHistory.route.js"; 
 import {dailywatchRouter} from './routes/dailyWatch.route.js'
 import { notificationRouter } from "./routes/notification.routes.js";
+import storyTemplateRouter from "./routes/storyTemplate.routes.js";
+
 
 
 const app = express()
@@ -60,6 +62,7 @@ app.use('/api', playlistRouter);
 app.use('/api', historyRouter);
 app.use('/api', dailywatchRouter);
 app.use("/api", notificationRouter);
+app.use("/api/stories", storyTemplateRouter);
 
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");

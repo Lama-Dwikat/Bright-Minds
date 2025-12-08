@@ -62,17 +62,38 @@ export const reviewStoryService = {
 
 
   
-   async getReviewsByStory( storyId ) {
+  /* async getReviewsByStory( storyId ) {
     try {
       const query = await StoryReview.find({ storyId })
         .populate("supervisorId", "name email")
         .sort({ createdAt: -1 });
-         const reviews = latestOnly ? await query.limit(1) : await query;
+         //const reviews = latestOnly ? await query.limit(1) : await query;
+         const reviews = await reviewStoryService.getReviewsByStory(storyId, latestOnly);
+
       return reviews;
     } catch (error) {
       throw new Error("Failed to fetch story reviews: " + error.message);
     }
-  },
+  },*/
+
+  async getReviewsByStory(storyId, latestOnly = false) {
+  try {
+    let query = StoryReview.find({ storyId })
+      .populate("supervisorId", "name email")
+      .sort({ createdAt: -1 });
+
+    if (latestOnly) {
+      query = query.limit(1);
+    }
+
+    const reviews = await query;
+    return reviews;
+
+  } catch (error) {
+    throw new Error("Failed to fetch story reviews: " + error.message);
+  }
+},
+
 
 
    async getReviewsBySupervisor(supervisorId ) {
