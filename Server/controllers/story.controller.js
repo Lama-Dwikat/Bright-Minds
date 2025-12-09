@@ -7,6 +7,8 @@ import ActivityLog from "../models/activityLog.model.js";
 import StoryLike from "../models/storyLike.model.js";
 import Story from "../models/story.model.js";
 import { Notification } from "../models/notification.model.js";
+import badgeService from "../services/badge.service.js";
+import Badge from "../models/badge.model.js";
 
 
 
@@ -41,7 +43,8 @@ export const storyController ={
 
     console.log("✅ Created Story:", story);
 
-   
+       await badgeService.checkBadgesForStory(story.childId);
+
 
     // 🎯 الرد النهائي
     res.status(201).json({
@@ -50,6 +53,8 @@ export const storyController ={
       title: story.title,
       status: story.status,
     });
+
+
   } catch (error) {
     console.error("❌ Error creating story:", error);
     res.status(400).json({ message: error.message });
@@ -173,6 +178,8 @@ export const storyController ={
       return res.status(403).json({
         message: "You are not allowed to view this story",
       });
+
+await badgeService.checkReadingBadges(requesterId);
 
     // otherwise allow access
     return res.status(200).json(story);
@@ -339,7 +346,36 @@ async getTopStories(req, res) {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+} ,
+async trackStoryRead(req, res) {
+  try {
+    const childId = req.user._id;
+    const storyId = req.params.id;
+
+    await StoryView.findOneAndUpdate(
+      { storyId, childId },
+      { viewedAt: new Date() },
+      { upsert: true }
+    );
+
+    // 🟣 Check badges
+    await badgeService.checkReadingBadges(childId);
+
+    // 🟣 Fetch updated badges list
+    const badges = await Badge.find({ childId });
+
+    return res.json({
+      success: true,
+      message: "Story read tracked",
+      badges,
+    });
+
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
 }
+
+
 
 
 

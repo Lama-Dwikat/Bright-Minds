@@ -1,12 +1,14 @@
 import StoryReview from "../models/reviewStory.model.js";
 import Story from "../models/story.model.js";
 import mongoose from "mongoose";
+import badgeService from "../services/badge.service.js";
+
 
 export const reviewStoryService = {
 
 
 
-    async createReview ({ storyId, supervisorId, rating = null, comment = ""}){
+ /*   async createReview ({ storyId, supervisorId, rating = null, comment = ""}){
        try{
            const story = await Story.findById(storyId);
            if(!story){
@@ -59,6 +61,66 @@ export const reviewStoryService = {
     }
     },
 
+*/
+async createReview ({ storyId, supervisorId, rating = null, comment = ""}) {
+  try {
+    const story = await Story.findById(storyId);
+
+    if (!story) {
+      throw new Error("Story not found");
+    }
+
+    if (!story.supervisorId) {
+      throw new Error("No supervisor assigned to this story");
+    }
+
+    if (story.supervisorId.toString() !== supervisorId.toString()) {
+      throw new Error("Supervisor not assigned to this story");
+    }
+
+    const existingReview = await StoryReview.findOne({ storyId, supervisorId });
+    if (existingReview)
+      throw new Error("You already submitted a review for this story");
+
+    const review = new StoryReview({
+      storyId,
+      supervisorId,
+      rating,
+      comment,
+      status: "completed"
+    });
+
+    await review.save();
+
+    // update story status
+    if (rating !== null) {
+      if (rating >= 4) story.status = "approved";
+      else if (rating >= 2) story.status = "needs_edit";
+      else story.status = "rejected";
+    } else if (comment && comment.trim() !== "") {
+      story.status = "needs_edit";
+    } else {
+      story.status = "pending";
+    }
+
+    story.supervisorCommentsSeen = false;
+    story.updatedAt = new Date();
+
+    await story.save();
+
+    /** ⭐ NEW — Badge Award AFTER review */
+    try {
+      await badgeService.checkBadgesForStory(story.childId);
+    } catch (err) {
+      console.warn("⚠️ Badge check failed:", err.message);
+    }
+
+    return review;
+
+  } catch (error) {
+    throw new Error("Error creating review: " + error.message);
+  }
+},
 
 
   

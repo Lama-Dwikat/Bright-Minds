@@ -5,6 +5,7 @@ import 'package:bright_minds/screens/videosKids.dart';
 import 'package:bright_minds/screens/childStory/childStory.dart';
 import 'package:bright_minds/screens/childStory/childPublishedStoriesScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bright_minds/screens/childStory/childBadgesScreen.dart';
 
 class HomeChild extends StatefulWidget {
   const HomeChild({super.key});
@@ -202,6 +203,55 @@ InkWell(
 ),
 
 const SizedBox(height: 30),
+
+
+InkWell(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChildBadgesScreen(childName: "Hiba"), // بدّلي الاسم
+      ),
+    );
+  },
+  borderRadius: BorderRadius.circular(20),
+  child: Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFE7C8), // soft peach gold
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 6,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(
+          Icons.emoji_events_rounded,
+          color: Color(0xFF6E4A4A),
+          size: 38,
+        ),
+
+        const SizedBox(width: 10),
+
+        Text(
+          "My Badges",
+          style: GoogleFonts.poppins(
+            fontSize: 30,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF6E4A4A),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
 
 
             const SizedBox(height: 30),

@@ -5,6 +5,8 @@ import StoryLike from "../models/storyLike.model.js";
 import mongoose from "mongoose";
 import ActivityLog from "../models/activityLog.model.js";
 import User from "../models/user.model.js";
+import badgeService from "../services/badge.service.js";
+import StoryView from "../models/storyView.model.js";
 
 export const storyService = {
 
@@ -178,7 +180,7 @@ async deleteStory({ storyId, userId, role }) {
 },
 
 
-   async getStoryById({ storyId, userId = null, role }) {
+ /*  async getStoryById({ storyId, userId = null, role }) {
   try {
     const story = await Story.findById(storyId)
       .populate("childId", "name parentId")
@@ -241,7 +243,93 @@ async deleteStory({ storyId, userId, role }) {
   } catch (error) {
     throw new Error("Error fetching story: " + error.message);
   }
-},
+},*/
+
+async getStoryById({ storyId, userId = null, role }) {
+  try {
+    const story = await Story.findById(storyId)
+      .populate("childId", "name parentId")
+      .populate("supervisorId", "name")
+      .populate("templateId", "name defaultTheme")
+      .lean();
+
+    if (!story) throw new Error("Story not found");
+
+    const userIdStr = userId ? userId.toString() : null;
+    const childIdStr = story.childId?._id?.toString() || null;
+    const supervisorIdStr = story.supervisorId?._id?.toString() || null;
+    const parentIdStr = story.childId?.parentId?._id?.toString() || null;
+
+    const isAdmin = role === "admin";
+    const isPublicStory =
+      story.publicVisibility === true ||
+      story.status === "published" ||
+      story.status === "approved";
+
+    console.log("🔍 CHECK STORY VIEW CONDITION =>", {
+      isPublicStory,
+      userIdStr,
+      childIdStr
+    });
+
+    // ⭐ تسجيل قراءة القصة
+    if (isPublicStory && userIdStr && userIdStr !== childIdStr) {
+      console.log("📌 ENTERED — story is public & child is not owner");
+
+     await StoryView.findOneAndUpdate(
+  {
+    storyId: new mongoose.Types.ObjectId(storyId),
+    childId: new mongoose.Types.ObjectId(userIdStr)
+  },
+  { viewedAt: new Date() },
+  { upsert: true, setDefaultsOnInsert: true }
+);
+
+
+      console.log("📌 StoryView updated — counting reads...");
+      await badgeService.checkReadingBadges(userIdStr);
+      console.log("📌 Badge check finished");
+    }
+
+    // ⭐ لو القصة مش منشورة — طبق صلاحيات الوصول
+    if (!isAdmin && !isPublicStory) {
+      const isChildOwner = userIdStr && childIdStr === userIdStr;
+      const isSupervisorAssigned = userIdStr && supervisorIdStr === userIdStr;
+      const isParentOfChild = userIdStr && parentIdStr === userIdStr;
+
+      if (!isChildOwner && !isSupervisorAssigned && !isParentOfChild) {
+        throw new Error("You are not allowed to view this story");
+      }
+    }
+
+    // ⭐ جلب الريفيوز و اللايكات
+    const [reviews, likesCount, userLiked] = await Promise.all([
+      StoryReview.find({ storyId: story._id })
+        .populate("supervisorId", "name email")
+        .sort({ createdAt: -1 }),
+
+      StoryLike.countDocuments({ storyId: story._id }),
+
+      userIdStr
+        ? StoryLike.findOne({
+            storyId: story._id,
+            userId: new mongoose.Types.ObjectId(userIdStr),
+          })
+        : Promise.resolve(null),
+    ]);
+
+    story.reviews = reviews;
+    story.likesCount = likesCount;
+    story.userLiked = !!userLiked;
+
+    return story;
+
+  } catch (error) {
+    throw new Error("Error fetching story: " + error.message);
+  }
+}
+
+,
 
 async getStoriesByChild({ childId, status = null, userId = null, role }) {
   try {

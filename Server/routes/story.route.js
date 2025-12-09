@@ -39,4 +39,10 @@ storyRouter.get(
   authorizeStory(["child","supervisor","parent"], "view"),
   storyController.getStoryById
 );
+storyRouter.post(
+  "/:id/read",
+  authMiddleware.authentication,
+  storyController.trackStoryRead
+);
+
 

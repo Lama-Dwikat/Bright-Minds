@@ -28,7 +28,10 @@ class _ChildPublishedStoriesScreenState extends State<ChildPublishedStoriesScree
   void initState() {
     super.initState();
     _fetchStories();
+ 
   }
+
+  
 
   Future<void> _fetchStories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -115,16 +118,23 @@ Future<void> _toggleLike(String storyId) async {
                     final String? cover = story['coverImage'];
 
                    return GestureDetector(
-  onTap: () {
-  Navigator.push(
+ onTap: () async {
+  await Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) => ReadOnlyStoryPage(
-        storyId: story['_id'], // >>> ارسال ID القصة
+        storyId: story['_id'],
       ),
     ),
   );
+
+  // 🔄 لما يرجع الطفل من شاشة القراءة → نعمل refresh
+  setState(() {});
+
+  // ⭐ لو عندك fetch badges function هنا استدعيه
+  // await _fetchBadges();
 },
+
 
   child: Container(
     decoration: BoxDecoration(

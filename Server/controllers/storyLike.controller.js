@@ -1,5 +1,7 @@
 import storyLikeService from "../services/storyLike.service.js";
 import mongoose from "mongoose";
+import badgeService from "../services/badge.service.js";
+
 
 export const storyLikeController = {
 
@@ -18,6 +20,9 @@ export const storyLikeController = {
         message: result.message,
         data: result.like
       });
+
+
+await badgeService.checkBadgesForLikes(storyId);
 
     } catch (error) {
       res.status(400).json({
