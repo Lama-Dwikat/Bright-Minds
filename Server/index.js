@@ -21,6 +21,7 @@ import {dailywatchRouter} from './routes/dailyWatch.route.js'
 import { notificationRouter } from "./routes/notification.routes.js";
 import storyTemplateRouter from "./routes/storyTemplate.routes.js";
 import { badgeRouter } from "./routes/badge.routes.js";
+import { drawingRouter } from "./routes/drawing.route.js";
 
 
 const app = express()
@@ -64,6 +65,7 @@ app.use('/api', dailywatchRouter);
 app.use("/api", notificationRouter);
 app.use("/api/stories", storyTemplateRouter);
 app.use("/api", badgeRouter);
+app.use("/api", drawingRouter);
 
 
 app.get('/', (req,res) => {
