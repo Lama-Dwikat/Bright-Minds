@@ -15,10 +15,9 @@ import { templateRouter } from './routes/template.route.js';
 import uploadRouter  from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
 import { playlistRouter } from "./routes/playlist.route.js";    
-import { gameRouter } from "./routes/game.route.js";   
 import { historyRouter} from "./routes/videoHistory.route.js"; 
 import {dailywatchRouter} from './routes/dailyWatch.route.js'
-
+import { gameRouter } from "./routes/game.route.js";
 
 const app = express()
 const server = http.createServer(app);
@@ -58,7 +57,7 @@ app.use('/api', taskRouter );
 app.use('/api', playlistRouter);
 app.use('/api', historyRouter);
 app.use('/api', dailywatchRouter);
-
+app.use("/api", gameRouter);
 
 
 app.get('/', (req,res) => {

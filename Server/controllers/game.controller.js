@@ -1,58 +1,85 @@
-import GameService from "../services/game.service.js";
+import { GameService } from "../services/game.service.js";
 
-class GameController {
-  // GET /games
-  static async fetchGames(req, res) {
+export const GameController = {
+  async startGame(req, res) {
     try {
-      const games = await GameService.getAllGames();
-      res.json(games);
+      const game = await GameService.createGame();
+      res.json({ message: "New game started!", gameId: game._id });
     } catch (err) {
-      res.status(500).json({ error: "Failed to fetch games" });
+      res.status(500).json({ error: err.message });
     }
-  }
+  },
 
-  // GET /games/:id
-  static async getGame(req, res) {
+  async makeGuess(req, res) {
     try {
-      const game = await GameService.getGameById(req.params.id);
-      if (!game) return res.status(404).json({ error: "Game not found" });
+      const { guess } = req.body;
+      if (!guess && guess !== 0) return res.status(400).json({ error: "Guess is required" });
+
+      const result = await GameService.checkGuess(Number(guess));
+      res.json({ result });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+
+
+    async createGame(req, res) {
+    try {
+      const game = await GameService.create(req.body);
       res.json(game);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to fetch game" });
-    }
-  }
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  },
 
-  // POST /games
-  static async createGame(req, res) {
+  async listGames(req, res) {
     try {
-      const newGame = await GameService.createGame(req.body);
-      res.status(201).json(newGame);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to create game" });
-    }
-  }
+      const { ageGroup } = req.query;
+      const filter = { status: "published" };
+      if (ageGroup) filter.ageGroup = ageGroup;
+      const games = await GameService.list(filter);
+      res.json(games);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  },
 
-  // PUT /games/:id
-  static async updateGame(req, res) {
+  async getGame(req, res) {
     try {
-      const updatedGame = await GameService.updateGame(req.params.id, req.body);
-      if (!updatedGame) return res.status(404).json({ error: "Game not found" });
-      res.json(updatedGame);
-    } catch (err) {
-      res.status(500).json({ error: "Failed to update game" });
-    }
-  }
+      const game = await GameService.get(req.params.id);
+      if (!game) return res.status(404).json({ error: "Not found" });
+      res.json(game);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  },
 
-  // DELETE /games/:id
-  static async deleteGame(req, res) {
+  async updateGame(req, res) {
     try {
-      const deletedGame = await GameService.deleteGame(req.params.id);
-      if (!deletedGame) return res.status(404).json({ error: "Game not found" });
-      res.json({ message: "Game deleted successfully" });
-    } catch (err) {
-      res.status(500).json({ error: "Failed to delete game" });
-    }
+      const updated = await GameService.update(req.params.id, req.body);
+      res.json(updated);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  },
+
+  async deleteGame(req, res) {
+    try {
+      await GameService.remove(req.params.id);
+      res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  },
+  async getClockQuestion(req, res) {
+  try {
+    const difficulty = req.params.difficulty || "easy";
+    const question = await GameService.generateClockQuestion(difficulty);
+    res.json(question);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+},
+async getMathQuestion(req, res) {
+  try {
+    const { operation = "add", min = 1, max = 10 } = req.query;
+    const question = await GameService.generateMathQuestion(operation, min, max);
+    res.json(question);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 }
 
-export default GameController;
+
+};
