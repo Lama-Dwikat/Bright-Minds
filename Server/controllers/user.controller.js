@@ -46,11 +46,7 @@ if (userData.cv) {
 
       const token = jwt.sign(
         { id: user._id, role: user.role ,name:user.name,ageGroup:user.ageGroup,  
-    //     profilePicture: user.profilePicture
-    //   ? user.profilePicture.data.toString('base64')  // convert buffer to Base64
-    // : null
-    profilePicture: user.profilePicture?.data?.toString('base64') ?? null
-
+ 
       
     }, 
         process.env.JWT_SECRET,           

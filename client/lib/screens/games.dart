@@ -3,14 +3,17 @@
 //-------------------spelling games 
 /////////////////////////////////////////
 import 'dart:convert';
+import 'package:bright_minds/screens/games/spelling.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/widgets/home.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:math';
+import 'package:bright_minds/screens/games/spelling.dart';
 
 
 // /// MAIN SCREEN combining both games
@@ -1823,260 +1826,318 @@ import 'dart:math';
 // }
 
 
-
-
-class GamesHomePage extends StatelessWidget {
+class GamesHomePage extends StatelessWidget{
   const GamesHomePage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return HomePage(
-    title:"Games",
-   
-      child: SafeArea(
-        child: Column(
-          children: [
+
+@override
+ build(BuildContext context){
+
+return HomePage(
+  title:"Games",
+  child: SafeArea(
+    //child:Column(
+    //  children:[
+    child:Expanded(
+     child:SingleChildScrollView(
+      child:Column(children: [
+       _gameButton(title:"Snake Game",color:Colors.green,icon: Icon(Icons.sports_esports),onTap:(){}),
+       SizedBox(height:20),
+       _gameButton(title:"Spelling Game",color:Colors.blue,icon:Icon(Icons.text_fields),
+        onTap:(){
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => GameSetupScreen()));
+       },),
+        
+
+      ],)
+
+
+
+
+
+
+)
+
+
+
+    )
+
+
+
+
+
+
+      
+  )
+);
+}
+}
+
+
             // 🌈 Header
-ClipPath(
-  clipper: SoftWaveClipper(),
-  child: Container(
-    height: 200, // enough space for bubbles
-    width: double.infinity,
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          AppColors.bgBlushRoseVeryDark,
-          AppColors.bgBlushRoseDark,
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ),
-    ),
-    child: Stack(
-      children: [
-        // Header text
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text(
-                "Let’s Design Games 🎨🎮 ",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                "Create fun games for kids 🌟",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-        ),
+//   ClipPath(
+//   clipper: SoftWaveClipper(),
+//   child: Container(
+//     height: 200, // enough space for bubbles
+//     width: double.infinity,
+//     decoration: const BoxDecoration(
+//       gradient: LinearGradient(
+//         colors: [
+//           AppColors.bgBlushRoseVeryDark,
+//           AppColors.bgBlushRoseDark,
+//         ],
+//         begin: Alignment.topCenter,
+//         end: Alignment.bottomCenter,
+//       ),
+//     ),
+//     child: Stack(
+//       children: [
+//         // Header text
+//         Center(
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: const [
+//               Text(
+//                 "Let’s Design Games 🎨🎮 ",
+//                 style: TextStyle(
+//                   fontSize: 22,
+//                   fontWeight: FontWeight.bold,
+//                   color: Colors.white,
+//                 ),
+//               ),
+//               SizedBox(height: 4),
+//               Text(
+//                 "Create fun games for kids 🌟",
+//                 style: TextStyle(
+//                   fontSize: 14,
+//                   color: Colors.white70,
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
 
-        // Blue decorative bubbles
-        Positioned(
-          top: 20,
-          left: 30,
-child:const _Bubble(size: 40),
-        ),
-        Positioned(
-          top: 50,
-          right: 40,
-          child: const _Bubble(size: 15),
-        ),
-        Positioned(
-          bottom: 30,
-          left: 70,
-          child: const _Bubble(size: 35),
-        ),
-        Positioned(
-          bottom: 20,
-          right: 10,
-          child: const _Bubble(size: 85),
-        ),
-      ],
-    ),
-  ),
-),
-
-
+//         // Blue decorative bubbles
+//         Positioned(
+//           top: 20,
+//           left: 30,
+// child:const _Bubble(size: 40),
+//         ),
+//         Positioned(
+//           top: 50,
+//           right: 40,
+//           child: const _Bubble(size: 15),
+//         ),
+//         Positioned(
+//           bottom: 30,
+//           left: 70,
+//           child: const _Bubble(size: 35),
+//         ),
+//         Positioned(
+//           bottom: 20,
+//           right: 10,
+//           child: const _Bubble(size: 85),
+//         ),
+//       ],
+//     ),
+//   ),
+// ),
 
 
+  //   const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
+          
+// class GameBubble extends StatelessWidget {
+//   final Game game;
+//   const GameBubble({super.key, required this.game});
 
-            // 🎮 Floating Games
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  alignment: WrapAlignment.center,
-                  children: games.map((game) {
-                    return GameBubble(game: game);
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-class GameBubble extends StatelessWidget {
-  final Game game;
-  const GameBubble({super.key, required this.game});
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: () {
+//         // Navigate to game
+//       },
+//       child: Container(
+//         width: 140,
+//         height: 160,
+//         decoration: BoxDecoration(
+//           color: game.color,
+//           borderRadius: BorderRadius.circular(30),
+//           boxShadow: [
+//             BoxShadow(
+//               color: game.color.withOpacity(0.4),
+//               blurRadius: 12,
+//               offset: const Offset(0, 8),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Icon(
+//               game.icon,
+//               size: 48,
+//               color: Colors.white,
+//             ),
+//             const SizedBox(height: 12),
+//             Text(
+//               game.title,
+//               textAlign: TextAlign.center,
+//               style: const TextStyle(
+//                 color: Colors.white,
+//                 fontSize: 16,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+// class Game {
+//   final String title;
+//   final IconData icon;
+//   final Color color;
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to game
-      },
-      child: Container(
-        width: 140,
-        height: 160,
-        decoration: BoxDecoration(
-          color: game.color,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: game.color.withOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              game.icon,
-              size: 48,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              game.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-class Game {
-  final String title;
-  final IconData icon;
-  final Color color;
+//   Game({
+//     required this.title,
+//     required this.icon,
+//     required this.color,
+//   });
+// }
 
-  Game({
-    required this.title,
-    required this.icon,
-    required this.color,
-  });
-}
+// final List<Game> games = [
+//   Game(
+//     title: "Math Fun",
+//     icon: Icons.calculate,
+//     color: Color(0xFFFFB703),
+    
+//   ),
+//   Game(
+//     title: "Puzzle",
+//     icon: Icons.extension,
+//     color: Color(0xFF8ECAE6),
+//   ),
+//   Game(
+//     title: "Memory",
+//     icon: Icons.psychology,
+//     color: Color(0xFFFFAFCC),
+//   ),
+//   Game(
+//     title: "Music",
+//     icon: Icons.music_note,
+//     color: Color(0xFF80ED99),
+//   ),
+//   Game(
+//     title: "Drawing",
+//     icon: Icons.brush,
+//     color: Color(0xFFFFD166),
+//   ),
+//   Game(
+//     title: "Logic",
+//     icon: Icons.lightbulb,
+//     color: Color(0xFFBDB2FF),
+//   ),
+// ];
+// class _Bubble extends StatelessWidget {
+//   final double size;
 
-final List<Game> games = [
-  Game(
-    title: "Math Fun",
-    icon: Icons.calculate,
-    color: Color(0xFFFFB703),
-  ),
-  Game(
-    title: "Puzzle",
-    icon: Icons.extension,
-    color: Color(0xFF8ECAE6),
-  ),
-  Game(
-    title: "Memory",
-    icon: Icons.psychology,
-    color: Color(0xFFFFAFCC),
-  ),
-  Game(
-    title: "Music",
-    icon: Icons.music_note,
-    color: Color(0xFF80ED99),
-  ),
-  Game(
-    title: "Drawing",
-    icon: Icons.brush,
-    color: Color(0xFFFFD166),
-  ),
-  Game(
-    title: "Logic",
-    icon: Icons.lightbulb,
-    color: Color(0xFFBDB2FF),
-  ),
-];
-class _Bubble extends StatelessWidget {
-  final double size;
+//   const _Bubble({required this.size});
 
-  const _Bubble({required this.size});
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       width: size,
+//       height: size,
+//       decoration: BoxDecoration(
+//         shape: BoxShape.circle,
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
+//         // Transparent bubble body
+//         color: Colors.white.withOpacity(0.05),
+
+//         // Soft white border
+//         border: Border.all(
+//           color: Colors.white.withOpacity(0.3),
+//           width: 1.5,
+//         ),
+
+//         // Glow effect
+//         boxShadow: [
+//           BoxShadow(
+//             color: Colors.white.withOpacity(0.15),
+//             blurRadius: 6,
+//             spreadRadius: 1,
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+
+
+
+// class SoftWaveClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     final path = Path();
+
+//     path.lineTo(0, size.height - 10); // left edge DOWN
+
+//     path.quadraticBezierTo(
+//       size.width * 0.5,
+//       size.height - 50, // middle UP
+//       size.width,
+//       size.height - 10, // right edge DOWN
+//     );
+
+//     path.lineTo(size.width, 0);
+//     path.close();
+
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+// }
+
+
+
+Widget _gameButton(
+  {
+    required String title,
+   Icon? icon,
+    String? imagePath,
+    Color? color,
+    required VoidCallback ? onTap,
+  })
+  {return InkWell(
+    onTap:onTap,
+    child: Container(
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-
-        // Transparent bubble body
-        color: Colors.white.withOpacity(0.05),
-
-        // Soft white border
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1.5,
-        ),
-
-        // Glow effect
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.15),
-            blurRadius: 6,
-            spreadRadius: 1,
-          ),
+        borderRadius: BorderRadius.circular(20),
+      color:color??Colors.blue,),
+      child:Column(
+        children:[
+        
+      Text(
+        title,
+        style:TextStyle(
+          color:Colors.white,
+          fontSize:16,
+          fontWeight:FontWeight.bold,
+      )
+      ),
+      const SizedBox(height:10),
+      icon!=null?icon:imagePath!=null?Image.asset(imagePath!,width:60,height:60):Container(),
+      const SizedBox(height:10),
         ],
       ),
-    );
+  )
+);
   }
-}
-class SoftWaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-
-    path.lineTo(0, size.height - 10); // left edge DOWN
-
-    path.quadraticBezierTo(
-      size.width * 0.5,
-      size.height - 50, // middle UP
-      size.width,
-      size.height - 10, // right edge DOWN
-    );
-
-    path.lineTo(size.width, 0);
-    path.close();
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}

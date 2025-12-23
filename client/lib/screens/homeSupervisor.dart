@@ -180,7 +180,8 @@ SizedBox(
                    left: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
                    right: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
                   bottom: BorderSide(color: Colors.transparent, width: 0), // NO BOTTOM BORDER
-),                    ),
+                    ),     
+                                   ),
                     child: Text(
                       formattedDate,
                       style: GoogleFonts.robotoSlab(

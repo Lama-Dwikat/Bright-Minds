@@ -36,7 +36,8 @@ class _HomePageState extends State<HomePage> {
      String?userId;
      String ? userName;
      String ?role ;
-     String? profilePictureBase64= "";
+    // String? profilePictureBase64= "";
+    Uint8List? profileImageBytes;
      String? selectedValue; // <-- add this
 
   @override
@@ -44,7 +45,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     fetchSupervisorData();
+    
   }
+
 
 
   void fetchSupervisorData() async {
@@ -59,12 +62,37 @@ if (token==null){
  // print("DECODED TOKEN CODE 1 = $decodedToken");
      setState(() {
        userId= decodedToken['id'];
+
      userName= decodedToken['name'];
      role=decodedToken['role'];
-       profilePictureBase64=decodedToken['profilePicture'];
      });
+                 fetchProfilePicture();
+
 
 }
+    
+  Future<void> fetchProfilePicture() async {
+  final response = await http.get(
+    Uri.parse('${getBackendUrl()}/api/users/getme/$userId'),
+    headers: {"content-type": "application/json"},
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    final bytes = Uint8List.fromList(
+      List<int>.from(
+        data['profilePicture']['data']['data'],
+      ),
+    );
+
+    setState(() {
+      profileImageBytes = bytes;
+    });
+  }
+}
+
+
 
 
 String getBackendUrl() {
@@ -101,102 +129,7 @@ String getBackendUrl() {
              color:AppColors.peachPink,
             ),
 
-//             child: Padding(
-//               padding: EdgeInsets.symmetric(
-//                   horizontal: MediaQuery.of(context).size.width * 0.04),
-//               child: Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                   crossAxisAlignment: CrossAxisAlignment.center, 
-//                  children: [
-//                   Transform.translate(
-//            offset: const Offset(0, 10), // move down by 8 pixels
-//         child:  Row(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//              crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
 
-
-
-//    PopupMenuButton<String>(
-//   onSelected: (String value) {
-//     setState(() {
-//       // store selected value if needed
-//       selectedValue = value;
-//     });
-
-//     if (value == 'myProfile') {
-//       // navigate to profile page
-//       Navigator.push(
-//         context,
-//         MaterialPageRoute(
-//           builder: (context) => ProfilePage(userId: userId!),
-//         ),
-//       );
-//     } else if (value == 'LogOut') {
-//       // clear token and go to sign-in
-//       SharedPreferences.getInstance().then((prefs) {
-//         prefs.remove('token');
-//         Navigator.pushReplacement(
-//           context,
-//           MaterialPageRoute(builder: (context) => SignInScreen()),
-//         );
-//       });
-//     }
-//   },
-//   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-//     const PopupMenuItem<String>(
-//       value: 'myProfile',
-//       child: Text("My Profile"),
-//     ),
-//     const PopupMenuItem<String>(
-//       value: 'LogOut',
-//       child: Text("Log Out"),
-//     ),
-//   ],
-//     color: AppColors.bgSoftPinkLight, // <-- change background color here
-//     offset: const Offset(0, 50), // <-- moves the menu down by 40 pixels
-
-//   child: CircleAvatar(
-//     radius: 25,
-//     backgroundColor: Colors.grey[300],
-//     backgroundImage: (profilePictureBase64 != null &&
-//             profilePictureBase64!.isNotEmpty)
-//         ? MemoryImage(base64Decode(profilePictureBase64!))
-//         : null,
-//     child: (profilePictureBase64 == null ||
-//             profilePictureBase64!.isEmpty)
-//         ? const Icon(Icons.person, color: Colors.white)
-//         : null,
-//   ),
-// ),
-
-
-//    SizedBox(width: 15), // space between image & text
-
-//     Text(
-//       widget.title,
-//       style: TextStyle(
-//         color: Colors.white,
-//         fontSize: 23,
-//         fontWeight: FontWeight.bold,
-//       ),
-//     ),
-//       //  ),
-//   ],
-// )
-// ),
-
-//                 const SizedBox(width: 10),
-
-//                   // Logo on the right
-//                   Image.asset(
-//                     'assets/images/logo.png',
-//                     fit: BoxFit.contain,
-//                     width: MediaQuery.of(context).size.width * 0.25,
-//                   ),
-//                 ],
-//               ),
-//             ),
        
 
 
@@ -248,12 +181,11 @@ child: Padding(
               child: CircleAvatar(
                 radius: 25,
                 backgroundColor: Colors.grey[300],
-                backgroundImage: (profilePictureBase64 != null &&
-                        profilePictureBase64!.isNotEmpty)
-                    ? MemoryImage(base64Decode(profilePictureBase64!))
+                backgroundImage: (profileImageBytes != null)
+                    ? MemoryImage(profileImageBytes!)
                     : null,
-                child: (profilePictureBase64 == null ||
-                        profilePictureBase64!.isEmpty)
+                child: (profileImageBytes == null ||
+                        profileImageBytes!.isEmpty)
                     ? const Icon(Icons.person, color: Colors.white)
                     : null,
               ),
