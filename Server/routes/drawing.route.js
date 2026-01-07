@@ -98,3 +98,11 @@ drawingRouter.put(
   roleMiddleware(["supervisor"]),
   childDrawingController.reviewChildDrawing
 );
+
+// 👨‍👩‍👧 parent: يشوف رسومات أطفاله
+drawingRouter.get(
+  "/parent/kids-drawings",
+  authMiddleware.authentication,
+  roleMiddleware(["parent"]),
+  childDrawingController.getKidsDrawingsForParent
+);

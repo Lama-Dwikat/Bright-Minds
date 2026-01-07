@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/screens/supervisorDrawing/searchExternalImages.dart';
 import 'package:bright_minds/screens/supervisorDrawing/myDrawingActivities.dart';
+import 'package:bright_minds/screens/supervisorDrawing/supervisorKidsDrawings.dart';
 
 
 class SupervisorDrawingHome extends StatelessWidget {
@@ -20,44 +21,62 @@ class SupervisorDrawingHome extends StatelessWidget {
         ),
         backgroundColor: AppColors.bgWarmPink,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildCard(
-              context,
-              title: "Search & Add Drawings",
-              subtitle: "Search coloring, tracing, color-by-number images",
-              icon: Icons.search,
-              onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const SearchExternalImagesScreen(),
-    ),
-  );
-},
-
+     body: Padding(
+  padding: const EdgeInsets.all(16),
+  child: Column(
+    children: [
+      _buildCard(
+        context,
+        title: "Search & Add Drawings",
+        subtitle: "Search coloring, tracing, color-by-number images",
+        icon: Icons.search,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SearchExternalImagesScreen(),
             ),
-            const SizedBox(height: 16),
-            _buildCard(
-              context,
-              title: "My Drawing Activities",
-              subtitle: "View drawings you added",
-              icon: Icons.collections,
-              onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const MyDrawingActivitiesScreen(),
-    ),
-  );
-},
-
-            ),
-          ],
-        ),
+          );
+        },
       ),
+      const SizedBox(height: 16),
+
+      _buildCard(
+        context,
+        title: "My Drawing Activities",
+        subtitle: "View drawings you added",
+        icon: Icons.collections,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MyDrawingActivitiesScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 16),
+
+      // 🔥 الكرت الجديد: Kids Drawings Review
+      _buildCard(
+        context,
+        title: "Kids Drawings Review",
+        subtitle: "Review kids' drawings, add comments & ratings",
+        icon: Icons.brush_outlined,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  const SupervisorKidsDrawingsScreen(),
+            ),
+          );
+        },
+      ),
+    ],
+  ),
+),
+
     );
   }
 

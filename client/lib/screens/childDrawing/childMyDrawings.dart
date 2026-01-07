@@ -191,121 +191,169 @@ Future<void> _confirmDelete(Map<String, dynamic> drawing, int index) async {
     );
   }
 
-  Widget _buildGrid() {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: GridView.builder(
-        itemCount: drawings.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 أعمدة
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 3 / 4,
-        ),
-        itemBuilder: (context, index) {
-          final drawing = drawings[index];
+Widget _buildGrid() {
+  return Padding(
+    padding: const EdgeInsets.all(12.0),
+    child: GridView.builder(
+      itemCount: drawings.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // 2 أعمدة
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 3 / 4,
+      ),
+      itemBuilder: (context, index) {
+        final drawing = drawings[index];
 
-          final Uint8List imgBytes =
-              base64Decode(drawing["imageBase64"] as String);
+        // الصورة
+        final Uint8List imgBytes =
+            base64Decode(drawing["imageBase64"] as String);
 
-          DateTime? created;
-          String createdText = "";
-          try {
-            created = DateTime.parse(drawing["createdAt"]);
-            createdText = DateFormat("d MMM yyyy, HH:mm").format(created);
-          } catch (_) {}
+        // التاريخ
+        DateTime? created;
+        String createdText = "";
+        try {
+          created = DateTime.parse(drawing["createdAt"]);
+          createdText = DateFormat("d MMM yyyy, HH:mm").format(created);
+        } catch (_) {}
 
-         return Stack(
-  children: [
-    GestureDetector(
-      onTap: () => _openDrawingFullScreen(drawing),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.bgWarmPinkLight,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        // ⭐ التقييم
+        final int? rating = drawing["rating"] as int?;
+        // 💬 تعليق السوبرفايزر
+        final String? comment = drawing["supervisorComment"] as String?;
+
+        return Stack(
           children: [
-            // الصورة
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
+            GestureDetector(
+              onTap: () => _openDrawingFullScreen(drawing),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.bgWarmPinkLight,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Image.memory(
-                  imgBytes,
-                  fit: BoxFit.cover,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // الصورة
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Image.memory(
+                          imgBytes,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+
+                    // العنوان + التاريخ + التقييم + التعليق
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // عنوان النشاط
+                          Text(
+                            drawing["activityTitle"] ?? "My Drawing",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // التاريخ
+                          Text(
+                            createdText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // ⭐ التقييم
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star,
+                                size: 22,
+                                color: rating != null
+                                    ? Colors.amber
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                rating != null
+                                    ? "Your rating: $rating"
+                                    : "No rating yet",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // 💬 التعليق
+                          Text(
+                            (comment != null && comment.isNotEmpty)
+                                ? comment
+                                : "No comment yet",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 23,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
 
-            // العنوان + التاريخ
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    drawing["activityTitle"] ?? "My Drawing",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    createdText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ],
+            // زر الحذف أعلى اليمين
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white70,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: "Delete",
+                  onPressed: () => _confirmDelete(drawing, index),
+                ),
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     ),
-
-    // زر الحذف أعلى اليمين
-    Positioned(
-      top: 4,
-      right: 4,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white70,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: IconButton(
-          icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
-          tooltip: "Delete",
-          onPressed: () => _confirmDelete(drawing, index),
-        ),
-      ),
-    ),
-  ],
-);
-
-        },
-      ),
-    );
-  }
+  );
+}
 }
 
 // ================= FULL SCREEN VIEW =================

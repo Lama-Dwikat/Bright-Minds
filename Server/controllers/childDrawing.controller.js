@@ -65,7 +65,7 @@ export const childDrawingController = {
 },
 
 
-    // الحصول على كل رسومات الطفل (My Drawings)
+   // الحصول على كل رسومات الطفل (My Drawings)
   async getChildDrawings(req, res) {
     try {
       const drawings = await ChildDrawing.find({
@@ -77,15 +77,19 @@ export const childDrawingController = {
       const result = drawings.map((d) => ({
         id: d._id,
         activityId: d.activityId?._id,
-        activityTitle: d.activityId?.title,
+        activityTitle: d.activityId?.title || "My Drawing",
         createdAt: d.createdAt,
         imageBase64: d.drawingImage.data.toString("base64"),
         contentType: d.drawingImage.contentType,
+        // ✨ الجديد:
+        rating: d.rating ?? null,
+        supervisorComment: d.supervisorComment ?? "",
       }));
 
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error("getChildDrawings error:", error);
+      return res.status(500).json({ error: error.message });
     }
   },
 
@@ -242,6 +246,49 @@ async reviewChildDrawing(req, res) {
     });
   } catch (error) {
     console.error("reviewChildDrawing error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+},
+
+// 👨‍👩‍👧 parent: كل رسومات الأطفال تبعهم
+async getKidsDrawingsForParent(req, res) {
+  try {
+    // نجيب الأطفال اللي parent تبعهم هو المستخدم الحالي
+    const kids = await User.find({ parentId: req.user._id }).select(
+      "_id name ageGroup"
+    );
+
+    if (!kids.length) {
+      return res.status(200).json([]); // ما في أطفال
+    }
+
+    const kidIds = kids.map((k) => k._id);
+
+    const drawings = await ChildDrawing.find({
+      childId: { $in: kidIds },
+    })
+      .populate("childId", "name ageGroup")
+      .populate("activityId", "title type")
+      .sort({ createdAt: -1 });
+
+    const result = drawings.map((d) => ({
+      id: d._id,
+      childId: d.childId?._id,
+      childName: d.childId?.name,
+      childAgeGroup: d.childId?.ageGroup,
+      activityId: d.activityId?._id,
+      activityTitle: d.activityId?.title,
+      activityType: d.activityId?.type,
+      createdAt: d.createdAt,
+      supervisorComment: d.supervisorComment,
+      rating: d.rating,
+      imageBase64: d.drawingImage.data.toString("base64"),
+      contentType: d.drawingImage.contentType,
+    }));
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("getKidsDrawingsForParent error:", error);
     return res.status(500).json({ error: error.message });
   }
 },
