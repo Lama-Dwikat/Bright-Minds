@@ -6,6 +6,7 @@ import 'package:bright_minds/screens/childStory/childStory.dart';
 import 'package:bright_minds/screens/childStory/childPublishedStoriesScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bright_minds/screens/childStory/childBadgesScreen.dart';
+import 'package:bright_minds/screens/childDrawing/childDrawingActivities.dart';
 
 class HomeChild extends StatefulWidget {
   const HomeChild({super.key});
@@ -145,11 +146,14 @@ class _HomeChildState extends State<HomeChild> {
                   imagePath: "assets/images/Drawing.png",
                   color: const Color(0xFFF9E2CE),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
-                    );
-                  },
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const ChildDrawingActivitiesScreen(),
+    ),
+  );
+},
+
                 ),
               ],
             ),

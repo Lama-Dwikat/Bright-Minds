@@ -6,26 +6,46 @@ import { childDrawingController } from "../controllers/childDrawing.controller.j
 
 export const drawingRouter = express.Router();
 
-// 👶 child
+// ========= child routes =========
+
+// الأنشطة المناسبة لعمر الطفل
 drawingRouter.get(
   "/activities",
   authMiddleware.authentication,
   drawingController.getDrawingActivities
 );
 
+// حفظ رسم الطفل
 drawingRouter.post(
   "/drawing/save",
   authMiddleware.authentication,
   childDrawingController.saveChildDrawing
 );
 
+// My Drawings – كل رسومات الطفل
 drawingRouter.get(
   "/drawings",
   authMiddleware.authentication,
   childDrawingController.getChildDrawings
 );
 
-// 👩‍🏫 supervisor
+// آخر رسم لـ Activity معيّن
+drawingRouter.get(
+  "/drawing/last/:activityId",
+  authMiddleware.authentication,
+  childDrawingController.getLastChildDrawingForActivity
+);
+
+// حذف رسم الطفل
+drawingRouter.delete(
+  "/drawings/:id",
+  authMiddleware.authentication,
+  childDrawingController.deleteChildDrawing
+);
+
+// ========= supervisor routes =========
+
+// بحث خارجي عن صور (Pixabay)
 drawingRouter.get(
   "/drawing/searchExternal",
   authMiddleware.authentication,
@@ -33,6 +53,7 @@ drawingRouter.get(
   drawingController.searchExternal
 );
 
+// إضافة صورة من Pixabay
 drawingRouter.post(
   "/drawing/addFromExternal",
   authMiddleware.authentication,
@@ -40,13 +61,15 @@ drawingRouter.post(
   drawingController.addFromExternal
 );
 
+// أنشطة السوبرفايزر
 drawingRouter.get(
   "/supervisor/activities",
   authMiddleware.authentication,
   roleMiddleware(["supervisor"]),
   drawingController.getSupervisorActivities
 );
-// 🔴 Deactivate activity (hide from kids)
+
+// تعطيل Activity
 drawingRouter.put(
   "/drawing/:id/deactivate",
   authMiddleware.authentication,
@@ -54,10 +77,24 @@ drawingRouter.put(
   drawingController.deactivateActivity
 );
 
-// 🗑️ Delete activity completely
+// حذف Activity
 drawingRouter.delete(
   "/drawing/:id",
   authMiddleware.authentication,
   roleMiddleware(["supervisor"]),
   drawingController.deleteActivity
+);
+// 👩‍🏫 supervisor: كل رسومات الأطفال تحت إشرافه
+drawingRouter.get(
+  "/supervisor/kids-drawings",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  childDrawingController.getKidsDrawingsForSupervisor
+);
+// 👩‍🏫 supervisor: إضافة Comment + Rating لرسم طفل
+drawingRouter.put(
+  "/supervisor/drawings/:id/review",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  childDrawingController.reviewChildDrawing
 );

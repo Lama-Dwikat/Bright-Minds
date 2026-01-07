@@ -28,6 +28,11 @@ const childDrawingSchema = new mongoose.Schema(
     supervisorComment: {
       type: String,
     },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
   },
   {
     timestamps: true,

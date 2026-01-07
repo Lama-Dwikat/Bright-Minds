@@ -127,5 +127,6 @@ if (!req.user.ageGroup) {
       return res.status(500).json({ error: error.message });
     }
   },
+  
 
 };
