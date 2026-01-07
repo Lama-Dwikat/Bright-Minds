@@ -46,3 +46,11 @@ storyRouter.post(
 );
 
 
+
+storyRouter.get(
+  "/story/getstorybyid/:storyId",
+  authMiddleware.authentication,
+  authorizeStory(["child","supervisor","parent","admin"], "view"),
+  storyController.getStoryById
+);
+

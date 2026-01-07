@@ -30,6 +30,9 @@ export const drawingController = {
       if (!imageUrl || !title || !type) {
         return res.status(400).json({ error: "imageUrl, title, type are required" });
       }
+if (!req.user.ageGroup) {
+  return res.status(400).json({ error: "Supervisor age group is missing" });
+}
 
       const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
       const buffer = Buffer.from(response.data);
@@ -49,6 +52,7 @@ export const drawingController = {
       });
 
       return res.status(201).json(activity);
+
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -78,4 +82,50 @@ export const drawingController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+    // ================== DEACTIVATE ACTIVITY ==================
+  async deactivateActivity(req, res) {
+    try {
+      const activityId = req.params.id;
+
+      const activity = await DrawingActivity.findOneAndUpdate(
+        { _id: activityId, supervisorId: req.user._id },
+        { isActive: false },
+        { new: true }
+      );
+
+      if (!activity) {
+        return res
+          .status(404)
+          .json({ error: "Activity not found or not yours" });
+      }
+
+      return res.status(200).json(activity);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  // ================== DELETE ACTIVITY (HARD DELETE) ==================
+  async deleteActivity(req, res) {
+    try {
+      const activityId = req.params.id;
+
+      const activity = await DrawingActivity.findOneAndDelete({
+        _id: activityId,
+        supervisorId: req.user._id,
+      });
+
+      if (!activity) {
+        return res
+          .status(404)
+          .json({ error: "Activity not found or not yours" });
+      }
+
+      return res.status(200).json({ message: "Activity deleted" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
 };

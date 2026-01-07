@@ -46,3 +46,18 @@ drawingRouter.get(
   roleMiddleware(["supervisor"]),
   drawingController.getSupervisorActivities
 );
+// 🔴 Deactivate activity (hide from kids)
+drawingRouter.put(
+  "/drawing/:id/deactivate",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  drawingController.deactivateActivity
+);
+
+// 🗑️ Delete activity completely
+drawingRouter.delete(
+  "/drawing/:id",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  drawingController.deleteActivity
+);

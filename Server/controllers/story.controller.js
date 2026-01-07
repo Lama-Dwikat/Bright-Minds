@@ -15,8 +15,7 @@ import Badge from "../models/badge.model.js";
 
 export const storyController ={
 
-  async createStory(req, res) {
-
+async createStory(req, res) {
   try {
     const { title, templateId, pages, childId: childIdFromBody } = req.body;
     const { _id: userId, role } = req.user;
@@ -33,33 +32,38 @@ export const storyController ={
       throw new Error("You are not allowed to create stories");
     }
 
-    // 🧩 إنشاء القصة في الـ service فقط
+    // 🧩 إنشاء القصة في الـ service
     const story = await storyService.createStory({
       title,
       childId,
       templateId,
       role,
+      pages, // ✅ مهم
     });
 
     console.log("✅ Created Story:", story);
 
-       await badgeService.checkBadgesForStory(story.childId);
-
+    // 🏅 فحص البادجز بدون ما يكسر الحفظ لو صار خطأ
+    try {
+      await badgeService.checkBadgesForStory(childId.toString());
+    } catch (badgeErr) {
+      console.error("Badge error (ignored):", badgeErr.message);
+    }
 
     // 🎯 الرد النهائي
-    res.status(201).json({
+    return res.status(201).json({
       message: "Story created successfully",
       storyId: story.storyId || story._id,
       title: story.title,
       status: story.status,
     });
 
-
   } catch (error) {
     console.error("❌ Error creating story:", error);
-    res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: error.message });
   }
 },
+
 
 
 

@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:bright_minds/screens/videosSupervisor.dart';
 import 'package:bright_minds/screens/supervisorstory/supervisorStories.dart';
 import 'package:bright_minds/screens/supervisorstory/supervisorStoryScreen.dart';
+import 'package:bright_minds/screens/supervisorDrawing/supervisorDrawingHome.dart';
 
 
 import 'package:bright_minds/screens/analytics.dart';
@@ -452,8 +453,14 @@ Container(
                  // icon: Icons.brush_rounded,
                  imagePath: "assets/images/Drawing.png",
                   color: AppColors.bgWarmPink,
-                  onTap: () { 
-                   Navigator.push(context, MaterialPageRoute(builder: (context) => AnalyticsScreen()));},
+                 onTap: () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const SupervisorDrawingHome(),
+    ),
+  );
+},
 
                 ),
                 
