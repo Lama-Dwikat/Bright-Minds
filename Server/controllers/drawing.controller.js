@@ -3,6 +3,8 @@ import cloudinaryService from "../services/cloudinary.service.js";
 import axios from "axios";
 import DrawingActivity from "../models/drawingActivity.model.js";
 import fs from "fs/promises";
+import { generateTracingBase64 } from "../services/drawingAi.service.js";
+
 export const drawingController = {
 
   // 🔍 supervisor search external images
@@ -187,5 +189,33 @@ async uploadFromDevice(req, res) {
     }
   }
 },
+
+async generateTracing(req, res) {
+  try {
+    const { q } = req.body;
+    if (!q?.trim()) return res.status(400).json({ error: "q is required" });
+    if (!req.user?.ageGroup) return res.status(400).json({ error: "Supervisor age group is missing" });
+
+    const b64 = await generateTracingBase64(q.trim());
+    const buffer = Buffer.from(b64, "base64");
+
+    const cloudUrl = await cloudinaryService.uploadBuffer(buffer, "drawing-activities");
+
+    const activity = await DrawingActivity.create({
+      title: `${q.trim()} tracing`,
+      type: "tracing",
+      ageGroup: req.user.ageGroup,
+      supervisorId: req.user._id,
+      imageUrl: cloudUrl,
+      source: "ai",
+      isActive: true,
+    });
+
+    return res.status(201).json(activity);
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
+
 
 };

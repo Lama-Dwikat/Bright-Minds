@@ -22,6 +22,7 @@ import { notificationRouter } from "./routes/notification.routes.js";
 import storyTemplateRouter from "./routes/storyTemplate.routes.js";
 import { badgeRouter } from "./routes/badge.routes.js";
 import { drawingRouter } from "./routes/drawing.route.js";
+import { drawingCopyAiRouter } from "./routes/drawingCopyAi.route.js";
 
 
 const app = express()
@@ -66,7 +67,7 @@ app.use("/api", notificationRouter);
 app.use("/api/stories", storyTemplateRouter);
 app.use("/api", badgeRouter);
 app.use("/api", drawingRouter);
-
+app.use("/api", drawingCopyAiRouter);
 
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");

@@ -115,3 +115,9 @@ drawingRouter.post(
   upload.single("image"), // اسم الحقل لازم يكون image
   drawingController.uploadFromDevice
 );
+drawingRouter.post(
+  "/drawing/generateTracing",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  drawingController.generateTracing
+);

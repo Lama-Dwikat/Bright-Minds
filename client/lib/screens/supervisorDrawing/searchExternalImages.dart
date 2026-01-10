@@ -74,6 +74,102 @@ class _SearchExternalImagesScreenState
       );
     }
   }
+Future<void> generateTracingAI() async {
+  if (_searchController.text.trim().isEmpty) return;
+
+  setState(() {
+    isLoading = true;
+    images = [];
+  });
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString("token");
+
+  final url = Uri.parse("${getBackendUrl()}/api/drawing/generateTracing");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+    body: jsonEncode({"q": _searchController.text.trim()}),
+  );
+
+  setState(() => isLoading = false);
+
+  if (response.statusCode == 201) {
+    final activity = jsonDecode(response.body);
+
+    // نعرض النتيجة كصورة واحدة (اختياري)
+    setState(() {
+      images = [
+        {
+          "previewURL": activity["imageUrl"],
+          "largeImageURL": activity["imageUrl"],
+          "_alreadyAdded": true,
+        }
+      ];
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Tracing generated & added ✅")),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Failed (${response.statusCode}) ❌")),
+    );
+  }
+}
+
+
+
+Future<void> generateCopyDrawingAI() async {
+  if (_searchController.text.trim().isEmpty) return;
+
+  setState(() {
+    isLoading = true;
+    images = [];
+  });
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString("token");
+
+  final url = Uri.parse("${getBackendUrl()}/api/drawing/generateCopy");
+
+  final response = await http.post(
+    url,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    },
+    body: jsonEncode({"q": _searchController.text.trim()}),
+  );
+
+  setState(() => isLoading = false);
+
+  if (response.statusCode == 201) {
+    final activity = jsonDecode(response.body);
+
+    setState(() {
+      images = [
+        {
+          "previewURL": activity["imageUrl"],
+          "largeImageURL": activity["imageUrl"],
+          "_alreadyAdded": true,
+        }
+      ];
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Copy-drawing generated & added ✅")),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Failed (${response.statusCode}) ❌")),
+    );
+  }
+}
 
   // ================= UPLOAD IMAGE (Device) =================
   Future<void> uploadFromDevice() async {
@@ -169,6 +265,16 @@ if (kIsWeb) {
   // ================= SEARCH API =================
   Future<void> searchImages() async {
     if (_searchController.text.trim().isEmpty) return;
+
+if (selectedType == "tracing") {
+    await generateTracingAI();
+    return;
+  }
+
+   if (selectedType == "colorByNumber") {
+    await generateCopyDrawingAI(); 
+    return;
+  }
 
     setState(() {
       isLoading = true;
@@ -282,8 +388,8 @@ if (kIsWeb) {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _typeChip("coloring", "Coloring"),
-        _typeChip("tracing", "Tracing"),
-        _typeChip("colorByNumber", "Color by Number"),
+        _typeChip("tracing", "Tracing (AI)"),
+        _typeChip("colorByNumber", "Reference (AI)"),
       ],
     );
   }
