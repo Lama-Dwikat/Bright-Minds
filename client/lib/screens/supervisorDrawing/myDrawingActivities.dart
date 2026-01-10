@@ -17,8 +17,7 @@ class MyDrawingActivitiesScreen extends StatefulWidget {
       _MyDrawingActivitiesScreenState();
 }
 
-class _MyDrawingActivitiesScreenState
-    extends State<MyDrawingActivitiesScreen> {
+class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
   bool isLoading = true;
   List activities = [];
 
@@ -41,11 +40,12 @@ class _MyDrawingActivitiesScreenState
 
   // ================= FETCH ACTIVITIES =================
   Future<void> fetchActivities() async {
+    setState(() => isLoading = true);
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
-    final url =
-        Uri.parse("${getBackendUrl()}/api/supervisor/activities");
+    final url = Uri.parse("${getBackendUrl()}/api/supervisor/activities");
 
     final response = await http.get(
       url,
@@ -55,26 +55,30 @@ class _MyDrawingActivitiesScreenState
       },
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 200) {
       setState(() {
         activities = jsonDecode(response.body);
         isLoading = false;
       });
     } else {
-      debugPrint("Failed to load activities");
+      debugPrint("Failed to load activities: ${response.statusCode}");
       setState(() => isLoading = false);
     }
   }
 
-
-
-  Future<void> deactivateActivity(String activityId) async {
+  // ================= DEACTIVATE (TOGGLE UI) =================
+  Future<void> deactivateActivity(String activityId, bool currentlyActive) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
     final url = Uri.parse(
       "${getBackendUrl()}/api/drawing/$activityId/deactivate",
     );
+
+    // Snack text حسب الحالة الحالية (لأننا بنعمل Toggle)
+    final String actionText = currentlyActive ? "Deactivated" : "Activated";
 
     final response = await http.put(
       url,
@@ -84,47 +88,74 @@ class _MyDrawingActivitiesScreenState
       },
     );
 
+    if (!mounted) return;
+
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Activity deactivated ✅")),
+        SnackBar(content: Text("Activity $actionText ✅")),
       );
-      // إعادة تحميل القائمة
+
+      // إعادة تحميل القائمة (عشان الحالة تتحدث)
       fetchActivities();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to deactivate (${response.statusCode})")),
+        SnackBar(content: Text("Failed (${response.statusCode})")),
       );
     }
   }
 
+  // ================= DELETE ACTIVITY =================
   Future<void> deleteActivity(String activityId) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
 
-  final url = Uri.parse(
-    "${getBackendUrl()}/api/drawing/$activityId",
-  );
+    final url = Uri.parse("${getBackendUrl()}/api/drawing/$activityId");
 
-  final response = await http.delete(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-  );
-
-  if (response.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Activity deleted 🗑️")),
+    final response = await http.delete(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
     );
-    fetchActivities();
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Failed to delete (${response.statusCode})")),
-    );
+
+    if (!mounted) return;
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Activity deleted 🗑️")),
+      );
+      fetchActivities();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete (${response.statusCode})")),
+      );
+    }
   }
-}
 
+  Future<void> _confirmDelete(String activityId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete Activity?"),
+        content: const Text("Are you sure you want to delete this activity?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      deleteActivity(activityId);
+    }
+  }
 
   // ================= UI =================
   @override
@@ -136,6 +167,13 @@ class _MyDrawingActivitiesScreenState
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.bgWarmPink,
+        actions: [
+          IconButton(
+            tooltip: "Refresh",
+            onPressed: fetchActivities,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -160,6 +198,8 @@ class _MyDrawingActivitiesScreenState
       itemCount: activities.length,
       itemBuilder: (context, index) {
         final activity = activities[index];
+
+        final bool isActive = activity["isActive"] == true;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -191,70 +231,77 @@ class _MyDrawingActivitiesScreenState
               ),
 
               // INFO
-             Padding(
-  padding: const EdgeInsets.all(12),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        activity["title"],
-        style: GoogleFonts.robotoSlab(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      const SizedBox(height: 6),
-      Text(
-        "Type: ${activity["type"]}",
-        style: GoogleFonts.robotoSlab(fontSize: 14),
-      ),
-      Text(
-        "Age Group: ${activity["ageGroup"]}",
-        style: GoogleFonts.robotoSlab(fontSize: 14),
-      ),
-      const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activity["title"] ?? "",
+                      style: GoogleFonts.robotoSlab(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Type: ${activity["type"]}",
+                      style: GoogleFonts.robotoSlab(fontSize: 14),
+                    ),
+                    Text(
+                      "Age Group: ${activity["ageGroup"]}",
+                      style: GoogleFonts.robotoSlab(fontSize: 14),
+                    ),
+                    const SizedBox(height: 10),
 
-      // 🔘 Status + Deactivate button
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            activity["isActive"] == true ? "Status: Active" : "Status: Inactive",
-            style: GoogleFonts.robotoSlab(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: activity["isActive"] == true ? Colors.green : Colors.red,
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: activity["isActive"] == true
-                  ? Colors.redAccent
-                  : Colors.grey,
-            ),
-            onPressed: activity["isActive"] == true
-                ? () => deactivateActivity(activity["_id"])
-                : null, // معطل إذا already inactive
-            child: Text(
-              activity["isActive"] == true ? "Deactivate" : "Inactive",
-            ),
-          ),
-          TextButton(
-  onPressed: () => deleteActivity(activity["_id"]),
-  child: const Text(
-    "Delete",
-    style: TextStyle(color: Colors.black87),
-  ),
-),
+                    // STATUS + ACTIONS
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isActive ? Color.fromARGB(255, 235, 178, 177) : Color(0xFFCCA6A5),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            isActive ? "Active" : "Inactive",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
 
-        ],
+                        const Spacer(),
 
-        
-      ),
-    ],
-  ),
-),
+                        // ✅ Toggle Deactivate / Activate (نفس endpoint)
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isActive ? Colors.redAccent : Colors.green,
+                          ),
+                          onPressed: () =>
+                              deactivateActivity(activity["_id"], isActive),
+                          icon: Icon(isActive ? Icons.block : Icons.check),
+                          label: Text(isActive ? "Deactivate" : "Activate"),
+                        ),
 
+                        const SizedBox(width: 8),
+
+                        TextButton.icon(
+                          onPressed: () => _confirmDelete(activity["_id"]),
+                          icon: const Icon(Icons.delete, color: Colors.black87),
+                          label: const Text(
+                            "Delete",
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );

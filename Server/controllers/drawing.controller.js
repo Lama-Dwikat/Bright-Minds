@@ -2,7 +2,7 @@ import { imageSearchService } from "../services/imageSearch.service.js";
 import cloudinaryService from "../services/cloudinary.service.js";
 import axios from "axios";
 import DrawingActivity from "../models/drawingActivity.model.js";
-
+import fs from "fs/promises";
 export const drawingController = {
 
   // 🔍 supervisor search external images
@@ -85,26 +85,33 @@ if (!req.user.ageGroup) {
 
     // ================== DEACTIVATE ACTIVITY ==================
   async deactivateActivity(req, res) {
-    try {
-      const activityId = req.params.id;
+  try {
+    const activityId = req.params.id;
 
-      const activity = await DrawingActivity.findOneAndUpdate(
-        { _id: activityId, supervisorId: req.user._id },
-        { isActive: false },
-        { new: true }
-      );
+    
+    const activity = await DrawingActivity.findOne({
+      _id: activityId,
+      supervisorId: req.user._id,
+    });
 
-      if (!activity) {
-        return res
-          .status(404)
-          .json({ error: "Activity not found or not yours" });
-      }
-
-      return res.status(200).json(activity);
-    } catch (error) {
-      return res.status(500).json({ error: error.message });
+    if (!activity) {
+      return res.status(404).json({ error: "Activity not found or not yours" });
     }
-  },
+
+    // 2) Toggle
+    activity.isActive = !activity.isActive;
+
+    await activity.save();
+
+    return res.status(200).json({
+      message: activity.isActive ? "Activity activated ✅" : "Activity deactivated ✅",
+      activity,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+
 
   // ================== DELETE ACTIVITY (HARD DELETE) ==================
   async deleteActivity(req, res) {
@@ -128,5 +135,57 @@ if (!req.user.ageGroup) {
     }
   },
   
+
+   // ⬆️ supervisor upload image from device
+async uploadFromDevice(req, res) {
+  let localPath = null;
+
+  try {
+    const { title, type } = req.body;
+
+    if (!title || !type) {
+      return res.status(400).json({ error: "title and type are required" });
+    }
+
+    if (!req.user?.ageGroup) {
+      return res.status(400).json({ error: "Supervisor age group is missing" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "image file is required" });
+    }
+
+    // ✅ diskStorage -> path موجود
+    localPath = req.file.path;
+
+    // 1) upload to cloudinary from file path
+    const cloudUrl = await cloudinaryService.uploadFile(
+      localPath,
+      "drawing-activities"
+    );
+
+    // 2) create activity
+    const activity = await DrawingActivity.create({
+      title,
+      type,
+      ageGroup: req.user.ageGroup,
+      supervisorId: req.user._id,
+      imageUrl: cloudUrl,
+      source: "upload",
+    });
+
+    return res.status(201).json(activity);
+  } catch (error) {
+    console.error("uploadFromDevice error:", error);
+    return res.status(500).json({ error: error.message });
+  } finally {
+    // ✅ clean uploads folder
+    if (localPath) {
+      try {
+        await fs.unlink(localPath);
+      } catch (_) {}
+    }
+  }
+},
 
 };

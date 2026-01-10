@@ -1,4 +1,3 @@
-
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -8,6 +7,9 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
+
+// ⭐ استيراد شاشة رسومات الأطفال للأهل
+import 'package:bright_minds/screens/parentDrawing/parentKidsDrawings.dart';
 
 class HomeParent extends StatefulWidget {
   const HomeParent({super.key});
@@ -154,6 +156,28 @@ class _HomeParentState extends State<HomeParent> {
       title: "Home",
       child: Column(
         children: [
+          // 🔹 زر يفتح شاشة رسومات الأطفال
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.brush),
+                label: const Text("Kids Drawings"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const ParentKidsDrawingsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
           // --- Date picker button ---
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -167,15 +191,17 @@ class _HomeParentState extends State<HomeParent> {
                 ),
                 if (selectedDate != null)
                   IconButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDate = null; // clear filter
-                        });
-                      },
-                      icon: const Icon(Icons.clear)),
+                    onPressed: () {
+                      setState(() {
+                        selectedDate = null; // clear filter
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
               ],
             ),
           ),
+
           Expanded(
             child: kids.isEmpty
                 ? const Center(child: Text("No kids found"))
@@ -196,8 +222,7 @@ class _HomeParentState extends State<HomeParent> {
 
                       final filteredDailyWatch = kidDailyWatch
                           .where((r) =>
-                              r['date'] != null &&
-                              isSameDate(r['date']))
+                              r['date'] != null && isSameDate(r['date']))
                           .toList();
 
                       return ExpansionTile(
@@ -228,7 +253,9 @@ class _HomeParentState extends State<HomeParent> {
                                   : const Icon(Icons.video_library),
                               title: Text(video?['title'] ?? "Unknown"),
                               subtitle: Text(
-                                  "Watched at: ${historyItem['watchedAt'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(historyItem['watchedAt']).toLocal()) : "Unknown"}\nDuration: ${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min"),
+                                "Watched at: ${historyItem['watchedAt'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(historyItem['watchedAt']).toLocal()) : "Unknown"}\n"
+                                "Duration: ${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min",
+                              ),
                             );
                           }).toList(),
                           const Padding(
@@ -243,12 +270,17 @@ class _HomeParentState extends State<HomeParent> {
                               padding: EdgeInsets.all(8.0),
                               child: Text("No daily watch for this date"),
                             ),
-                          ...filteredDailyWatch.map((record) => ListTile(
-                                title: Text(
-                                    "Date: ${record['date'] != "" ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record['date']).toLocal()) : "Unknown"}"),
-                                subtitle: Text(
-                                    "Watched: ${(record['dailyWatchMin'] ?? 0).toStringAsFixed(2)} min / Limit: ${record['limitWatchMin'] ?? 0} min"),
-                              )),
+                          ...filteredDailyWatch.map(
+                            (record) => ListTile(
+                              title: Text(
+                                "Date: ${record['date'] != "" ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record['date']).toLocal()) : "Unknown"}",
+                              ),
+                              subtitle: Text(
+                                "Watched: ${(record['dailyWatchMin'] ?? 0).toStringAsFixed(2)} min / "
+                                "Limit: ${record['limitWatchMin'] ?? 0} min",
+                              ),
+                            ),
+                          ),
                         ],
                       );
                     },

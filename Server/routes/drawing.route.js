@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 import { drawingController } from "../controllers/drawing.controller.js";
 import { childDrawingController } from "../controllers/childDrawing.controller.js";
+import upload from "../middlewares/multer.middleware.js";
 
 export const drawingRouter = express.Router();
 
@@ -105,4 +106,12 @@ drawingRouter.get(
   authMiddleware.authentication,
   roleMiddleware(["parent"]),
   childDrawingController.getKidsDrawingsForParent
+);
+// رفع صورة من جهاز السوبرفايزر (Upload)
+drawingRouter.post(
+  "/drawing/upload",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  upload.single("image"), // اسم الحقل لازم يكون image
+  drawingController.uploadFromDevice
 );
