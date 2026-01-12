@@ -271,7 +271,7 @@ if (selectedType == "tracing") {
     return;
   }
 
-   if (selectedType == "colorByNumber") {
+   if (selectedType == "colorByReference") {
     await generateCopyDrawingAI(); 
     return;
   }
@@ -389,7 +389,7 @@ if (selectedType == "tracing") {
       children: [
         _typeChip("coloring", "Coloring"),
         _typeChip("tracing", "Tracing (AI)"),
-        _typeChip("colorByNumber", "Reference (AI)"),
+        _typeChip("colorByReference", "Reference (AI)"),
       ],
     );
   }

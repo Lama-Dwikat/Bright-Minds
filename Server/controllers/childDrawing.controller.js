@@ -2,6 +2,7 @@ import ChildDrawing from "../models/childDrawing.model.js";
 import DrawingActivity from "../models/drawingActivity.model.js";
 import User from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
+import DrawingTimeSession from "../models/drawingTimeSession.model.js";
 
 export const childDrawingController = {
 
@@ -32,6 +33,43 @@ export const childDrawingController = {
     });
 
     await drawing.save();
+    // ✅ Link timing session to this drawing + stop it
+    try {
+      const now = new Date();
+
+      const open = await DrawingTimeSession.findOne({
+        childId: req.user._id,
+        scope: "activity",
+        activityId,
+        isActive: true,
+      }).sort({ startedAt: -1 });
+
+      if (open) {
+        open.drawingId = drawing._id;
+        open.endedAt = now;
+
+        const diffSec = Math.max(
+          0,
+          Math.floor((now.getTime() - open.startedAt.getTime()) / 1000)
+        );
+
+        open.durationSec += diffSec;
+        open.isActive = false;
+        await open.save();
+
+        // ✅ Start a new session immediately (so time continues if kid keeps drawing)
+        await DrawingTimeSession.create({
+          childId: req.user._id,
+          scope: "activity",
+          activityId,
+          startedAt: now,
+          isActive: true,
+        });
+      }
+    } catch (timingErr) {
+      console.error("Timing link/stop error:", timingErr.message);
+      // ما بنكسّر حفظ الرسم لو التايمينغ فشل
+    }
 
     // 🔔 Notification للأهل (لو للطفل Parent مربوط)
     try {
@@ -173,6 +211,7 @@ async getKidsDrawingsForSupervisor(req, res) {
 
     const drawings = await ChildDrawing.find({
       childId: { $in: kidIds },
+       isSubmitted: true,
     })
       .populate("childId", "name ageGroup")
       .populate("activityId", "title type")
@@ -250,7 +289,7 @@ async reviewChildDrawing(req, res) {
   }
 },
 
-// 👨‍👩‍👧 parent: كل رسومات الأطفال تبعهم
+
 async getKidsDrawingsForParent(req, res) {
   try {
     // نجيب الأطفال اللي parent تبعهم هو المستخدم الحالي
@@ -266,6 +305,7 @@ async getKidsDrawingsForParent(req, res) {
 
     const drawings = await ChildDrawing.find({
       childId: { $in: kidIds },
+      isSubmitted: true,
     })
       .populate("childId", "name ageGroup")
       .populate("activityId", "title type")
@@ -284,11 +324,77 @@ async getKidsDrawingsForParent(req, res) {
       rating: d.rating,
       imageBase64: d.drawingImage.data.toString("base64"),
       contentType: d.drawingImage.contentType,
+      isSubmitted: d.isSubmitted,
+      submittedAt: d.submittedAt,
+
     }));
 
     return res.status(200).json(result);
   } catch (error) {
     console.error("getKidsDrawingsForParent error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+},
+async submitChildDrawing(req, res) {
+  try {
+    const { id } = req.params; // drawingId
+    if (!id) return res.status(400).json({ error: "drawing id is required" });
+
+    // نجيب الرسم ونتأكد انه للطفل الحالي
+    const drawing = await ChildDrawing.findById(id);
+    if (!drawing) return res.status(404).json({ error: "Drawing not found" });
+
+    if (drawing.childId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    // لو already submitted ما نكرر
+    if (drawing.isSubmitted) {
+      return res.status(200).json({
+        message: "Already submitted",
+        id: drawing._id,
+        isSubmitted: true,
+        submittedAt: drawing.submittedAt,
+      });
+    }
+
+    drawing.isSubmitted = true;
+    drawing.submittedAt = new Date();
+    await drawing.save();
+
+    // 🔔 Notifications (اختياري)
+    try {
+      const child = await User.findById(req.user._id).select("name parentId supervisorId");
+      if (child?.supervisorId) {
+        await Notification.create({
+          userId: child.supervisorId,
+          title: "New Drawing Submitted",
+          message: `Child ${child.name} submitted a drawing for review 🎨`,
+          type: "drawing",
+          isRead: false,
+        });
+      }
+      if (child?.parentId) {
+        await Notification.create({
+          userId: child.parentId,
+          title: "Drawing Submitted",
+          message: `Your child ${child.name} submitted a drawing for review ✅`,
+          type: "drawing",
+          isRead: false,
+        });
+      }
+    } catch (e) {
+      console.log("submit notification error:", e.message);
+    }
+
+    return res.status(200).json({
+      message: "Submitted ✅",
+      id: drawing._id,
+      isSubmitted: true,
+      submittedAt: drawing.submittedAt,
+    });
+  } catch (error) {
+    console.error("submitChildDrawing error:", error);
     return res.status(500).json({ error: error.message });
   }
 },

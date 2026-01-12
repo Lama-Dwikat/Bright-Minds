@@ -33,7 +33,11 @@ const childDrawingSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
+    isSubmitted: { type: Boolean, default: false },
+    submittedAt: { type: Date, default: null },
+
   },
+  
   {
     timestamps: true,
   }

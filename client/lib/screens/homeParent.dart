@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
+import 'package:bright_minds/screens/parentDrawing/parentDrawingReport.dart';
 
 // ⭐ استيراد شاشة رسومات الأطفال للأهل
 import 'package:bright_minds/screens/parentDrawing/parentKidsDrawings.dart';
@@ -157,26 +158,44 @@ class _HomeParentState extends State<HomeParent> {
       child: Column(
         children: [
           // 🔹 زر يفتح شاشة رسومات الأطفال
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.brush),
-                label: const Text("Kids Drawings"),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ParentKidsDrawingsScreen(),
-                    ),
-                  );
-                },
-              ),
+        // 🎨 Drawing section cards (Report + Kids Drawings)
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+  child: Column(
+    children: [
+      _buildParentActionCard(
+        context,
+        title: "Drawing Report",
+        subtitle: "Histogram by days + time per drawing",
+        icon: Icons.bar_chart_rounded,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ParentDrawingReportScreen(),
             ),
-          ),
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      _buildParentActionCard(
+        context,
+        title: "Kids Drawings",
+        subtitle: "View drawings submitted by your kids",
+        icon: Icons.brush_rounded,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ParentKidsDrawingsScreen(),
+            ),
+          );
+        },
+      ),
+    ],
+  ),
+),
+
 
           // --- Date picker button ---
           Padding(
@@ -290,4 +309,69 @@ class _HomeParentState extends State<HomeParent> {
       ),
     );
   }
+}
+Widget _buildParentActionCard(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7D6D6), // pink soft
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 26, color: Colors.black87),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.black54),
+        ],
+      ),
+    ),
+  );
 }

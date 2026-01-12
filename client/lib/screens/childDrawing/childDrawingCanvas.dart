@@ -33,73 +33,169 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
   List<Stroke> strokes = [];
   List<Stroke> undoneStrokes = [];
   Stroke? currentStroke;
-  Uint8List? _existingImageBytes; // 
+
+  Uint8List? _existingImageBytes;
   bool _isLoadingExisting = false;
 
   Color selectedColor = Colors.red;
   double selectedWidth = 4.0;
 
   bool isSaving = false;
+  bool isSending = false;
+
+  String? _activitySessionId; // timing session id
+  String? _lastSavedDrawingId; // ✅ after save, we store drawingId
 
   String getBackendUrl() {
-    if (kIsWeb) {
-      return "http://192.168.1.63:3000";
-    } else if (Platform.isAndroid) {
-      return "http://10.0.2.2:3000";
-    } else {
-      return "http://localhost:3000";
-    }
+    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (Platform.isAndroid) return "http://10.0.2.2:3000";
+    return "http://localhost:3000";
   }
-@override
-void initState() {
-  super.initState();
-  _loadExistingDrawing();
-}
-Future<void> _loadExistingDrawing() async {
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("token");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingDrawing();
+    _startActivityTiming();
+  }
+
+  @override
+  void dispose() {
+    _stopActivityTiming();
+    super.dispose();
+  }
+
+  // ================= TIMING =================
+ Future<void> _startActivityTiming() async {
   try {
-    setState(() {
-      _isLoadingExisting = true;
-    });
+    final token = await _getToken();
+    if (token == null) {
+      debugPrint("⛔ start timing: token is null");
+      return;
+    }
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
+    final url = Uri.parse("${getBackendUrl()}/api/drawing/time/start");
+    debugPrint("➡️ START TIMING URL: $url");
 
-    final url = Uri.parse(
-      "${getBackendUrl()}/api/drawing/last/${widget.activityId}",
-    );
-
-    final response = await http.get(
+    final resp = await http.post(
       url,
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       },
+      body: jsonEncode({
+        "scope": "activity",
+        "activityId": widget.activityId,
+      }),
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final String base64Image = data["imageBase64"];
-      setState(() {
-        _existingImageBytes = base64Decode(base64Image);
-      });
-    } else if (response.statusCode == 404) {
-      // ما في رسم سابق، عادي نتجاهل
-      debugPrint("No existing drawing for this activity yet");
+    debugPrint("✅ START TIMING status: ${resp.statusCode}");
+    debugPrint("✅ START TIMING body: ${resp.body}");
+
+    if (resp.statusCode == 201) {
+      final data = jsonDecode(resp.body);
+      _activitySessionId = data["sessionId"];
+      debugPrint("🟢 sessionId saved: $_activitySessionId");
     } else {
-      debugPrint("Failed to load existing drawing: ${response.statusCode}");
+      debugPrint("🔴 start timing failed");
     }
   } catch (e) {
-    debugPrint("Error loading existing drawing: $e");
-  } finally {
-    setState(() {
-      _isLoadingExisting = false;
-    });
+    debugPrint("❌ start activity timing error: $e");
   }
 }
 
 
+  Future<void> _stopActivityTiming() async {
+  if (_activitySessionId == null) {
+    debugPrint("⚠️ stop timing: no sessionId");
+    return;
+  }
+
+  try {
+    final token = await _getToken();
+    if (token == null) {
+      debugPrint("⛔ stop timing: token is null");
+      return;
+    }
+
+    final url = Uri.parse("${getBackendUrl()}/api/drawing/time/stop");
+    debugPrint("➡️ STOP TIMING URL: $url");
+    debugPrint("➡️ STOP TIMING sessionId: $_activitySessionId");
+
+    final resp = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({"sessionId": _activitySessionId}),
+    );
+
+    debugPrint("✅ STOP TIMING status: ${resp.statusCode}");
+    debugPrint("✅ STOP TIMING body: ${resp.body}");
+
+    if (resp.statusCode == 200) {
+      _activitySessionId = null;
+      debugPrint("🟢 session stopped & cleared");
+    } else {
+      debugPrint("🔴 stop timing failed");
+    }
+  } catch (e) {
+    debugPrint("❌ stop activity timing error: $e");
+  }
+}
+
+
+  // ================= LOAD LAST DRAWING =================
+  Future<void> _loadExistingDrawing() async {
+    try {
+      setState(() => _isLoadingExisting = true);
+
+      final token = await _getToken();
+      if (token == null) return;
+
+      final url = Uri.parse(
+        "${getBackendUrl()}/api/drawing/last/${widget.activityId}",
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final String base64Image = data["imageBase64"];
+        setState(() {
+          _existingImageBytes = base64Decode(base64Image);
+        });
+      } else if (response.statusCode == 404) {
+        debugPrint("No existing drawing for this activity yet");
+      } else {
+        debugPrint("Failed to load existing drawing: ${response.statusCode}");
+        debugPrint("BODY: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error loading existing drawing: $e");
+    } finally {
+      if (mounted) setState(() => _isLoadingExisting = false);
+    }
+  }
+
+  // ================= DRAWING EVENTS =================
   void _onPanStart(DragStartDetails details, BoxConstraints constraints) {
-    final renderBox = _repaintKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+        _repaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final localPosition = renderBox.globalToLocal(details.globalPosition);
@@ -116,7 +212,8 @@ Future<void> _loadExistingDrawing() async {
   }
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
-    final renderBox = _repaintKey.currentContext?.findRenderObject() as RenderBox?;
+    final renderBox =
+        _repaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null || currentStroke == null) return;
 
     final localPosition = renderBox.globalToLocal(details.globalPosition);
@@ -127,76 +224,66 @@ Future<void> _loadExistingDrawing() async {
   }
 
   void _onPanEnd(DragEndDetails details) {
-    setState(() {
-      currentStroke = null;
-    });
+    setState(() => currentStroke = null);
   }
 
   void _clearCanvas() {
-  setState(() {
-    strokes.clear();
-    undoneStrokes.clear();
-    currentStroke = null;
-
-    _existingImageBytes = null;
-  });
-}
-
-
-void _undo() {
-  if (strokes.isEmpty) return;
-  setState(() {
-    final lastStroke = strokes.removeLast();
-    undoneStrokes.add(lastStroke);
-  });
-}
-
-void _redo() {
-  if (undoneStrokes.isEmpty) return;
-  setState(() {
-    final stroke = undoneStrokes.removeLast();
-    strokes.add(stroke);
-  });
-}
-
-
-Widget _buildBackgroundImage() {
-  if (_existingImageBytes != null) {
-    return Image.memory(
-      _existingImageBytes!,
-      fit: BoxFit.contain,
-    );
-  } else {
-    return Image.network(
-      widget.imageUrl,
-      fit: BoxFit.contain,
-    );
+    setState(() {
+      strokes.clear();
+      undoneStrokes.clear();
+      currentStroke = null;
+      _existingImageBytes = null;
+      _lastSavedDrawingId = null; // reset saved id
+    });
   }
-}
 
-  Future<void> _saveDrawing() async {
+  void _undo() {
+    if (strokes.isEmpty) return;
+    setState(() {
+      final lastStroke = strokes.removeLast();
+      undoneStrokes.add(lastStroke);
+    });
+  }
+
+  void _redo() {
+    if (undoneStrokes.isEmpty) return;
+    setState(() {
+      final stroke = undoneStrokes.removeLast();
+      strokes.add(stroke);
+    });
+  }
+
+  Widget _buildBackgroundImage() {
+    if (_isLoadingExisting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_existingImageBytes != null) {
+      return Image.memory(_existingImageBytes!, fit: BoxFit.contain);
+    }
+    return Image.network(widget.imageUrl, fit: BoxFit.contain);
+  }
+
+  Future<Uint8List> _capturePngBytes() async {
+    final boundary =
+        _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+    final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (byteData == null) throw Exception("Failed to convert image");
+    return byteData.buffer.asUint8List();
+  }
+
+  // ================= SAVE (My Drawings) =================
+  Future<void> _saveDrawingLocal() async {
     try {
-      setState(() {
-        isSaving = true;
-      });
+      setState(() => isSaving = true);
 
-      // أخذ صورة من الـ RepaintBoundary
-      RenderRepaintBoundary boundary =
-          _repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      final pngBytes = await _capturePngBytes();
+      final base64Image = base64Encode(pngBytes);
 
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
-
-      if (byteData == null) {
-        throw Exception("Failed to convert image");
-      }
-
-      Uint8List pngBytes = byteData.buffer.asUint8List();
-      String base64Image = base64Encode(pngBytes);
-
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString("token");
+      final token = await _getToken();
+      if (token == null) return;
 
       final url = Uri.parse("${getBackendUrl()}/api/drawing/save");
 
@@ -212,28 +299,80 @@ Widget _buildBackgroundImage() {
         }),
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _lastSavedDrawingId = data["id"]; // ✅ store drawing id
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Drawing saved 🎉")),
+          const SnackBar(content: Text("Saved to My Drawings ✅")),
         );
-        Navigator.pop(context); // رجوع لقائمة الأنشطة
       } else {
+        debugPrint("SAVE FAILED: ${response.statusCode} BODY: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text("Failed to save drawing (${response.statusCode}) ❌"),
-          ),
+          SnackBar(content: Text("Save failed (${response.statusCode}) ❌")),
         );
       }
     } catch (e) {
       debugPrint("Save drawing error: $e");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error while saving: $e")),
       );
     } finally {
-      setState(() {
-        isSaving = false;
-      });
+      if (mounted) setState(() => isSaving = false);
+    }
+  }
+
+  // ================= SUBMIT (Send to Supervisor) =================
+  Future<void> _sendToSupervisor() async {
+    if (_lastSavedDrawingId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please Save first before sending ✋")),
+      );
+      return;
+    }
+
+    try {
+      setState(() => isSending = true);
+
+      final token = await _getToken();
+      if (token == null) return;
+
+      // ✅ NOTE: submit by drawingId (no duplicate drawings)
+      final url = Uri.parse(
+        "${getBackendUrl()}/api/drawing/submit/$_lastSavedDrawingId",
+      );
+
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Sent to supervisor ✅")),
+        );
+      } else {
+        debugPrint("SUBMIT FAILED: ${response.statusCode} BODY: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Send failed (${response.statusCode}) ❌")),
+        );
+      }
+    } catch (e) {
+      debugPrint("Send error: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error while sending: $e")),
+      );
+    } finally {
+      if (mounted) setState(() => isSending = false);
     }
   }
 
@@ -261,137 +400,138 @@ Widget _buildBackgroundImage() {
             onPressed: _clearCanvas,
             tooltip: "Clear",
           ),
-          IconButton(
-            icon: isSaving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save),
-            onPressed: isSaving ? null : _saveDrawing,
-            tooltip: "Save",
-          ),
         ],
       ),
       body: Column(
         children: [
-          // Canvas + صورة النشاط
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return GestureDetector(
-                    onPanStart: (details) =>
-                        _onPanStart(details, constraints),
-                    onPanUpdate: (details) =>
-                        _onPanUpdate(details, constraints),
+                    onPanStart: (details) => _onPanStart(details, constraints),
+                    onPanUpdate: (details) => _onPanUpdate(details, constraints),
                     onPanEnd: _onPanEnd,
-                   child: RepaintBoundary(
-  key: _repaintKey,
-  child: Stack(
-    fit: StackFit.expand,
-    children: [
-      _buildBackgroundImage(),
-
-      // طبقة الرسم
-      CustomPaint(
-        painter: _DrawingPainter(strokes: strokes),
-      ),
-    ],
-  ),
-),
-
+                    child: RepaintBoundary(
+                      key: _repaintKey,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          _buildBackgroundImage(),
+                          CustomPaint(painter: _DrawingPainter(strokes: strokes)),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
             ),
           ),
 
-          // لوحة الألوان
-        Container(
-  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-  color: Colors.white,
-  child: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      // الصف الأول: الألوان + Undo/Redo
-      Row(
-        children: [
-          const Text("Color: "),
-          const SizedBox(width: 8),
-          ...colorOptions.map((c) {
-            final isSelected = c == selectedColor;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedColor = c;
-                });
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: isSelected ? 30 : 24,
-                height: isSelected ? 30 : 24,
-                decoration: BoxDecoration(
-                  color: c,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.black : Colors.grey,
-                    width: isSelected ? 2 : 1,
+          // ✅ Buttons: Save + Send
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: isSaving ? null : _saveDrawingLocal,
+                    icon: isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.save),
+                    label: const Text("Save"),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.undo),
-            tooltip: "Undo",
-            onPressed: strokes.isNotEmpty ? _undo : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.redo),
-            tooltip: "Redo",
-            onPressed: undoneStrokes.isNotEmpty ? _redo : null,
-          ),
-        ],
-      ),
-
-      const SizedBox(height: 8),
-
-      // الصف الثاني: حجم الفرشاة + سلايدر
-      Row(
-        children: [
-          const Text("Size: "),
-          Expanded(
-            child: Slider(
-              value: selectedWidth,
-              min: 2,
-              max: 12,
-              onChanged: (v) {
-                setState(() {
-                  selectedWidth = v;
-                });
-              },
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: isSending ? null : _sendToSupervisor,
+                    icon: isSending
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.send),
+                    label: const Text("Send to Supervisor"),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    ],
-  ),
-)
 
+          // Colors + Undo/Redo + Size
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            color: Colors.white,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text("Color: "),
+                    const SizedBox(width: 8),
+                    ...colorOptions.map((c) {
+                      final isSelected = c == selectedColor;
+                      return GestureDetector(
+                        onTap: () => setState(() => selectedColor = c),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: isSelected ? 30 : 24,
+                          height: isSelected ? 30 : 24,
+                          decoration: BoxDecoration(
+                            color: c,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? Colors.black : Colors.grey,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.undo),
+                      tooltip: "Undo",
+                      onPressed: strokes.isNotEmpty ? _undo : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.redo),
+                      tooltip: "Redo",
+                      onPressed: undoneStrokes.isNotEmpty ? _redo : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text("Size: "),
+                    Expanded(
+                      child: Slider(
+                        value: selectedWidth,
+                        min: 2,
+                        max: 12,
+                        onChanged: (v) => setState(() => selectedWidth = v),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-
-
 // ==================== MODEL + PAINTER ====================
-
 class Stroke {
   List<Offset> points;
   Color color;
@@ -419,16 +559,11 @@ class _DrawingPainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
 
       for (int i = 0; i < stroke.points.length - 1; i++) {
-        final p1 = stroke.points[i];
-        final p2 = stroke.points[i + 1];
-        canvas.drawLine(p1, p2, paint);
+        canvas.drawLine(stroke.points[i], stroke.points[i + 1], paint);
       }
     }
   }
 
-   @override
-  bool shouldRepaint(covariant _DrawingPainter oldDelegate) {
-    return true; 
-  }
-
+  @override
+  bool shouldRepaint(covariant _DrawingPainter oldDelegate) => true;
 }

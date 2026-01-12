@@ -6,6 +6,8 @@ import { childDrawingController } from "../controllers/childDrawing.controller.j
 import upload from "../middlewares/multer.middleware.js";
 
 export const drawingRouter = express.Router();
+console.log("generateTracing:", typeof drawingController.generateTracing);
+console.log("authentication:", typeof authMiddleware.authentication);
 
 // ========= child routes =========
 
@@ -121,3 +123,10 @@ drawingRouter.post(
   roleMiddleware(["supervisor"]),
   drawingController.generateTracing
 );
+drawingRouter.post(
+  "/drawing/submit/:id",
+  authMiddleware.authentication,
+  roleMiddleware(["child"]),
+  childDrawingController.submitChildDrawing
+);
+
