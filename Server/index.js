@@ -24,6 +24,7 @@ import { badgeRouter } from "./routes/badge.routes.js";
 import { drawingRouter } from "./routes/drawing.route.js";
 import { drawingCopyAiRouter } from "./routes/drawingCopyAi.route.js";
 import { drawingTimeRouter } from "./routes/drawingTime.route.js";
+import { kidsQuoteRouter } from "./routes/kidsQuote.routes.js";
 
 const app = express()
 const server = http.createServer(app);
@@ -69,6 +70,8 @@ app.use("/api", badgeRouter);
 app.use("/api", drawingRouter);
 app.use("/api", drawingCopyAiRouter);
 app.use("/api", drawingTimeRouter);
+app.use("/api", kidsQuoteRouter);
+
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");
 });

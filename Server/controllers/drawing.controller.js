@@ -4,6 +4,8 @@ import axios from "axios";
 import DrawingActivity from "../models/drawingActivity.model.js";
 import fs from "fs/promises";
 import { generateTracingBase64 } from "../services/drawingAi.service.js";
+import { Notification } from "../models/notification.model.js";
+import User from "../models/user.model.js";
 
 export const drawingController = {
 
@@ -52,6 +54,53 @@ if (!req.user.ageGroup) {
         imageUrl: cloudUrl,
         source: "pixabay",
       });
+      // 🔔 notify all supervisor kids + their parents about new activity
+try {
+  const kids = await User.find({
+    supervisorId: req.user._id,
+    role: "child",
+    ageGroup: req.user.ageGroup,
+  }).select("_id name parentId");
+
+  await Promise.all(
+    kids.flatMap((kid) => {
+      const notifs = [];
+
+      // للطفل
+      notifs.push(
+        Notification.create({
+          userId: kid._id,
+          title: "New Drawing Activity",
+          message: `New drawing activity added: ${activity.title} 🎨`,
+          type: "activity",
+          activityId: activity._id,
+          fromUserId: req.user._id,
+          isRead: false,
+        })
+      );
+
+      // للأهل
+      if (kid.parentId) {
+        notifs.push(
+          Notification.create({
+            userId: kid.parentId,
+            title: "New activity for your child",
+            message: `A new drawing activity was added for ${kid.name}: ${activity.title} 🎨`,
+            type: "activity",
+            activityId: activity._id,
+            fromUserId: req.user._id,
+            isRead: false,
+          })
+        );
+      }
+
+      return notifs;
+    })
+  );
+} catch (e) {
+  console.log("notify new activity error:", e.message);
+}
+
 
       return res.status(201).json(activity);
 
@@ -175,8 +224,56 @@ async uploadFromDevice(req, res) {
       imageUrl: cloudUrl,
       source: "upload",
     });
+// 🔔 notify all supervisor kids + their parents about new activity
+try {
+  const kids = await User.find({
+    supervisorId: req.user._id,
+    role: "child",
+    ageGroup: req.user.ageGroup,
+  }).select("_id name parentId");
+
+  await Promise.all(
+    kids.flatMap((kid) => {
+      const notifs = [];
+
+      // للطفل
+      notifs.push(
+        Notification.create({
+          userId: kid._id,
+          title: "New Drawing Activity",
+          message: `New drawing activity added: ${activity.title} 🎨`,
+          type: "activity",
+          activityId: activity._id,
+          fromUserId: req.user._id,
+          isRead: false,
+        })
+      );
+
+      // للأهل
+      if (kid.parentId) {
+        notifs.push(
+          Notification.create({
+            userId: kid.parentId,
+            title: "New activity for your child",
+            message: `A new drawing activity was added for ${kid.name}: ${activity.title} 🎨`,
+            type: "activity",
+            activityId: activity._id,
+            fromUserId: req.user._id,
+            isRead: false,
+          })
+        );
+      }
+
+      return notifs;
+    })
+  );
+} catch (e) {
+  console.log("notify new activity error:", e.message);
+}
 
     return res.status(201).json(activity);
+
+    
   } catch (error) {
     console.error("uploadFromDevice error:", error);
     return res.status(500).json({ error: error.message });
@@ -210,6 +307,52 @@ async generateTracing(req, res) {
       source: "ai",
       isActive: true,
     });
+// 🔔 notify all supervisor kids + their parents about new activity
+try {
+  const kids = await User.find({
+    supervisorId: req.user._id,
+    role: "child",
+    ageGroup: req.user.ageGroup,
+  }).select("_id name parentId");
+
+  await Promise.all(
+    kids.flatMap((kid) => {
+      const notifs = [];
+
+      // للطفل
+      notifs.push(
+        Notification.create({
+          userId: kid._id,
+          title: "New Drawing Activity",
+          message: `New drawing activity added: ${activity.title} 🎨`,
+          type: "activity",
+          activityId: activity._id,
+          fromUserId: req.user._id,
+          isRead: false,
+        })
+      );
+
+      // للأهل
+      if (kid.parentId) {
+        notifs.push(
+          Notification.create({
+            userId: kid.parentId,
+            title: "New activity for your child",
+            message: `A new drawing activity was added for ${kid.name}: ${activity.title} 🎨`,
+            type: "activity",
+            activityId: activity._id,
+            fromUserId: req.user._id,
+            isRead: false,
+          })
+        );
+      }
+
+      return notifs;
+    })
+  );
+} catch (e) {
+  console.log("notify new activity error:", e.message);
+}
 
     return res.status(201).json(activity);
   } catch (e) {

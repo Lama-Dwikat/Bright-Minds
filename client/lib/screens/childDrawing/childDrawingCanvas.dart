@@ -10,6 +10,58 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/rendering.dart';
 
+/// =================== NEW: TOOLS / SHAPES / STICKERS ===================
+enum ToolMode { draw, shape, sticker }
+
+enum ShapeType { circle, square, triangle, star }
+
+class CanvasShape {
+  final Offset center;
+  final ShapeType type;
+  final double size;
+  final Color color;
+
+  CanvasShape({
+    required this.center,
+    required this.type,
+    required this.size,
+    required this.color,
+  });
+}
+
+class CanvasSticker {
+  final Offset center;
+  final String emoji;
+  final double size;
+
+  CanvasSticker({
+    required this.center,
+    required this.emoji,
+    required this.size,
+  });
+}
+
+/// helpers للـ cos/sin بدون dart:math
+class MathTrig {
+  static double cos(double x) => _sin(x + 1.5707963267948966);
+  static double sin(double x) => _sin(x);
+
+  static double _sin(double x) {
+    // Taylor approximation - good enough for UI shapes
+    // normalize a bit to keep values stable
+    while (x > 3.141592653589793) x -= 2 * 3.141592653589793;
+    while (x < -3.141592653589793) x += 2 * 3.141592653589793;
+
+    double term = x;
+    double sum = x;
+    for (int i = 1; i < 7; i++) {
+      term *= -1 * x * x / ((2 * i) * (2 * i + 1));
+      sum += term;
+    }
+    return sum;
+  }
+}
+
 class ChildDrawingCanvasScreen extends StatefulWidget {
   final String activityId;
   final String imageUrl;
@@ -37,7 +89,19 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
   Uint8List? _existingImageBytes;
   bool _isLoadingExisting = false;
 
-  Color selectedColor = Colors.red;
+  /// ✅ NEW: shapes + stickers
+  ToolMode _mode = ToolMode.draw;
+  List<CanvasShape> shapes = [];
+  List<CanvasSticker> stickers = [];
+
+  ShapeType selectedShape = ShapeType.circle;
+  double selectedShapeSize = 60;
+
+  String selectedSticker = "⭐";
+  double selectedStickerSize = 44;
+
+  /// ✅ Colors (more & consistent)
+  Color selectedColor = const Color(0xFFEF4444);
   double selectedWidth = 4.0;
 
   bool isSaving = false;
@@ -71,85 +135,83 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
   }
 
   // ================= TIMING =================
- Future<void> _startActivityTiming() async {
-  try {
-    final token = await _getToken();
-    if (token == null) {
-      debugPrint("⛔ start timing: token is null");
-      return;
+  Future<void> _startActivityTiming() async {
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        debugPrint("⛔ start timing: token is null");
+        return;
+      }
+
+      final url = Uri.parse("${getBackendUrl()}/api/drawing/time/start");
+      debugPrint("➡️ START TIMING URL: $url");
+
+      final resp = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "scope": "activity",
+          "activityId": widget.activityId,
+        }),
+      );
+
+      debugPrint("✅ START TIMING status: ${resp.statusCode}");
+      debugPrint("✅ START TIMING body: ${resp.body}");
+
+      if (resp.statusCode == 201) {
+        final data = jsonDecode(resp.body);
+        _activitySessionId = data["sessionId"];
+        debugPrint("🟢 sessionId saved: $_activitySessionId");
+      } else {
+        debugPrint("🔴 start timing failed");
+      }
+    } catch (e) {
+      debugPrint("❌ start activity timing error: $e");
     }
-
-    final url = Uri.parse("${getBackendUrl()}/api/drawing/time/start");
-    debugPrint("➡️ START TIMING URL: $url");
-
-    final resp = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({
-        "scope": "activity",
-        "activityId": widget.activityId,
-      }),
-    );
-
-    debugPrint("✅ START TIMING status: ${resp.statusCode}");
-    debugPrint("✅ START TIMING body: ${resp.body}");
-
-    if (resp.statusCode == 201) {
-      final data = jsonDecode(resp.body);
-      _activitySessionId = data["sessionId"];
-      debugPrint("🟢 sessionId saved: $_activitySessionId");
-    } else {
-      debugPrint("🔴 start timing failed");
-    }
-  } catch (e) {
-    debugPrint("❌ start activity timing error: $e");
   }
-}
-
 
   Future<void> _stopActivityTiming() async {
-  if (_activitySessionId == null) {
-    debugPrint("⚠️ stop timing: no sessionId");
-    return;
-  }
-
-  try {
-    final token = await _getToken();
-    if (token == null) {
-      debugPrint("⛔ stop timing: token is null");
+    if (_activitySessionId == null) {
+      debugPrint("⚠️ stop timing: no sessionId");
       return;
     }
 
-    final url = Uri.parse("${getBackendUrl()}/api/drawing/time/stop");
-    debugPrint("➡️ STOP TIMING URL: $url");
-    debugPrint("➡️ STOP TIMING sessionId: $_activitySessionId");
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        debugPrint("⛔ stop timing: token is null");
+        return;
+      }
 
-    final resp = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({"sessionId": _activitySessionId}),
-    );
+      final url = Uri.parse("${getBackendUrl()}/api/drawing/time/stop");
+      debugPrint("➡️ STOP TIMING URL: $url");
+      debugPrint("➡️ STOP TIMING sessionId: $_activitySessionId");
 
-    debugPrint("✅ STOP TIMING status: ${resp.statusCode}");
-    debugPrint("✅ STOP TIMING body: ${resp.body}");
+      final resp = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({"sessionId": _activitySessionId}),
+      );
 
-    if (resp.statusCode == 200) {
-      _activitySessionId = null;
-      debugPrint("🟢 session stopped & cleared");
-    } else {
-      debugPrint("🔴 stop timing failed");
+      debugPrint("✅ STOP TIMING status: ${resp.statusCode}");
+      debugPrint("✅ STOP TIMING body: ${resp.body}");
+
+      if (resp.statusCode == 200) {
+        _activitySessionId = null;
+        debugPrint("🟢 session stopped & cleared");
+      } else {
+        debugPrint("🔴 stop timing failed");
+      }
+    } catch (e) {
+      debugPrint("❌ stop activity timing error: $e");
     }
-  } catch (e) {
-    debugPrint("❌ stop activity timing error: $e");
   }
-}
-
 
   // ================= LOAD LAST DRAWING =================
   Future<void> _loadExistingDrawing() async {
@@ -194,6 +256,8 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
 
   // ================= DRAWING EVENTS =================
   void _onPanStart(DragStartDetails details, BoxConstraints constraints) {
+    if (_mode != ToolMode.draw) return;
+
     final renderBox =
         _repaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
@@ -212,6 +276,8 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
   }
 
   void _onPanUpdate(DragUpdateDetails details, BoxConstraints constraints) {
+    if (_mode != ToolMode.draw) return;
+
     final renderBox =
         _repaintKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null || currentStroke == null) return;
@@ -224,6 +290,7 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
   }
 
   void _onPanEnd(DragEndDetails details) {
+    if (_mode != ToolMode.draw) return;
     setState(() => currentStroke = null);
   }
 
@@ -232,20 +299,42 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
       strokes.clear();
       undoneStrokes.clear();
       currentStroke = null;
+
+      shapes.clear();
+      stickers.clear();
+
       _existingImageBytes = null;
       _lastSavedDrawingId = null; // reset saved id
     });
   }
 
   void _undo() {
-    if (strokes.isEmpty) return;
+    // Undo should affect current tool contents as well
     setState(() {
-      final lastStroke = strokes.removeLast();
-      undoneStrokes.add(lastStroke);
+      if (_mode == ToolMode.draw) {
+        if (strokes.isEmpty) return;
+        final lastStroke = strokes.removeLast();
+        undoneStrokes.add(lastStroke);
+        return;
+      }
+
+      if (_mode == ToolMode.shape) {
+        if (shapes.isEmpty) return;
+        shapes.removeLast();
+        return;
+      }
+
+      if (_mode == ToolMode.sticker) {
+        if (stickers.isEmpty) return;
+        stickers.removeLast();
+        return;
+      }
     });
   }
 
   void _redo() {
+    // redo only for strokes (original behavior)
+    if (_mode != ToolMode.draw) return;
     if (undoneStrokes.isEmpty) return;
     setState(() {
       final stroke = undoneStrokes.removeLast();
@@ -360,7 +449,8 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
           const SnackBar(content: Text("Sent to supervisor ✅")),
         );
       } else {
-        debugPrint("SUBMIT FAILED: ${response.statusCode} BODY: ${response.body}");
+        debugPrint(
+            "SUBMIT FAILED: ${response.statusCode} BODY: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Send failed (${response.statusCode}) ❌")),
         );
@@ -376,15 +466,124 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
     }
   }
 
+  /// ================= UI HELPERS =================
+  Widget _toolChip(String text, IconData icon, ToolMode mode) {
+    final active = _mode == mode;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _mode = mode),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: active
+                ? AppColors.bgWarmPink.withOpacity(0.35)
+                : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: active ? Colors.black87 : Colors.grey.shade300,
+              width: active ? 1.2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 18),
+              const SizedBox(width: 6),
+              Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _shapePicker() {
+    final items = [
+      (ShapeType.circle, Icons.circle),
+      (ShapeType.square, Icons.crop_square),
+      (ShapeType.triangle, Icons.change_history),
+      (ShapeType.star, Icons.star),
+    ];
+
+    return Row(
+      children: items.map((it) {
+        final type = it.$1;
+        final icon = it.$2;
+        final active = selectedShape == type;
+
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => selectedShape = type),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: active
+                    ? Colors.black.withOpacity(0.08)
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: active ? Colors.black : Colors.grey.shade300,
+                ),
+              ),
+              child: Icon(icon),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _stickerPicker() {
+    final emojis = ["⭐", "❤️", "🌸", "🦋", "😄", "🍭", "🎈", "🐱", "🐶", "👑"];
+
+    return SizedBox(
+      height: 52,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: emojis.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final e = emojis[i];
+          final active = selectedSticker == e;
+
+          return GestureDetector(
+            onTap: () => setState(() => selectedSticker = e),
+            child: Container(
+              width: 52,
+              decoration: BoxDecoration(
+                color: active
+                    ? AppColors.bgWarmPink.withOpacity(0.3)
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: active ? Colors.black : Colors.grey.shade300,
+                ),
+              ),
+              child: Center(
+                child: Text(e, style: const TextStyle(fontSize: 24)),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorOptions = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.black,
+      const Color(0xFFEF4444), // red
+      const Color(0xFFF97316), // orange
+      const Color(0xFFF59E0B), // amber
+      const Color(0xFF22C55E), // green
+      const Color(0xFF06B6D4), // cyan
+      const Color(0xFF3B82F6), // blue
+      const Color(0xFF6366F1), // indigo
+      const Color(0xFFA855F7), // purple
+      const Color(0xFFEC4899), // pink
+      const Color(0xFF111827), // near black
     ];
 
     return Scaffold(
@@ -410,6 +609,32 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   return GestureDetector(
+                    onTapDown: (details) {
+                      final renderBox =
+                          _repaintKey.currentContext?.findRenderObject()
+                              as RenderBox?;
+                      if (renderBox == null) return;
+
+                      final local =
+                          renderBox.globalToLocal(details.globalPosition);
+
+                      setState(() {
+                        if (_mode == ToolMode.shape) {
+                          shapes.add(CanvasShape(
+                            center: local,
+                            type: selectedShape,
+                            size: selectedShapeSize,
+                            color: selectedColor,
+                          ));
+                        } else if (_mode == ToolMode.sticker) {
+                          stickers.add(CanvasSticker(
+                            center: local,
+                            emoji: selectedSticker,
+                            size: selectedStickerSize,
+                          ));
+                        }
+                      });
+                    },
                     onPanStart: (details) => _onPanStart(details, constraints),
                     onPanUpdate: (details) => _onPanUpdate(details, constraints),
                     onPanEnd: _onPanEnd,
@@ -419,7 +644,13 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
                         fit: StackFit.expand,
                         children: [
                           _buildBackgroundImage(),
-                          CustomPaint(painter: _DrawingPainter(strokes: strokes)),
+                          CustomPaint(
+                            painter: _DrawingPainter(
+                              strokes: strokes,
+                              shapes: shapes,
+                              stickers: stickers,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -429,7 +660,7 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
             ),
           ),
 
-          // ✅ Buttons: Save + Send
+          // ✅ Buttons: Save + Send (unchanged)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
@@ -465,63 +696,151 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
             ),
           ),
 
-          // Colors + Undo/Redo + Size
+          // Tools + Colors + Undo/Redo + Size + Shape/Sticker panels
           Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             color: Colors.white,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // ✅ Tool selector
+                Row(
+                  children: [
+                    _toolChip("Draw", Icons.edit, ToolMode.draw),
+                    const SizedBox(width: 8),
+                    _toolChip("Shape", Icons.category, ToolMode.shape),
+                    const SizedBox(width: 8),
+                    _toolChip("Sticker", Icons.emoji_emotions, ToolMode.sticker),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Colors + Undo/Redo
                 Row(
                   children: [
                     const Text("Color: "),
                     const SizedBox(width: 8),
-                    ...colorOptions.map((c) {
-                      final isSelected = c == selectedColor;
-                      return GestureDetector(
-                        onTap: () => setState(() => selectedColor = c),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: isSelected ? 30 : 24,
-                          height: isSelected ? 30 : 24,
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected ? Colors.black : Colors.grey,
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: colorOptions.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (_, i) {
+                            final c = colorOptions[i];
+                            final isSelected = c == selectedColor;
+                            return GestureDetector(
+                              onTap: () => setState(() => selectedColor = c),
+                              child: Container(
+                                width: isSelected ? 34 : 28,
+                                height: isSelected ? 34 : 28,
+                                decoration: BoxDecoration(
+                                  color: c,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.black
+                                        : Colors.grey.shade400,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    }).toList(),
-                    const Spacer(),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
                     IconButton(
                       icon: const Icon(Icons.undo),
                       tooltip: "Undo",
-                      onPressed: strokes.isNotEmpty ? _undo : null,
+                      onPressed: () {
+                        final canUndo = (_mode == ToolMode.draw && strokes.isNotEmpty) ||
+                            (_mode == ToolMode.shape && shapes.isNotEmpty) ||
+                            (_mode == ToolMode.sticker && stickers.isNotEmpty);
+                        if (canUndo) _undo();
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.redo),
                       tooltip: "Redo",
-                      onPressed: undoneStrokes.isNotEmpty ? _redo : null,
+                      onPressed: (_mode == ToolMode.draw && undoneStrokes.isNotEmpty)
+                          ? _redo
+                          : null,
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Text("Size: "),
-                    Expanded(
-                      child: Slider(
-                        value: selectedWidth,
-                        min: 2,
-                        max: 12,
-                        onChanged: (v) => setState(() => selectedWidth = v),
+
+                // Size slider for draw
+                if (_mode == ToolMode.draw)
+                  Row(
+                    children: [
+                      const Text("Brush size: "),
+                      Expanded(
+                        child: Slider(
+                          value: selectedWidth,
+                          min: 2,
+                          max: 12,
+                          onChanged: (v) => setState(() => selectedWidth = v),
+                        ),
                       ),
+                    ],
+                  ),
+
+                // Shape controls
+                if (_mode == ToolMode.shape) ...[
+                  _shapePicker(),
+                  Row(
+                    children: [
+                      const Text("Shape size: "),
+                      Expanded(
+                        child: Slider(
+                          value: selectedShapeSize,
+                          min: 30,
+                          max: 120,
+                          onChanged: (v) =>
+                              setState(() => selectedShapeSize = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Tip: Tap on the canvas to place the shape ✨",
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+
+                // Sticker controls
+                if (_mode == ToolMode.sticker) ...[
+                  _stickerPicker(),
+                  Row(
+                    children: [
+                      const Text("Sticker size: "),
+                      Expanded(
+                        child: Slider(
+                          value: selectedStickerSize,
+                          min: 28,
+                          max: 90,
+                          onChanged: (v) =>
+                              setState(() => selectedStickerSize = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Tip: Tap on the canvas to place the sticker 😍",
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -546,11 +865,91 @@ class Stroke {
 
 class _DrawingPainter extends CustomPainter {
   final List<Stroke> strokes;
+  final List<CanvasShape> shapes;
+  final List<CanvasSticker> stickers;
 
-  _DrawingPainter({required this.strokes});
+  _DrawingPainter({
+    required this.strokes,
+    required this.shapes,
+    required this.stickers,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    // 1) shapes
+    for (final s in shapes) {
+      final paint = Paint()
+        ..color = s.color.withOpacity(0.9)
+        ..style = PaintingStyle.fill;
+
+      switch (s.type) {
+        case ShapeType.circle:
+          canvas.drawCircle(s.center, s.size / 2, paint);
+          break;
+
+        case ShapeType.square:
+          final rect = Rect.fromCenter(
+            center: s.center,
+            width: s.size,
+            height: s.size,
+          );
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+            paint,
+          );
+          break;
+
+        case ShapeType.triangle:
+          final path = Path()
+            ..moveTo(s.center.dx, s.center.dy - s.size / 2)
+            ..lineTo(s.center.dx - s.size / 2, s.center.dy + s.size / 2)
+            ..lineTo(s.center.dx + s.size / 2, s.center.dy + s.size / 2)
+            ..close();
+          canvas.drawPath(path, paint);
+          break;
+
+        case ShapeType.star:
+          final path = Path();
+          final rOuter = s.size / 2;
+          final rInner = rOuter * 0.45;
+
+          for (int i = 0; i < 10; i++) {
+            final isOuter = i.isEven;
+            final r = isOuter ? rOuter : rInner;
+            final angle = (i * 36.0 - 90.0) * 3.141592653589793 / 180.0;
+
+            final x = s.center.dx + r * MathTrig.cos(angle);
+            final y = s.center.dy + r * MathTrig.sin(angle);
+
+            if (i == 0) {
+              path.moveTo(x, y);
+            } else {
+              path.lineTo(x, y);
+            }
+          }
+          path.close();
+          canvas.drawPath(path, paint);
+          break;
+      }
+    }
+
+    // 2) stickers (Emoji)
+    for (final st in stickers) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: st.emoji,
+          style: TextStyle(fontSize: st.size),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      tp.paint(
+        canvas,
+        Offset(st.center.dx - tp.width / 2, st.center.dy - tp.height / 2),
+      );
+    }
+
+    // 3) strokes (original)
     for (final stroke in strokes) {
       final paint = Paint()
         ..color = stroke.color

@@ -1,6 +1,6 @@
 import express from "express";
 import { notificationController } from "../controllers/notification.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import authMiddleware from "../middlewares/auth.middleware.js";
 
 export const notificationRouter = express.Router();
 
@@ -17,7 +17,7 @@ notificationRouter.get(
 );
 
 notificationRouter.put(
-  "/notifications/seen",
+  "/notifications/read",
   authMiddleware.authentication,
-  notificationController.markAsSeen
+  notificationController.markAllAsRead
 );

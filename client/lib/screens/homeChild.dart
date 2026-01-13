@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Platform;
+
 import 'package:bright_minds/widgets/home.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/screens/videosKids.dart';
@@ -7,6 +12,7 @@ import 'package:bright_minds/screens/childStory/childPublishedStoriesScreen.dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bright_minds/screens/childStory/childBadgesScreen.dart';
 import 'package:bright_minds/screens/childDrawing/childDrawingActivities.dart';
+import 'package:http/http.dart' as http;
 
 class HomeChild extends StatefulWidget {
   const HomeChild({super.key});
@@ -16,19 +22,115 @@ class HomeChild extends StatefulWidget {
 }
 
 class _HomeChildState extends State<HomeChild> {
-  String childName = "";
+  String childName = "Kid";
+
+  // ✅ Quote state
+  bool _quoteLoading = true;
+  String _quoteText = "Keep going — you’re doing amazing! ⭐";
+  String _quoteAuthor = "";
+  String? _quoteError;
+
+  // ✅ Auto refresh timer
+  Timer? _quoteTimer;
+
+  String getBackendUrl() {
+    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (Platform.isAndroid) return "http://10.0.2.2:3000";
+    return "http://localhost:3000";
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("token");
+  }
 
   @override
   void initState() {
     super.initState();
     _loadChildName();
+    _fetchKidsQuote();
+    _startQuoteAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _quoteTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadChildName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      childName = prefs.getString("name") ?? "Kid";
+  final prefs = await SharedPreferences.getInstance();
+
+  final savedName =
+      (prefs.getString("userName") ?? prefs.getString("name") ?? "Kid").trim();
+
+  setState(() {
+    childName = savedName.isEmpty ? "Kid" : savedName;
+  });
+}
+
+
+
+  void _startQuoteAutoRefresh() {
+    _quoteTimer?.cancel();
+    _quoteTimer = Timer.periodic(const Duration(seconds: 25), (_) {
+      if (!_quoteLoading) _fetchKidsQuote();
     });
+  }
+
+  Future<void> _fetchKidsQuote() async {
+    setState(() {
+      _quoteLoading = true;
+      _quoteError = null;
+    });
+
+    try {
+      final token = await _getToken();
+      if (token == null) {
+        setState(() {
+          _quoteLoading = false;
+          _quoteError = "Token missing. Please login again.";
+        });
+        return;
+      }
+
+      final url = Uri.parse("${getBackendUrl()}/api/kids/quote");
+
+      final resp = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        final quote = data["quote"] ?? {};
+
+        final text = (quote["text"] ?? "").toString();
+        final author = (quote["author"] ?? "").toString();
+
+        setState(() {
+          _quoteText = text.isEmpty ? "Keep going — you’re doing amazing! ⭐" : text;
+          _quoteAuthor = author;
+          _quoteLoading = false;
+        });
+      } else {
+        setState(() {
+          _quoteLoading = false;
+          _quoteError = "Failed to load quote (${resp.statusCode})";
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _quoteLoading = false;
+        _quoteError = "Error: $e";
+      });
+    }
   }
 
   @override
@@ -45,57 +147,23 @@ class _HomeChildState extends State<HomeChild> {
             Text(
               "Hi, $childName! 👋",
               style: GoogleFonts.poppins(
-                fontSize: 34,
+                fontSize: 44,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFFB66A6A), // peach red
+                color: const Color(0xFFB66A6A),
               ),
             ),
             Text(
               "Ready for a fun learning day?",
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 25,
                 color: const Color(0xFF5C4B51),
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // ✨ Quote box
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE6C9), // peach beige
-                borderRadius: BorderRadius.circular(18),
-              ),
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  Text(
-                    "✨ Quote of the Day ✨",
-                    style: GoogleFonts.robotoSlab(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFAD5E5E),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3E8),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Text(
-                      "Be happy today, tomorrow, and forever — you deserve it! 🌸",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.robotoSlab(
-                        fontSize: 16,
-                        color: const Color(0xFF5C4B51),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // ✨ Quote box (API only)
+            _quoteCard(),
 
             const SizedBox(height: 28),
 
@@ -114,8 +182,7 @@ class _HomeChildState extends State<HomeChild> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const StoryKidsScreen()),
+                      MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
                     );
                   },
                 ),
@@ -146,121 +213,194 @@ class _HomeChildState extends State<HomeChild> {
                   imagePath: "assets/images/Drawing.png",
                   color: const Color(0xFFF9E2CE),
                   onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const ChildDrawingActivitiesScreen(),
-    ),
-  );
-},
-
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChildDrawingActivitiesScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
 
-
             const SizedBox(height: 25),
 
-InkWell(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ChildPublishedStoriesScreen(),
-      ),
-    );
-  },
-  borderRadius: BorderRadius.circular(20),
-  child: Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFFD8C4), // peach
-      borderRadius: BorderRadius.circular(18),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.menu_book_rounded,
-            color: Color(0xFF6E4A4A), size: 38),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChildPublishedStoriesScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFD8C4),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.menu_book_rounded,
+                        color: Color(0xFF6E4A4A), size: 38),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Published Kids Stories",
+                      style: GoogleFonts.poppins(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF6E4A4A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-        const SizedBox(width: 10),
+            const SizedBox(height: 30),
 
-        Text(
-          "Published Kids Stories",
-          style: GoogleFonts.poppins(
-            fontSize: 30,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF6E4A4A),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
-const SizedBox(height: 30),
-
-
-InkWell(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChildBadgesScreen(childName: "Hiba"), // بدّلي الاسم
-      ),
-    );
-  },
-  borderRadius: BorderRadius.circular(20),
-  child: Container(
-    width: double.infinity,
-    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFFE7C8), // soft peach gold
-      borderRadius: BorderRadius.circular(18),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(
-          Icons.emoji_events_rounded,
-          color: Color(0xFF6E4A4A),
-          size: 38,
-        ),
-
-        const SizedBox(width: 10),
-
-        Text(
-          "My Badges",
-          style: GoogleFonts.poppins(
-            fontSize: 30,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF6E4A4A),
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChildBadgesScreen(childName: childName),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE7C8),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.emoji_events_rounded,
+                        color: Color(0xFF6E4A4A), size: 38),
+                    const SizedBox(width: 10),
+                    Text(
+                      "My Badges",
+                      style: GoogleFonts.poppins(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF6E4A4A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 30),
           ],
         ),
+      ),
+    );
+  }
+
+  // ✅ Quote UI (no image)
+  Widget _quoteCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE6C9),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "✨ Quote of the Day ✨",
+                  style: GoogleFonts.robotoSlab(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFAD5E5E),
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: "Refresh",
+                onPressed: _quoteLoading ? null : _fetchKidsQuote,
+                icon: const Icon(Icons.refresh, color: Color(0xFF6E4A4A)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          if (_quoteLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (_quoteError != null)
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E8),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                _quoteError!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.robotoSlab(
+                  fontSize: 28,
+                  color: const Color(0xFF5C4B51),
+                ),
+              ),
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E8),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  Text(
+                    _quoteText,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.robotoSlab(
+                      fontSize: 25,
+                      color: const Color(0xFF5C4B51),
+                    ),
+                  ),
+                  if (_quoteAuthor.trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      "- $_quoteAuthor",
+                      style: GoogleFonts.robotoSlab(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF6E4A4A),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -280,11 +420,11 @@ InkWell(
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
-              offset: const Offset(0, 3),
+              offset: Offset(0, 3),
             ),
           ],
         ),
@@ -300,9 +440,7 @@ InkWell(
               )
             else if (icon != null)
               Icon(icon, size: 48, color: const Color(0xFF8F5F5F)),
-
             const SizedBox(height: 10),
-
             Text(
               label,
               style: GoogleFonts.poppins(

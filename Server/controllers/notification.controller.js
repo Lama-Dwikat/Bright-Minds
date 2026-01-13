@@ -1,49 +1,64 @@
 import { Notification } from "../models/notification.model.js";
 
 export const notificationController = {
-
+  // (اختياري) إرسال إشعار يدوي
   async sendNotification(req, res) {
     try {
-      const { childId, storyId, message } = req.body;
+      const { userId, title, message, type, storyId, drawingId, activityId } = req.body;
+
+      if (!userId || !message) {
+        return res.status(400).json({ error: "userId and message are required" });
+      }
 
       const notification = await Notification.create({
-        childId,
-        storyId,
+        userId,
+        title: title || "",
         message,
+        type: type || "system",
+        storyId: storyId || null,
+        drawingId: drawingId || null,
+        activityId: activityId || null,
+        fromUserId: req.user?._id || null,
+        isRead: false,
       });
 
-      res.status(200).json({ success: true, notification });
+      return res.status(200).json({ success: true, notification });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   },
 
+  // ✅ جلب إشعاراتي أنا
   async getMyNotifications(req, res) {
     try {
-      const userId = req.user.id; // الطفل
+      const userId = req.user._id;
 
-      const notifications = await Notification.find({ childId: userId })
-        .sort({ createdAt: -1 });
+      const notifications = await Notification.find({
+  $or: [
+    { userId },        // الجديد
+    { childId: userId } // القديم (story notifications)
+  ],
+}).sort({ createdAt: -1 });
 
-      res.status(200).json(notifications);
+      return res.status(200).json(notifications);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   },
 
-  async markAsSeen(req, res) {
+  // ✅ تعليم الكل كمقروء
+  async markAllAsRead(req, res) {
     try {
-      const userId = req.user.id;
+      const userId = req.user._id;
 
-      await Notification.updateMany(
-        { childId: userId },
-        { $set: { seen: true } }
-      );
+await Notification.updateMany(
+  { $or: [{ userId }, { childId: userId }] },
+  { $set: { isRead: true, seen: true } } // لو عندك seen قديم
+);
 
-      res.status(200).json({ message: "Notifications marked as seen" });
+      return res.status(200).json({ message: "Notifications marked as read" });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
-  }
-
+  },
 };

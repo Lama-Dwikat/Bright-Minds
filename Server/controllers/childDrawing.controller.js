@@ -276,6 +276,39 @@ async reviewChildDrawing(req, res) {
     }
 
     await drawing.save();
+// 🔔 notify child + parent when reviewed
+try {
+  const child = await User.findById(drawing.childId._id).select("name parentId");
+  const msg = `Your drawing was reviewed ⭐ (${drawing.rating ?? "no rating"})`;
+
+  // للطفل
+  await Notification.create({
+    userId: drawing.childId._id,
+    title: "Drawing Reviewed",
+    message: msg,
+    type: "drawing",
+    drawingId: drawing._id,
+    activityId: drawing.activityId,
+    fromUserId: req.user._id,
+    isRead: false,
+  });
+
+  // للأهل (لو موجود parent)
+  if (child?.parentId) {
+    await Notification.create({
+      userId: child.parentId,
+      title: "Your child’s drawing was reviewed",
+      message: `Your child ${child.name}'s drawing was reviewed ⭐ (${drawing.rating ?? "no rating"})`,
+      type: "drawing",
+      drawingId: drawing._id,
+      activityId: drawing.activityId,
+      fromUserId: req.user._id,
+      isRead: false,
+    });
+  }
+} catch (e) {
+  console.log("notify review error:", e.message);
+}
 
     return res.status(200).json({
       message: "Review updated",
