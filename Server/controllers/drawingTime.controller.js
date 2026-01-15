@@ -241,7 +241,11 @@ export const drawingTimeController = {
 
       const drawingsDocs = drawingIds.length
         ? await ChildDrawing.find({ _id: { $in: drawingIds } })
-            .populate("activityId", "title type")
+            .populate(
+  "activityId",
+  "title type regionsCount outlineImageUrl maskImageUrl legend"
+)
+
             .select("_id childId activityId createdAt drawingImage")
         : [];
 

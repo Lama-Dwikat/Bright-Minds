@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:bright_minds/theme/colors.dart';
-import 'package:bright_minds/screens/childDrawing/childDrawingCanvas.dart';
+import 'package:bright_minds/screens/childDrawing/childDrawingActivitiesByTypeScreen.dart';
 import 'package:bright_minds/screens/childDrawing/childMyDrawings.dart';
 
 class ChildDrawingActivitiesScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class _ChildDrawingActivitiesScreenState
   bool isLoading = true;
   List activities = [];
 
-  String? _sectionSessionId; // ✅ timing session id for drawing section
+  String? _sectionSessionId;
 
   String getBackendUrl() {
     if (kIsWeb) return "http://192.168.1.63:3000";
@@ -36,7 +36,7 @@ class _ChildDrawingActivitiesScreenState
   void initState() {
     super.initState();
     fetchActivities();
-    _startSectionTiming(); // ✅ start section timing
+    _startSectionTiming();
   }
 
   Future<String?> _getToken() async {
@@ -101,7 +101,7 @@ class _ChildDrawingActivitiesScreenState
 
   @override
   void dispose() {
-    _stopSectionTiming(); // ✅ stop when leaving screen
+    _stopSectionTiming();
     super.dispose();
   }
 
@@ -130,18 +130,36 @@ class _ChildDrawingActivitiesScreenState
     }
   }
 
+  int _countByType(String type) {
+    return activities.where((a) => (a["type"] ?? "").toString() == type).length;
+  }
+
+  void _openType(String type, String title) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChildDrawingActivitiesByTypeScreen(
+          type: type,
+          title: title,
+          allActivities: activities,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Drawing Activities",
+          "Drawing",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.bgWarmPink,
+        // ✅ زر معرض الرسومات
         actions: [
           IconButton(
-            icon: const Icon(Icons.collections),
+            icon: const Icon(Icons.photo_library, size: 26),
             tooltip: "My Drawings",
             onPressed: () {
               Navigator.push(
@@ -152,109 +170,126 @@ class _ChildDrawingActivitiesScreenState
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : activities.isEmpty
-              ? _buildEmpty()
-              : _buildList(),
+          : _buildCategories(),
     );
   }
 
-  Widget _buildEmpty() {
-    return Center(
-      child: Text(
-        "No drawing activities available yet",
-        style: GoogleFonts.robotoSlab(fontSize: 16),
+  Widget _buildCategories() {
+    if (activities.isEmpty) {
+      return Center(
+        child: Text(
+          "No drawing activities available yet",
+          style: GoogleFonts.robotoSlab(fontSize: 16),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.count(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.82,
+        children: [
+          _categoryCard(
+            title: "Free Drawing",
+            subtitle: "${_countByType("coloring")} activities",
+            assetPath: "assets/images/d5.png",
+            onTap: () => _openType("coloring", "Free Drawing"),
+          ),
+          _categoryCard(
+            title: "Color by Number",
+            subtitle: "${_countByType("colorByNumber")} activities",
+            assetPath: "assets/images/d2.png",
+            onTap: () => _openType("colorByNumber", "Color by Number"),
+          ),
+          _categoryCard(
+            title: "Tracing",
+            subtitle: "${_countByType("tracing")} activities",
+            assetPath: "assets/images/d3.png",
+            onTap: () => _openType("tracing", "Tracing"),
+          ),
+          _categoryCard(
+            title: "Drawing by Reference",
+            subtitle: "${_countByType("surpriseColor")} activities",
+            assetPath: "assets/images/d4.png",
+            onTap: () => _openType("surpriseColor", "Drawing by Reference"),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: activities.length,
-      itemBuilder: (context, index) {
-        final activity = activities[index];
-
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChildDrawingCanvasScreen(
-                  activityId: activity["_id"],
-                  imageUrl: activity["imageUrl"],
-                  title: activity["title"],
+  Widget _categoryCard({
+    required String title,
+    required String subtitle,
+    required String assetPath,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: Colors.black12),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Transform.scale(
+                  scale: 1.50,
+                  child: Image.asset(
+                    assetPath,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.image_not_supported),
+                    ),
+                  ),
                 ),
               ),
-            );
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: AppColors.bgWarmPinkLight,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                )
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: Image.network(
-                    activity["imageUrl"],
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity["title"],
-                        style: GoogleFonts.robotoSlab(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "Type: ${activity["type"]}",
-                        style: GoogleFonts.robotoSlab(fontSize: 14),
-                      ),
-                      Text(
-                        "Age Group: ${activity["ageGroup"]}",
-                        style: GoogleFonts.robotoSlab(fontSize: 14),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        "Tap to start drawing 🎨",
-                        style: GoogleFonts.robotoSlab(
-                          fontSize: 14,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.robotoSlab(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.robotoSlab(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.black54,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

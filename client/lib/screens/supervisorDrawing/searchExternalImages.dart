@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,182 +11,282 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:bright_minds/theme/colors.dart';
+import 'searchResultsScreen.dart';
 
 class SearchExternalImagesScreen extends StatefulWidget {
   const SearchExternalImagesScreen({super.key});
 
   @override
-  State<SearchExternalImagesScreen> createState() =>
-      _SearchExternalImagesScreenState();
+  State<SearchExternalImagesScreen> createState() => _SearchExternalImagesScreenState();
 }
 
-class _SearchExternalImagesScreenState
-    extends State<SearchExternalImagesScreen> {
+class _SearchExternalImagesScreenState extends State<SearchExternalImagesScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String selectedType = "coloring";
   bool isLoading = false;
-  List images = [];
 
-  // ================= BACKEND URL =================
   String getBackendUrl() {
-    if (kIsWeb) {
-      return "http://192.168.1.63:3000";
-    } else if (Platform.isAndroid) {
-      return "http://10.0.2.2:3000";
-    } else {
-      return "http://localhost:3000";
+    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (Platform.isAndroid) return "http://10.0.2.2:3000";
+    return "http://localhost:3000";
+  }
+
+  Future<String?> _token() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("token");
+  }
+
+  Future<String?> _ageGroup() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("ageGroup");
+  }
+
+  String _hintForType() {
+    switch (selectedType) {
+      case "tracing":
+        return "Search (cat, apple, ...)";
+      case "surpriseColor":
+        return "Search (cat, apple, ...)";
+      case "colorByNumber":
+        return "Search (cat, apple, ...)";
+      default:
+        return "Search (apple, cat, house...)";
     }
   }
 
-  // ================= ADD IMAGE (Pixabay) =================
-  Future<void> addImage(String imageUrl) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
+  String _titleForType(String t) {
+    switch (t) {
+      case "coloring":
+        return "Coloring";
+      case "tracing":
+        return "Tracing (AI)";
+      case "surpriseColor":
+        return "Reference (AI)";
+      case "colorByNumber":
+        return "Color By Number";
+      default:
+        return t;
+    }
+  }
 
-    final url = Uri.parse("${getBackendUrl()}/api/drawing/addFromExternal");
+ Future<int?> _askRegionsCount() async {
+  final age = await _ageGroup();
+  final rules = (age == "5-8")
+      ? const _RegionsRule(min: 6, max: 10)
+      : (age == "9-12")
+          ? const _RegionsRule(min: 10, max: 20)
+          : const _RegionsRule(min: 6, max: 20);
 
-    final response = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({
-        "imageUrl": imageUrl,
-        "title": "${_searchController.text} $selectedType",
-        "type": selectedType,
-      }),
-    );
+  int value = rules.min;
 
-    if (!mounted) return;
-
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Drawing added successfully ✅")),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to add drawing (${response.statusCode}) ❌"),
+  final result = await showDialog<int>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        titlePadding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+        contentPadding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+        actionsPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+        title: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.bgWarmPink.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.grid_on_rounded,
+                color: AppColors.bgWarmPink,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "Regions Count",
+                style: GoogleFonts.robotoSlab(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
         ),
+        content: StatefulBuilder(
+          builder: (ctx, setLocal) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Choose number of regions",
+                          style: GoogleFonts.robotoSlab(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.bgWarmPink.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: AppColors.bgWarmPink.withOpacity(0.35),
+                          ),
+                        ),
+                        child: Text(
+                          "$value",
+                          style: GoogleFonts.robotoSlab(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: AppColors.bgWarmPink,
+                    inactiveTrackColor: AppColors.bgWarmPink.withOpacity(0.25),
+                    thumbColor: AppColors.bgWarmPink,
+                    overlayColor: AppColors.bgWarmPink.withOpacity(0.15),
+                    trackHeight: 4.5,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+                  ),
+                  child: Slider(
+                    value: value.toDouble(),
+                    min: rules.min.toDouble(),
+                    max: rules.max.toDouble(),
+                    divisions: (rules.max - rules.min),
+                    onChanged: (v) => setLocal(() => value = v.round()),
+                  ),
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "${rules.min}",
+                      style: GoogleFonts.robotoSlab(
+                        fontSize: 12,
+                        color: const Color.fromARGB(241, 0, 0, 0),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      "${rules.max}",
+                      style: GoogleFonts.robotoSlab(
+                        fontSize: 12,
+                        color: const Color.fromARGB(233, 0, 0, 0),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  "Allowed range: ${rules.min} – ${rules.max}",
+                  style: GoogleFonts.robotoSlab(
+                    fontSize: 12,
+                    color: const Color.fromARGB(213, 0, 0, 0),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, null),
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.robotoSlab(
+                fontWeight: FontWeight.w800,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.bgWarmPink,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            ),
+            onPressed: () => Navigator.pop(ctx, value),
+            child: Text(
+              "Continue",
+              style: GoogleFonts.robotoSlab(
+                fontWeight: FontWeight.w900,
+                color: const Color.fromARGB(255, 0, 0, 0),
+              ),
+            ),
+          ),
+        ],
       );
+    },
+  );
+
+  return result;
+}
+
+
+  Future<void> _goSearch() async {
+    final q = _searchController.text.trim();
+    if (q.isEmpty) return;
+
+    int? regionsCount;
+    if (selectedType == "colorByNumber") {
+      regionsCount = await _askRegionsCount();
+      if (regionsCount == null) return;
     }
-  }
-Future<void> generateTracingAI() async {
-  if (_searchController.text.trim().isEmpty) return;
 
-  setState(() {
-    isLoading = true;
-    images = [];
-  });
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
-
-  final url = Uri.parse("${getBackendUrl()}/api/drawing/generateTracing");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-    body: jsonEncode({"q": _searchController.text.trim()}),
-  );
-
-  setState(() => isLoading = false);
-
-  if (response.statusCode == 201) {
-    final activity = jsonDecode(response.body);
-
-    // نعرض النتيجة كصورة واحدة (اختياري)
-    setState(() {
-      images = [
-        {
-          "previewURL": activity["imageUrl"],
-          "largeImageURL": activity["imageUrl"],
-          "_alreadyAdded": true,
-        }
-      ];
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Tracing generated & added ✅")),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Failed (${response.statusCode}) ❌")),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SearchResultsScreen(
+          query: q,
+          type: selectedType,
+          backendUrl: getBackendUrl(),
+          regionsCount: regionsCount,
+        ),
+      ),
     );
   }
-}
 
-
-
-Future<void> generateCopyDrawingAI() async {
-  if (_searchController.text.trim().isEmpty) return;
-
-  setState(() {
-    isLoading = true;
-    images = [];
-  });
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString("token");
-
-  final url = Uri.parse("${getBackendUrl()}/api/drawing/generateCopy");
-
-  final response = await http.post(
-    url,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    },
-    body: jsonEncode({"q": _searchController.text.trim()}),
-  );
-
-  setState(() => isLoading = false);
-
-  if (response.statusCode == 201) {
-    final activity = jsonDecode(response.body);
-
-    setState(() {
-      images = [
-        {
-          "previewURL": activity["imageUrl"],
-          "largeImageURL": activity["imageUrl"],
-          "_alreadyAdded": true,
-        }
-      ];
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Copy-drawing generated & added ✅")),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Failed (${response.statusCode}) ❌")),
-    );
-  }
-}
-
-  // ================= UPLOAD IMAGE (Device) =================
   Future<void> uploadFromDevice() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
+    final token = await _token();
     if (token == null) return;
 
     final picker = ImagePicker();
-
-    // اختيار الصورة
     final XFile? picked = await picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 95,
     );
-
     if (picked == null) return;
 
-    // title
     final title = _searchController.text.trim().isEmpty
         ? "Uploaded $selectedType"
         : "${_searchController.text.trim()} $selectedType";
@@ -200,38 +299,35 @@ Future<void> generateCopyDrawingAI() async {
       final request = http.MultipartRequest("POST", url);
       request.headers["Authorization"] = "Bearer $token";
 
-      // fields
       request.fields["title"] = title;
       request.fields["type"] = selectedType;
 
-      // file
-     final ext = p.extension(picked.name).toLowerCase();
+      final ext = p.extension(picked.name).toLowerCase();
 
-String mime = "image/jpeg";
-if (ext == ".png") mime = "image/png";
-if (ext == ".webp") mime = "image/webp";
+      String mime = "image/jpeg";
+      if (ext == ".png") mime = "image/png";
+      if (ext == ".webp") mime = "image/webp";
 
-if (kIsWeb) {
-  final bytes = await picked.readAsBytes();
-  request.files.add(
-    http.MultipartFile.fromBytes(
-      "image",
-      bytes,
-      filename: picked.name,
-      contentType: MediaType.parse(mime),
-    ),
-  );
-} else {
-  request.files.add(
-    await http.MultipartFile.fromPath(
-      "image",
-      picked.path,
-      filename: picked.name,
-      contentType: MediaType.parse(mime),
-    ),
-  );
-}
-
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "image",
+            bytes,
+            filename: picked.name,
+            contentType: MediaType.parse(mime),
+          ),
+        );
+      } else {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            "image",
+            picked.path,
+            filename: picked.name,
+            contentType: MediaType.parse(mime),
+          ),
+        );
+      }
 
       final streamed = await request.send();
       final respBody = await streamed.stream.bytesToString();
@@ -242,14 +338,10 @@ if (kIsWeb) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Uploaded successfully ✅")),
         );
-
-        // (اختياري) ممكن تعملي refresh لمشاهدتك للـ activities بعدين
       } else {
         debugPrint("UPLOAD FAILED: ${streamed.statusCode} BODY: $respBody");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Upload failed (${streamed.statusCode}) ❌"),
-          ),
+          SnackBar(content: Text("Upload failed (${streamed.statusCode}) ❌")),
         );
       }
     } catch (e) {
@@ -262,212 +354,329 @@ if (kIsWeb) {
     }
   }
 
-  // ================= SEARCH API =================
-  Future<void> searchImages() async {
-    if (_searchController.text.trim().isEmpty) return;
-
-if (selectedType == "tracing") {
-    await generateTracingAI();
-    return;
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
-   if (selectedType == "colorByReference") {
-    await generateCopyDrawingAI(); 
-    return;
-  }
-
-    setState(() {
-      isLoading = true;
-      images = [];
-    });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
-
-    final url = Uri.parse(
-      "${getBackendUrl()}/api/drawing/searchExternal"
-      "?q=${_searchController.text}&type=$selectedType",
-    );
-
-    final response = await http.get(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-    );
-
-    if (!mounted) return;
-
-    if (response.statusCode == 200) {
-      setState(() {
-        images = jsonDecode(response.body);
-      });
-    } else {
-      debugPrint("Search failed: ${response.statusCode}");
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  // ================= UI =================
   @override
   Widget build(BuildContext context) {
+    final types = [
+      _TypeItem(
+        value: "coloring",
+        label: "Coloring",
+        assetPath: "assets/images/d1.png",
+        icon: Icons.brush,
+      ),
+      _TypeItem(
+        value: "tracing",
+        label: "Tracing (AI)",
+        assetPath: "assets/images/d2.png",
+        icon: Icons.gesture,
+      ),
+      _TypeItem(
+        value: "surpriseColor",
+        label: "Reference (AI)",
+        assetPath: "assets/images/d3.png",
+        icon: Icons.image_search,
+      ),
+      _TypeItem(
+        value: "colorByNumber",
+        label: "Color By Number",
+        assetPath: "assets/images/d4.png",
+        icon: Icons.grid_on,
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Search Drawing Images",
+          "Drawing Search",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.bgWarmPink,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            const SizedBox(height: 12),
-            _buildTypeSelector(),
-            const SizedBox(height: 16),
-            Expanded(child: _buildResults()),
-          ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.bgWarmPink.withOpacity(0.18),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 14),
+                Expanded(child: _buildTypeGrid(types)),
+                const SizedBox(height: 12),
+                _buildHintCard(),
+                const SizedBox(height: 12),
+                _buildMainActions(),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  // ================= SEARCH BAR =================
   Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: "Search (apple, cat, house...)",
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 12,
+            offset: Offset(0, 5),
+            color: Colors.black12,
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: Colors.black45, size: 24),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onSubmitted: (_) => _goSearch(),
+              textInputAction: TextInputAction.search,
+              style: GoogleFonts.robotoSlab(fontSize: 16, fontWeight: FontWeight.w700),
+              decoration: InputDecoration(
+                hintText: _hintForType(),
+                hintStyle: GoogleFonts.robotoSlab(color: Colors.black45, fontSize: 14),
+                border: InputBorder.none,
+                isCollapsed: true,
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-
-        // Search
-        ElevatedButton(
-          onPressed: isLoading ? null : searchImages,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.bgWarmPink,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          const SizedBox(width: 6),
+          IconButton(
+            onPressed: isLoading ? null : () => _searchController.clear(),
+            icon: const Icon(Icons.close, color: Colors.black45),
+            splashRadius: 20,
           ),
-          child: const Icon(Icons.search),
+        ],
+      ),
+    );
+  }
+
+ Widget _buildTypeGrid(List<_TypeItem> types) {
+  return GridView.builder(
+    itemCount: types.length,
+    physics: const NeverScrollableScrollPhysics(),
+    padding: EdgeInsets.zero,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 0.92,
+    ),
+    itemBuilder: (_, i) {
+      final item = types[i];
+      final selected = item.value == selectedType;
+
+      return _TypeCard(
+        item: item,
+        selected: selected,
+        onTap: () => setState(() => selectedType = item.value),
+      );
+    },
+  );
+}
+
+
+  Widget _buildHintCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.bgWarmPink.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.tips_and_updates, color: AppColors.bgWarmPink),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Selected: ${_titleForType(selectedType)}\nType a word then press Search.",
+              style: GoogleFonts.robotoSlab(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMainActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: isLoading ? null : _goSearch,
+            icon: isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.search),
+            label: Text(
+              "Search",
+              style: GoogleFonts.robotoSlab(fontWeight: FontWeight.w900),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.bgWarmPink,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
         ),
-
-        const SizedBox(width: 8),
-
-        // Upload (NEW)
+        const SizedBox(width: 12),
         ElevatedButton(
           onPressed: isLoading ? null : uploadFromDevice,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.bgWarmPink,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            backgroundColor: Colors.white,
+            foregroundColor: AppColors.bgWarmPink,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            side: BorderSide(color: AppColors.bgWarmPink.withOpacity(0.6)),
           ),
           child: const Icon(Icons.upload),
         ),
       ],
     );
   }
+}
 
-  // ================= TYPE FILTER =================
-  Widget _buildTypeSelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+class _RegionsRule {
+  final int min;
+  final int max;
+  const _RegionsRule({required this.min, required this.max});
+}
+
+class _TypeItem {
+  final String value;
+  final String label;
+  final String assetPath;
+  final IconData icon;
+
+  _TypeItem({
+    required this.value,
+    required this.label,
+    required this.assetPath,
+    required this.icon,
+  });
+}
+
+class _TypeCard extends StatelessWidget {
+  final _TypeItem item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TypeCard({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        _typeChip("coloring", "Coloring"),
-        _typeChip("tracing", "Tracing (AI)"),
-        _typeChip("colorByReference", "Reference (AI)"),
-      ],
-    );
-  }
-
-  Widget _typeChip(String value, String label) {
-    final isSelected = selectedType == value;
-
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        setState(() {
-          selectedType = value;
-        });
-      },
-      selectedColor: AppColors.bgWarmPink,
-    );
-  }
-
-  // ================= RESULTS GRID =================
-  Widget _buildResults() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (images.isEmpty) {
-      return Center(
-        child: Text(
-          "No images yet",
-          style: GoogleFonts.robotoSlab(fontSize: 16),
+        Expanded(
+          child: Material(
+            elevation: selected ? 5 : 2,
+            borderRadius: BorderRadius.circular(18),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(18),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Transform.scale(
+                        scale: 1.60,
+                        child: Image.asset(
+                          item.assetPath,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          errorBuilder: (_, __, ___) {
+                            return Container(
+                              color: Colors.white,
+                              child: Center(
+                                child: Icon(item.icon, size: 56, color: Colors.black45),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.92),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: selected ? AppColors.bgWarmPink : Colors.black12,
+                          ),
+                        ),
+                        child: Icon(
+                          selected ? Icons.check : Icons.circle_outlined,
+                          color: selected ? AppColors.bgWarmPink : Colors.black38,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    if (selected)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        child: Container(height: 4, color: AppColors.bgWarmPink),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-      );
-    }
-
-    return GridView.builder(
-      itemCount: images.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemBuilder: (context, index) {
-        final img = images[index];
-
-        return Stack(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                img["previewURL"],
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-              ),
-            ),
-
-            // ADD BUTTON
-            Positioned(
-              bottom: 6,
-              right: 6,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.bgWarmPink,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                ),
-                onPressed: () {
-                  addImage(img["largeImageURL"]);
-                },
-                child: const Text(
-                  "Add",
-                  style: TextStyle(fontSize: 14),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+        const SizedBox(height: 8),
+        Text(
+          item.label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.robotoSlab(
+            fontWeight: FontWeight.w900,
+            fontSize: 13,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 }

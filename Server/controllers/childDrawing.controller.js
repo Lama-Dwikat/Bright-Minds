@@ -3,12 +3,13 @@ import DrawingActivity from "../models/drawingActivity.model.js";
 import User from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
 import DrawingTimeSession from "../models/drawingTimeSession.model.js";
+import cloudinaryService from "../services/cloudinary.service.js"; 
 
 export const childDrawingController = {
 
- async saveChildDrawing(req, res) {
+async saveChildDrawing(req, res) {
   try {
-    const { activityId, drawingImage } = req.body;
+    let { activityId, drawingImage } = req.body;
 
     if (!activityId || !drawingImage) {
       return res
@@ -16,23 +17,58 @@ export const childDrawingController = {
         .json({ error: "activityId and drawingImage are required" });
     }
 
-    // نتأكد من الـ Activity
+    // ✅ تأكد من الـ Activity
     const activity = await DrawingActivity.findById(activityId);
     if (!activity) {
       return res.status(404).json({ error: "Activity not found" });
     }
 
-    // نحفظ الرسم
+    // ✅ يدعم حالتين:
+    // 1) base64 raw: "AAAA..."
+    // 2) data uri: "data:image/png;base64,AAAA..."
+    let contentType = "image/png";
+    if (typeof drawingImage === "string" && drawingImage.startsWith("data:")) {
+      const match = drawingImage.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/);
+      if (!match) {
+        return res.status(400).json({ error: "Invalid image data URI" });
+      }
+      contentType = match[1];
+      drawingImage = match[2];
+    }
+
+    if (typeof drawingImage !== "string") {
+      return res.status(400).json({ error: "drawingImage must be a base64 string" });
+    }
+
+    // ✅ تحويل base64 -> Buffer مع تحقق
+    const buf = Buffer.from(drawingImage, "base64");
+    if (!buf || buf.length === 0) {
+      return res.status(400).json({ error: "Invalid base64 image" });
+    }
+
+    // ✅ حماية من حجم كبير (Mongo limit 16MB + headers)
+    // خليه 8MB safe (غيّريه إذا بدك)
+    const MAX_BYTES = 8 * 1024 * 1024;
+    if (buf.length > MAX_BYTES) {
+      return res.status(413).json({
+        error: "Image too large. Please reduce image size/quality.",
+        maxBytes: MAX_BYTES,
+        sizeBytes: buf.length,
+      });
+    }
+
+    // ✅ نحفظ الرسم
     const drawing = new ChildDrawing({
       childId: req.user._id,
       activityId,
       drawingImage: {
-        data: Buffer.from(drawingImage, "base64"),
-        contentType: "image/png",
+        data: buf,
+        contentType,
       },
     });
 
     await drawing.save();
+
     // ✅ Link timing session to this drawing + stop it
     try {
       const now = new Date();
@@ -68,14 +104,11 @@ export const childDrawingController = {
       }
     } catch (timingErr) {
       console.error("Timing link/stop error:", timingErr.message);
-      // ما بنكسّر حفظ الرسم لو التايمينغ فشل
     }
 
-    // 🔔 Notification للأهل (لو للطفل Parent مربوط)
+    // 🔔 Notification للأهل
     try {
-      const child = await User.findById(req.user._id).select(
-        "name parentId ageGroup"
-      );
+      const child = await User.findById(req.user._id).select("name parentId ageGroup");
 
       if (child?.parentId) {
         const message = `Your child ${child.name} created a new drawing in the Drawing section 🎨`;
@@ -90,17 +123,15 @@ export const childDrawingController = {
       }
     } catch (notifyErr) {
       console.error("Notification error (new drawing):", notifyErr.message);
-      // ما منرجع error عشان الإشعار ما يكسّر حفظ الرسم
     }
 
-    return res
-      .status(201)
-      .json({ message: "Drawing saved", id: drawing._id });
+    return res.status(201).json({ message: "Drawing saved", id: drawing._id });
   } catch (error) {
     console.error("saveChildDrawing error:", error);
     return res.status(500).json({ error: error.message });
   }
 },
+
 
 
    // الحصول على كل رسومات الطفل (My Drawings)
@@ -109,7 +140,11 @@ export const childDrawingController = {
       const drawings = await ChildDrawing.find({
         childId: req.user._id,
       })
-        .populate("activityId", "title")
+        .populate(
+  "activityId",
+  "title type regionsCount outlineImageUrl maskImageUrl legend"
+)
+
         .sort({ createdAt: -1 }); // الأحدث أولاً
 
       const result = drawings.map((d) => ({
@@ -214,7 +249,11 @@ async getKidsDrawingsForSupervisor(req, res) {
        isSubmitted: true,
     })
       .populate("childId", "name ageGroup")
-      .populate("activityId", "title type")
+      .populate(
+  "activityId",
+  "title type regionsCount outlineImageUrl maskImageUrl legend"
+)
+
       .sort({ createdAt: -1 });
 
     const result = drawings.map((d) => ({
@@ -228,8 +267,10 @@ async getKidsDrawingsForSupervisor(req, res) {
       createdAt: d.createdAt,
       supervisorComment: d.supervisorComment,
       rating: d.rating,
-      imageBase64: d.drawingImage.data.toString("base64"),
-      contentType: d.drawingImage.contentType,
+      drawingUrl: d.drawingUrl || "",
+
+     // imageBase64: d.drawingImage.data.toString("base64"),
+     // contentType: d.drawingImage.contentType,
     }));
 
     return res.status(200).json(result);
@@ -341,7 +382,11 @@ async getKidsDrawingsForParent(req, res) {
       isSubmitted: true,
     })
       .populate("childId", "name ageGroup")
-      .populate("activityId", "title type")
+      .populate(
+  "activityId",
+  "title type regionsCount outlineImageUrl maskImageUrl legend"
+)
+
       .sort({ createdAt: -1 });
 
     const result = drawings.map((d) => ({
@@ -431,5 +476,267 @@ async submitChildDrawing(req, res) {
     return res.status(500).json({ error: error.message });
   }
 },
+/*async submitDrawingImage(req, res) {
+  try {
+    let { activityId, drawingImage } = req.body;
+
+    if (!activityId || !drawingImage) {
+      return res.status(400).json({ error: "activityId and drawingImage are required" });
+    }
+
+    // ✅ تأكد من الـ Activity (ومنها نجيب supervisorId)
+    const activity = await DrawingActivity.findById(activityId).select("title supervisorId");
+    if (!activity) return res.status(404).json({ error: "Activity not found" });
+
+    // ✅ يدعم data uri أو base64 raw
+    let contentType = "image/png";
+    if (typeof drawingImage === "string" && drawingImage.startsWith("data:")) {
+      const match = drawingImage.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/);
+      if (!match) return res.status(400).json({ error: "Invalid image data URI" });
+      contentType = match[1];
+      drawingImage = match[2];
+    }
+
+    if (typeof drawingImage !== "string") {
+      return res.status(400).json({ error: "drawingImage must be a base64 string" });
+    }
+
+    const buf = Buffer.from(drawingImage, "base64");
+    if (!buf || buf.length === 0) return res.status(400).json({ error: "Invalid base64 image" });
+
+    // ✅ limit
+    const MAX_BYTES = 8 * 1024 * 1024;
+    if (buf.length > MAX_BYTES) {
+      return res.status(413).json({
+        error: "Image too large. Please reduce image size/quality.",
+        maxBytes: MAX_BYTES,
+        sizeBytes: buf.length,
+      });
+    }
+
+    // ✅ حفظ + Submit مباشرة
+    const now = new Date();
+
+    const drawing = await ChildDrawing.create({
+      childId: req.user._id,
+      activityId,
+      drawingImage: { data: buf, contentType },
+
+      // هدول لازم يكونوا موجودين بالـ schema عندك
+      isSubmitted: true,
+      submittedAt: now,
+    });
+
+    // 🔔 Notifications للسوبرفايزر + للأهل
+    try {
+      const child = await User.findById(req.user._id).select("name parentId");
+      const supervisorId = activity.supervisorId; // الأفضل من الـ activity نفسها
+
+      if (supervisorId) {
+        await Notification.create({
+          userId: supervisorId,
+          title: "New Drawing Submitted",
+          message: `Child ${child?.name ?? "A child"} submitted a drawing for review 🎨`,
+          type: "drawing",
+          drawingId: drawing._id,
+          activityId: activity._id,
+          fromUserId: req.user._id,
+          isRead: false,
+        });
+      }
+
+      if (child?.parentId) {
+        await Notification.create({
+          userId: child.parentId,
+          title: "Drawing Submitted",
+          message: `Your child ${child.name} submitted a drawing for review ✅`,
+          type: "drawing",
+          drawingId: drawing._id,
+          activityId: activity._id,
+          fromUserId: req.user._id,
+          isRead: false,
+        });
+      }
+    } catch (e) {
+      console.log("submitDrawingImage notification error:", e.message);
+    }
+
+    return res.status(201).json({
+      message: "Saved & submitted ✅",
+      id: drawing._id,
+      isSubmitted: true,
+      submittedAt: now,
+    });
+  } catch (error) {
+    console.error("submitDrawingImage error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+},
+*/
+async submitDrawingImage(req, res) {
+    try {
+      let { activityId, drawingImage, autoSubmit } = req.body;
+
+      if (!activityId || !drawingImage) {
+        return res
+          .status(400)
+          .json({ error: "activityId and drawingImage are required" });
+      }
+
+      const activity = await DrawingActivity.findById(activityId);
+      if (!activity) return res.status(404).json({ error: "Activity not found" });
+
+      // ✅ supports dataUri or raw base64
+      let contentType = "image/png";
+      if (typeof drawingImage === "string" && drawingImage.startsWith("data:")) {
+        const match = drawingImage.match(
+          /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/
+        );
+        if (!match) return res.status(400).json({ error: "Invalid image data URI" });
+        contentType = match[1];
+        drawingImage = match[2];
+      }
+
+      if (typeof drawingImage !== "string") {
+        return res.status(400).json({ error: "drawingImage must be a base64 string" });
+      }
+
+      const buf = Buffer.from(drawingImage, "base64");
+      if (!buf || buf.length === 0) {
+        return res.status(400).json({ error: "Invalid base64 image" });
+      }
+
+      const MAX_BYTES = 8 * 1024 * 1024;
+      if (buf.length > MAX_BYTES) {
+        return res.status(413).json({
+          error: "Image too large. Please reduce image size/quality.",
+          maxBytes: MAX_BYTES,
+          sizeBytes: buf.length,
+        });
+      }
+
+      // ✅ upload to cloudinary
+      const folder = "drawings";
+      const drawingUrl = await cloudinaryService.uploadBuffer(buf, folder);
+
+      // ✅ save in DB
+      const drawing = await ChildDrawing.create({
+        childId: req.user._id,
+        activityId,
+        drawingImage: { data: buf, contentType }, // keep buffer for old usage/fallback
+        drawingUrl,
+      });
+
+      // ✅ autoSubmit => visible to supervisor immediately
+      if (autoSubmit === true) {
+        drawing.isSubmitted = true;
+        drawing.submittedAt = new Date();
+        await drawing.save();
+
+        try {
+          const child = await User.findById(req.user._id).select(
+            "name parentId supervisorId"
+          );
+
+          if (child?.supervisorId) {
+            await Notification.create({
+              userId: child.supervisorId,
+              title: "New Drawing Submitted",
+              message: `Child ${child.name} submitted a drawing for review 🎨`,
+              type: "drawing",
+              isRead: false,
+              drawingId: drawing._id,
+              activityId,
+            });
+          }
+
+          if (child?.parentId) {
+            await Notification.create({
+              userId: child.parentId,
+              title: "Drawing Submitted",
+              message: `Your child ${child.name} submitted a drawing for review ✅`,
+              type: "drawing",
+              isRead: false,
+              drawingId: drawing._id,
+              activityId,
+            });
+          }
+        } catch (e) {
+          console.log("autoSubmit notify error:", e.message);
+        }
+      }
+
+      return res.status(201).json({
+        message: "Drawing saved ✅",
+        id: drawing._id,
+        drawingUrl,
+        isSubmitted: drawing.isSubmitted,
+        submittedAt: drawing.submittedAt,
+      });
+    } catch (error) {
+      console.error("submitDrawingImage error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+/*async getDrawingImageForSupervisor(req, res) {
+  try {
+    const { id } = req.params; // drawingId
+    if (!id) return res.status(400).json({ error: "drawing id is required" });
+
+    const drawing = await ChildDrawing.findById(id).populate("childId", "supervisorId");
+    if (!drawing) return res.status(404).json({ error: "Drawing not found" });
+
+    // ✅ تأكد إنه الرسم لطفل تابع لهالسوبرفايزر
+    if (
+      !drawing.childId?.supervisorId ||
+      drawing.childId.supervisorId.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    res.set("Content-Type", drawing.drawingImage?.contentType || "image/png");
+    res.set("Cache-Control", "no-store");
+    return res.status(200).send(drawing.drawingImage.data); // ✅ bytes
+  } catch (error) {
+    console.error("getDrawingImageForSupervisor error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+},*/
+
+async getDrawingImageForSupervisor(req, res) {
+    try {
+      const { id } = req.params;
+
+      const drawing = await ChildDrawing.findById(id).populate(
+        "childId",
+        "supervisorId"
+      );
+
+      if (!drawing) return res.status(404).json({ error: "Drawing not found" });
+
+      // ✅ check supervisor permission
+      if (
+        !drawing.childId?.supervisorId ||
+        drawing.childId.supervisorId.toString() !== req.user._id.toString()
+      ) {
+        return res.status(403).json({ error: "Not allowed" });
+      }
+
+      // ✅ if cloudinary url exists => redirect
+      if (drawing.drawingUrl && drawing.drawingUrl.trim() !== "") {
+        return res.redirect(drawing.drawingUrl);
+      }
+
+      // ✅ fallback buffer
+      res.set("Content-Type", drawing.drawingImage?.contentType || "image/png");
+      res.set("Cache-Control", "no-store");
+      return res.send(drawing.drawingImage.data);
+    } catch (e) {
+      console.error("getDrawingImageForSupervisor error:", e);
+      return res.status(500).json({ error: e.message });
+    }
+  },
+
 
 };

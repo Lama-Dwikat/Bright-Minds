@@ -24,6 +24,8 @@ const childDrawingSchema = new mongoose.Schema(
         required: true,
       },
     },
+    drawingUrl: { type: String, default: "" },
+    drawingPublicId: { type: String, default: "" },
 
     supervisorComment: {
       type: String,
