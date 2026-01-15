@@ -36,9 +36,33 @@ bool isReviewLoading = true;
   @override
   void initState() {
     super.initState();
-    _loadStory();
+    /*_loadStory();
      _loadLatestReview();
+     */
+     _loadStory().then((_) => trackRead());
+  _loadLatestReview();
   }
+
+  Future<void> trackRead() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    await http.post(
+      Uri.parse("${getBackendUrl()}/api/story/${widget.storyId}/read"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
+
+    print("📌 Read tracked successfully!");
+
+  } catch (e) {
+    print("❌ Error tracking read: $e");
+  }
+}
+
 
   Future<void> _loadStory() async {
   try {
@@ -46,7 +70,9 @@ bool isReviewLoading = true;
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse('${getBackendUrl()}/api/story/getstorybyid/${widget.storyId}'),
+     // Uri.parse('${getBackendUrl()}/api/story/getstorybyid/${widget.storyId}'),
+     Uri.parse('${getBackendUrl()}/api/story/${widget.storyId}'),
+
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -54,10 +80,14 @@ bool isReviewLoading = true;
     );
 
     if (response.statusCode == 200) {
-      setState(() {
-        story = json.decode(response.body);
-        isLoading = false;
-      });
+     setState(() {
+  final decoded = json.decode(response.body);
+  story = decoded is Map && decoded.containsKey("data")
+      ? decoded["data"]
+      : decoded;
+  isLoading = false;
+});
+
     } else {
       print(" Error fetching story: ${response.body}");
     }

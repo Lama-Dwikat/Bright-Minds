@@ -1,4 +1,3 @@
-
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -8,6 +7,10 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
+import 'package:bright_minds/screens/parentDrawing/parentDrawingReport.dart';
+
+// ⭐ استيراد شاشة رسومات الأطفال للأهل
+import 'package:bright_minds/screens/parentDrawing/parentKidsDrawings.dart';
 
 class HomeParent extends StatefulWidget {
   const HomeParent({super.key});
@@ -154,6 +157,46 @@ class _HomeParentState extends State<HomeParent> {
       title: "Home",
       child: Column(
         children: [
+          // 🔹 زر يفتح شاشة رسومات الأطفال
+        // 🎨 Drawing section cards (Report + Kids Drawings)
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+  child: Column(
+    children: [
+      _buildParentActionCard(
+        context,
+        title: "Drawing Report",
+        subtitle: "Histogram by days + time per drawing",
+        icon: Icons.bar_chart_rounded,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ParentDrawingReportScreen(),
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 12),
+      _buildParentActionCard(
+        context,
+        title: "Kids Drawings",
+        subtitle: "View drawings submitted by your kids",
+        icon: Icons.brush_rounded,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const ParentKidsDrawingsScreen(),
+            ),
+          );
+        },
+      ),
+    ],
+  ),
+),
+
+
           // --- Date picker button ---
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -167,15 +210,17 @@ class _HomeParentState extends State<HomeParent> {
                 ),
                 if (selectedDate != null)
                   IconButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedDate = null; // clear filter
-                        });
-                      },
-                      icon: const Icon(Icons.clear)),
+                    onPressed: () {
+                      setState(() {
+                        selectedDate = null; // clear filter
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                  ),
               ],
             ),
           ),
+
           Expanded(
             child: kids.isEmpty
                 ? const Center(child: Text("No kids found"))
@@ -196,8 +241,7 @@ class _HomeParentState extends State<HomeParent> {
 
                       final filteredDailyWatch = kidDailyWatch
                           .where((r) =>
-                              r['date'] != null &&
-                              isSameDate(r['date']))
+                              r['date'] != null && isSameDate(r['date']))
                           .toList();
 
                       return ExpansionTile(
@@ -228,7 +272,9 @@ class _HomeParentState extends State<HomeParent> {
                                   : const Icon(Icons.video_library),
                               title: Text(video?['title'] ?? "Unknown"),
                               subtitle: Text(
-                                  "Watched at: ${historyItem['watchedAt'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(historyItem['watchedAt']).toLocal()) : "Unknown"}\nDuration: ${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min"),
+                                "Watched at: ${historyItem['watchedAt'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(historyItem['watchedAt']).toLocal()) : "Unknown"}\n"
+                                "Duration: ${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min",
+                              ),
                             );
                           }).toList(),
                           const Padding(
@@ -243,12 +289,17 @@ class _HomeParentState extends State<HomeParent> {
                               padding: EdgeInsets.all(8.0),
                               child: Text("No daily watch for this date"),
                             ),
-                          ...filteredDailyWatch.map((record) => ListTile(
-                                title: Text(
-                                    "Date: ${record['date'] != "" ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record['date']).toLocal()) : "Unknown"}"),
-                                subtitle: Text(
-                                    "Watched: ${(record['dailyWatchMin'] ?? 0).toStringAsFixed(2)} min / Limit: ${record['limitWatchMin'] ?? 0} min"),
-                              )),
+                          ...filteredDailyWatch.map(
+                            (record) => ListTile(
+                              title: Text(
+                                "Date: ${record['date'] != "" ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record['date']).toLocal()) : "Unknown"}",
+                              ),
+                              subtitle: Text(
+                                "Watched: ${(record['dailyWatchMin'] ?? 0).toStringAsFixed(2)} min / "
+                                "Limit: ${record['limitWatchMin'] ?? 0} min",
+                              ),
+                            ),
+                          ),
                         ],
                       );
                     },
@@ -258,4 +309,69 @@ class _HomeParentState extends State<HomeParent> {
       ),
     );
   }
+}
+Widget _buildParentActionCard(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7D6D6), // pink soft
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, size: 26, color: Colors.black87),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.black54),
+        ],
+      ),
+    ),
+  );
 }

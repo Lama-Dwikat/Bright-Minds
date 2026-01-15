@@ -88,12 +88,17 @@ export const reviewStoryController ={
   async getReviewsByStory(req, res) {
     try {
       const { storyId } = req.params;
-      const { latestOnly } = req.query; 
+     // const { latestOnly } = req.query; 
+   //  const latestOnly = req.query.latestOnly === "true";
+
       if (!mongoose.Types.ObjectId.isValid(storyId)) {
         return res.status(400).json({ success: false, message: "Invalid storyId" });
       }
+      const latestOnly = req.query.latestOnly === "true";
+const reviews = await reviewStoryService.getReviewsByStory(storyId, latestOnly);
 
-      const reviews = await reviewStoryService.getReviewsByStory(storyId, latestOnly === "true");
+
+   //   const reviews = await reviewStoryService.getReviewsByStory(storyId, latestOnly === "true");
       res.json({
         success: true,
         data: reviews

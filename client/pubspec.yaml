@@ -32,6 +32,11 @@ dependencies:
   syncfusion_flutter_charts: ^31.2.3
   string_similarity: ^2.0.0
   flame: ^1.14.0
+  path: ^1.9.0
+  http_parser: ^4.0.2
+  image: ^4.2.0
+  flutter_colorpicker: ^1.0.3
+
 
 
 

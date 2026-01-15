@@ -38,9 +38,10 @@ class _ReadOnlyStoryPageState extends State<ReadOnlyStoryPage> {
       final token = prefs.getString('token');
 
       final res = await http.get(
-        Uri.parse("${getBackendUrl()}/api/story/getstorybyid/${widget.storyId}"),
-        headers: {"Authorization": "Bearer $token"},
-      );
+  Uri.parse("${getBackendUrl()}/api/story/${widget.storyId}"),
+  headers: {"Authorization": "Bearer $token"},
+);
+
 
       if (res.statusCode == 200) {
         setState(() {

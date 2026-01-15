@@ -86,6 +86,7 @@ String getBackendUrl() {
   var userId = data['user']['id'];
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //prefs.clear();
 
   print("TOKEN SAVED AFTER LOGIN: $token");
 

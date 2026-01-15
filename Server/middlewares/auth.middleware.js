@@ -57,8 +57,10 @@ export  const authMiddleware = {
       return res.status(401).json({ message: "Invalid or expired token" });
     }
 
-    const user = await User.findById(decoded.id).select("_id name email role");
-    console.log("USER FOUND:", user);
+   // const user = await User.findById(decoded.id).select("_id name email role");
+   const user = await User.findById(decoded.id).select("_id name email role ageGroup");
+
+   console.log("USER FOUND:", user);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
