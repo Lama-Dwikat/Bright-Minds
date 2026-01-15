@@ -1,12 +1,30 @@
 import express from "express";
-import GameController from "../controllers/game.controller.js";
+import { gameController } from "../controllers/game.controller.js";
 
 export const gameRouter = express.Router();
 
-// CRUD routes
-gameRouter.get("/games/fetchGames", GameController.fetchGames);        // List all games
-gameRouter.get("/games/getGames/:id", GameController.getGame);      // Get single game
-gameRouter.post("/games/createGames", GameController.createGame);      // Create new game
-gameRouter.put("/games/updateGames/:id", GameController.updateGame);   // Update game
-gameRouter.delete("/games/deleteGames/:id", GameController.deleteGame);// Delete game
+// gameRouter.post("/game/start", GameController.startGame);
+// gameRouter.post("/game/guess", GameController.makeGuess);
+// gameRouter.post("/game/", GameController.createGame);
+// gameRouter.get("/game/", GameController.listGames);
+// gameRouter.get("/game/:id", GameController.getGame);
+// gameRouter.put("/game/:id", GameController.updateGame);
+// gameRouter.delete("/game/:id", GameController.deleteGame);
+// gameRouter.get("/game/clock/question/:difficulty", GameController.getClockQuestion);
+// gameRouter.get("/game/math/question", GameController.getMathQuestion);
+
+gameRouter.post('/game/createGame', gameController.createGame);
+gameRouter.post('/game/generateGuessClue', gameController.generateGuessClue);
+gameRouter.get('/game/getGamesByAgeGroup/:ageGroup', gameController.getGamesByAgeGroup);
+gameRouter.get('/game/getGameBySupervisor/:id', gameController.getGameBySupervisor);
+gameRouter.get('/game/getGameById/:id', gameController.getGameById);
+gameRouter.get('/game/getAllGames', gameController.getAllGames);
+gameRouter.get('/game/getInputByLevel/:id', gameController.getInputByLevel);
+gameRouter.put('/game/publishGame/:id', gameController.publishGameById);
+gameRouter.put('/game/updateGameById/:id', gameController.updateGameById);
+gameRouter.delete('/game/deleteAllGames', gameController.deleteAllGames);
+gameRouter.delete('/game/deletBySupervisor/:id', gameController.deleteBySupervisor);
+gameRouter.delete('/game/deleteGameById/:id', gameController.deleteGameById);
+gameRouter.get("/game/getClueImages", gameController.getClueImages);
+
 
