@@ -78,6 +78,92 @@ final TextEditingController _titleController = TextEditingController();
     'assets/story_images/d.webp',
   ];
 
+String? _storySessionId;
+DateTime? _lastPingAt;
+bool _timingStarted = false;
+bool _endingTiming = false;
+
+Future<String?> _getToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString("token");
+}
+
+// call when any activity happens
+Future<void> _markStoryActivity() async {
+  // لازم يكون في storyId
+  final prefs = await SharedPreferences.getInstance();
+  String? storyId = prefs.getString("currentStoryId");
+
+  // لو ما في storyId (قصة جديدة)، لا نبدأ session إلا بعد ما تنعمل create story
+  if (storyId == null) return;
+
+  final token = await _getToken();
+  if (token == null) return;
+
+  // 1) start once
+  if (!_timingStarted || _storySessionId == null) {
+    final res = await http.post(
+      Uri.parse("${getBackendUrl()}/api/storyTime/start"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+      body: jsonEncode({"storyId": storyId}),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      _storySessionId = data["sessionId"];
+      _timingStarted = true;
+      _lastPingAt = DateTime.now();
+    }
+    return;
+  }
+
+  // 2) ping throttle (مثلاً كل 20 ثانية)
+  final now = DateTime.now();
+  if (_lastPingAt != null && now.difference(_lastPingAt!).inSeconds < 20) return;
+
+  final res = await http.post(
+    Uri.parse("${getBackendUrl()}/api/storyTime/ping"),
+    headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json"
+    },
+    body: jsonEncode({"sessionId": _storySessionId}),
+  );
+
+  if (res.statusCode == 200) {
+    _lastPingAt = now;
+  }
+}
+
+Future<void> _endTiming(String reason) async {
+  if (_endingTiming) return;
+  if (_storySessionId == null) return;
+
+  _endingTiming = true;
+
+  try {
+    final token = await _getToken();
+    if (token == null) return;
+
+    await http.post(
+      Uri.parse("${getBackendUrl()}/api/storyTime/end"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+      body: jsonEncode({"sessionId": _storySessionId, "reason": reason}),
+    );
+  } catch (_) {
+    // ignore
+  } finally {
+    _endingTiming = false;
+    _storySessionId = null;
+    _timingStarted = false;
+  }
+}
 
 String getBackendUrl() {
   if (kIsWeb) {
@@ -121,14 +207,27 @@ void initState() {
 
 
   @override
-  void dispose() {
+  /*void dispose() {
     _textController.dispose();
     super.dispose();
-  }
+  }*/
+  @override
+void dispose() {
+  _endTiming("exit");
+  _textController.dispose();
+  _titleController.dispose();
+  super.dispose();
+}
+
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+    onWillPop: () async {
+      await _endTiming("exit");
+      return true; // 
+    },
+    child: Scaffold(
       backgroundColor: const Color(0xFFFFF5F5), // soft purple background
       body: SafeArea(
         child: Stack(
@@ -173,6 +272,8 @@ void initState() {
         child: GestureDetector(
         behavior: HitTestBehavior.translucent,
           onPanStart: (details) {
+            _markStoryActivity();
+
             if (!isDrawingMode) return;
             setState(() {
               redoStack.clear();
@@ -185,6 +286,8 @@ void initState() {
           },
           onPanUpdate: (details) {
             if (!isDrawingMode) return;
+            _markStoryActivity();
+
             setState(() {
               drawingPoints.add(DrawPoint(
                 position: details.localPosition,
@@ -195,6 +298,7 @@ void initState() {
           },
           onPanEnd: (_) {
             if (!isDrawingMode) return;
+             _markStoryActivity();
             setState(() {
               drawingPoints.add(DrawPoint(position: null));
             });
@@ -224,12 +328,15 @@ void initState() {
           x: item["x"] ?? 50.0,
           y: item["y"] ?? 50.0,
           onPositionChanged: (newX, newY) {
+            _markStoryActivity();
+
             setState(() {
               item["x"] = newX;
               item["y"] = newY;
             });
           },
           onStyleChanged: (color, size, bold, italic, underline) {
+             _markStoryActivity();
             setState(() {
               item["color"] = color;
               item["fontSize"] = size;
@@ -244,6 +351,7 @@ void initState() {
             setState(() {
               pages[currentPageIndex].removeWhere((e) => e["key"] == item["key"]);
             });
+            _markStoryActivity();
             print("After delete: ${pages[currentPageIndex].length} elements");
           },
         );
@@ -260,13 +368,17 @@ void initState() {
           width: item["width"] ?? 150.0,
           height: item["height"] ?? 150.0,
           onPositionChanged: (newX, newY) {
+              _markStoryActivity();
             setState(() {
               item["x"] = newX;
               item["y"] = newY;
             });
           },
           onResize: (newW, newH) {
+            _markStoryActivity();
             setState(() {
+              
+
               item["width"] = newW;
               item["height"] = newH;
             });
@@ -276,6 +388,7 @@ void initState() {
               pages[currentPageIndex]
                   .removeWhere((e) => e["key"] == item["key"]);
             });
+            _markStoryActivity();
           },
         );
       }
@@ -290,12 +403,14 @@ void initState() {
           width: item["width"] ?? 150.0,
           height: item["height"] ?? 150.0,
           onPositionChanged: (newX, newY) {
+              _markStoryActivity();
             setState(() {
               item["x"] = newX;
               item["y"] = newY;
             });
           },
           onResize: (newW, newH) {
+            _markStoryActivity();
             setState(() {
               item["width"] = newW;
               item["height"] = newH;
@@ -306,6 +421,7 @@ void initState() {
               pages[currentPageIndex]
                   .removeWhere((e) => e["key"] == item["key"]);
             });
+            _markStoryActivity();
           },
         );
       }
@@ -323,12 +439,14 @@ void initState() {
           width: item["width"] ?? 150.0,
           height: item["height"] ?? 150.0,
           onPositionChanged: (newX, newY) {
+              _markStoryActivity();
             setState(() {
               item["x"] = newX;
               item["y"] = newY;
             });
           },
           onResize: (newW, newH) {
+            _markStoryActivity();
             setState(() {
               item["width"] = newW;
               item["height"] = newH;
@@ -339,8 +457,10 @@ void initState() {
               pages[currentPageIndex]
                   .removeWhere((e) => e["key"] == item["key"]);
             });
+            _markStoryActivity();
           },
         );
+        
       }
 
 
@@ -449,6 +569,7 @@ if (isGeneratingAI)
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -473,7 +594,12 @@ if (isGeneratingAI)
          Expanded(
   child: TextField(
     controller: _titleController,    
-    onChanged: (value) => storyTitle = value,
+    //onChanged: (value) => storyTitle = value,
+    onChanged: (value) {
+  storyTitle = value;
+  _markStoryActivity();
+},
+
     decoration: const InputDecoration(
       border: InputBorder.none,
       hintText: "Story Title",
@@ -775,6 +901,7 @@ IconButton(
           currentPageIndex = 0;
         }
       });
+      _markStoryActivity();
     }
   },
 ),
@@ -847,6 +974,7 @@ IconButton(
         pages.add([]);
         currentPageIndex = pages.length - 1;
       });
+        _markStoryActivity();
       print("✅ Added new page — total: ${pages.length}, now at: $currentPageIndex");
     }
   },
@@ -1048,6 +1176,8 @@ IconButton(
         "isUnderlined": false,
       });
     });
+      _markStoryActivity(); // 
+
   }
 
   // ============================================================
@@ -1120,6 +1250,7 @@ IconButton(
         "height": 150.0,
       });
     });
+      _markStoryActivity();
   }
 
   // ============================================================
@@ -1257,7 +1388,7 @@ Widget _drawingToolsOverlay() {
   if (pngBytes != null) {
     // 2) أضف الصورة كعنصر في الصفحة
     _addDrawnImage(pngBytes);
-
+     _markStoryActivity();
     // 3) امسح الرسم من الشاشة لأنه صار محفوظ
     setState(() {
       drawingPoints.clear();
@@ -1379,6 +1510,7 @@ void _undoDraw() {
     drawingPoints.removeRange(last + 1, drawingPoints.length);
     drawingPoints.removeLast();
   });
+    _markStoryActivity();
 }
 
 void _redoDraw() {
@@ -1387,6 +1519,7 @@ void _redoDraw() {
     drawingPoints.addAll(redoStack);
     redoStack.clear();
   });
+    _markStoryActivity();
 }
 
 
@@ -1422,6 +1555,7 @@ void _addUploadedImageFromBytes(Uint8List bytes) {
       "height": 150.0,
     });
   });
+  _markStoryActivity();
 }
 
 
@@ -1443,6 +1577,7 @@ Future<void> _startRecording() async {
     isRecording = true;
     recordedFilePath = filePath;
   });
+  _markStoryActivity(); 
 }
 
 Future<void> _stopRecording() async {
@@ -1463,7 +1598,7 @@ Future<void> _stopRecording() async {
         "key": UniqueKey(),
       });
     });
-
+_markStoryActivity();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("🎧 Voice recording added to your story!"),
@@ -1513,6 +1648,7 @@ Future<void> _stopListening() async {
         "key": UniqueKey(),
       });
     });
+    _markStoryActivity();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("📝 Text added from your voice!")),
     );
@@ -1719,6 +1855,9 @@ else if (type == "uploaded_image" && item["networkUrl"] != null) {
       storyId = data["storyId"];
 
       await prefs.setString("currentStoryId", storyId!);
+      //await prefs.setString("currentStoryId", storyId!);
+await _markStoryActivity(); // 
+
     }
 
     // ================================
@@ -1736,6 +1875,8 @@ else if (type == "uploaded_image" && item["networkUrl"] != null) {
     if (sendToSupervisor) {
       await _submitStory(storyId!, token);
     }
+await _markStoryActivity(); //
+await _endTiming(sendToSupervisor ? "submit" : "save_draft");
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -2031,7 +2172,7 @@ Future<void> _generateAIImage(String prompt) async {
 
     String? storyId = prefs.getString("currentStoryId");
 
-    // ---------- إنشاء قصة تلقائيًا لو لم توجد ----------
+    // ---------- ----------
     if (storyId == null) {
       final createRes = await http.post(
         Uri.parse("${getBackendUrl()}/api/story/create"),
@@ -2045,6 +2186,7 @@ Future<void> _generateAIImage(String prompt) async {
       final created = jsonDecode(createRes.body);
       storyId = created["storyId"];
       await prefs.setString("currentStoryId", storyId!);
+      await _markStoryActivity();
     }
 
     // ---------- إرسال طلب إنشاء صورة ----------
@@ -2102,7 +2244,7 @@ void _addAIImageToCanvas(String url) {
       "height": 250.0,
     });
   });
-
+_markStoryActivity();
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(content: Text("✨ AI Image Added!")),
   );
