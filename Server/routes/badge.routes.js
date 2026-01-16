@@ -4,8 +4,4 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 
 export const badgeRouter = express.Router();
 
-badgeRouter.get(
-  "/badge/my",
-  authMiddleware.authentication,
-  badgeController.getChildBadges
-);
+badgeRouter.get( "/badge/my", authMiddleware.authentication,badgeController.getChildBadges);

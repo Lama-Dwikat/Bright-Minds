@@ -59,8 +59,6 @@ if (userData.cv) {
         { expiresIn: "7d" }               
       );
        
-      
-      //res.status(200).send("Signin Successful");
        res.status(200).json({
         message: "Signin Successful",
         token,
@@ -285,6 +283,8 @@ async linkChildToParent(req, res) {
     }
 
     },
+
+
     async getKidsForSupervisor(req, res) {
         try {
             const supervisorId = req.params.id;
@@ -296,7 +296,7 @@ async linkChildToParent(req, res) {
     },
     
 
-       async addFavouriteVideo(req, res) {
+    async addFavouriteVideo(req, res) {
     try {
       const { videoId } = req.body; // data from client
       const updatedUser = await userService.addFavouriteVideo(req.params.id, videoId);
@@ -324,7 +324,7 @@ async linkChildToParent(req, res) {
       return res.status(500).json({ error: error.message });                  }
        },
        
- async getParentKids(req,res){
+     async getParentKids(req,res){
         try{
      const user = await userService.getParentKids(req.params.parentId);
   return res.status(200).json(user);

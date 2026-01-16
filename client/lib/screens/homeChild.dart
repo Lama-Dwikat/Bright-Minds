@@ -16,6 +16,9 @@ import 'package:bright_minds/screens/childStory/childBadgesScreen.dart';
 import 'package:bright_minds/screens/childDrawing/childDrawingActivities.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:bright_minds/screens/gameKids.dart';
+
+
 
 class HomeChild extends StatefulWidget {
   const HomeChild({super.key});
@@ -207,9 +210,10 @@ class _HomeChildState extends State<HomeChild> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
+                      MaterialPageRoute(builder: (_) => const gamesKidScreen()),
                     );
                   },
+
                 ),
                 _mainButton(
                   label: "Drawing",

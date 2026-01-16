@@ -1,75 +1,10 @@
-// import Game from "../models/game.model.js";
 
-// export const GameService = {
-//   async createGame() {
-//     const number = Math.floor(Math.random() * 100) + 1;
-//     const game = new Game({ numberToGuess: number });
-//     await game.save();
-//     return game;
-//   },
-
-//   async checkGuess(guess) {
-//     const game = await Game.findOne().sort({ _id: -1 });
-//     if (!game) throw new Error("No game found");
-
-//     if (guess < game.numberToGuess) return "Too low";
-//     if (guess > game.numberToGuess) return "Too high";
-//     return "Correct!";
-//   },
-//     async create(data) {
-//     const g = new Game(data);
-//     return g.save();
-//   },
-//   async update(id, data) {
-//     return Game.findByIdAndUpdate(id, data, { new: true });
-//   },
-//   async get(id) {
-//     return Game.findById(id);
-//   },
-//   async list(filter = {}) {
-//     // Only return published by default
-//     if (!filter.status) filter.status = "published";
-//     return Game.find(filter).sort({ createdAt: -1 });
-//   },
-//   async remove(id) {
-//     return Game.findByIdAndDelete(id);
-//   },
-//   async generateClockQuestion(difficulty = "easy") {
-//   let hour, minute;
-
-//   if (difficulty === "easy") {
-//     hour = Math.floor(Math.random() * 12) + 1;
-//     minute = 0;
-//   } else if (difficulty === "medium") {
-//     hour = Math.floor(Math.random() * 12) + 1;
-//     minute = Math.floor(Math.random() * 12) * 5;
-//   } else {
-//     hour = Math.floor(Math.random() * 12) + 1;
-//     minute = Math.floor(Math.random() * 60);
-//   }
-
-//   return { hour, minute };
-// },
-
-// async generateMathQuestion(operation, min, max) {
-//   const a = Math.floor(Math.random() * (max - min + 1)) + min;
-//   const b = Math.floor(Math.random() * (max - min + 1)) + min;
-
-//   let answer;
-//   if (operation === "add") answer = a + b;
-//   if (operation === "subtract") answer = a - b;
-//   if (operation === "multiply") answer = a * b;
-
-//   return { a, b, operation, answer };
-// }
-
-
-// };
 
 
 import Game from "../models/game.model.js";
 import OpenAI from "openai";
 import axios from "axios";
+import badgeService from "./badge.service.js";
 
 
 const openai=new OpenAI({
@@ -103,6 +38,13 @@ export const gameService = {
     return games;
   },
 
+    async getGameByName(name){
+    const games = await Game.find({name:name});
+    if (games.length===0) throw new Error("Game not found");
+
+    return games;
+  },
+
   async getAllGames(){
     const games = await Game.find();
     if (games.length===0) throw new Error("Game not found");
@@ -110,8 +52,10 @@ export const gameService = {
   },
 
   async getGamesByAgeGroup(ageGroup){
-    const games = await Game.find({ageGroup:ageGroup, isPublished:true});
-    if (games.length===0) throw new Error("Game not found");
+  const games = await Game.find({
+    ageGroup: { $in: [ageGroup, "5-12"] },
+    isPublished: true
+  });  
     return games;
   },
 
@@ -145,7 +89,7 @@ export const gameService = {
   },
 
   async generateGuessClue(word, ageGroup) {
-    const prompt = `Generate a simple clue to help guess the word "${word}" for children aged ${ageGroup}. The clue should be easy to understand and related to the word, make it children friendly , dont include the word`;
+    const prompt = `Generate a simple clue to help guess the word "${word}" for children aged ${ageGroup}. The clue should be easy to understand and related to the word, make it children friendly , dont include the word and make it short`;
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
@@ -155,16 +99,82 @@ export const gameService = {
       return response.choices[0].message.content.trim();
   },
 
+  async generateThemeWords(theme, ageGroup) {
+  const prompt = `
+Generate a list of 15 simple, kid-friendly words related to the theme "${theme}" 
+suitable for children aged ${ageGroup}. 
+
+From these, pick 5 words that are **real compound words** that can be split into two smaller words. 
+For each, return in this format:
+  Word1 + Word2 = FullWord
+
+Do not include any words that cannot be split into two meaningful words. 
+Return the full result as a JSON object like this:
+
+{
+  "words": ["Word1", "Word2", ..., "Word35"],
+  "compoundWords": [
+    {"compound": "Rain + Bow = Rainbow"},
+    {"compound": "Sun + Flower = Sunflower"}
+  ]
+}
+
+  `;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 400,
+  });
+
+  const resultText = response.choices[0].message.content.trim();
+
+  try {
+    return JSON.parse(resultText);
+  } catch (e) {
+    console.error("Failed to parse AI response:", resultText);
+    return { words: [], compoundWords: [] };
+  }
+},
+
+
+
+
+
+
   async fetchClueImages (word) {
   const response = await axios.get("https://pixabay.com/api/", {
     params: {
       key: process.env.PIXABAY_KEY,
-      q: word  + "+cartoon",
+      q: word ,
+      // + "+cartoon",
       image_type: "illustration",
-      per_page: 5 // number of images
+      per_page: 4 // number of images
     }
   });
   return response.data.hits.map(hit => hit.webformatURL);
+},
+
+async saveScoreService (gameId, userId, score , isComplete = false) {
+const game = await Game.findById(gameId);
+  if (!game) throw new Error("Game not found");
+
+  const existing = game.playedBy.find(p => p.userId.toString() === userId);
+  if (existing) {
+    existing.score = Math.max(existing.score, score);
+    if (isComplete) existing.complete = true; // mark complete only if finished
+  } else {
+    game.playedBy.push({ userId, score, complete: isComplete });
+  }
+
+  await game.save();
+
+  // ✅ Check for Champion Gamer badge after completion
+  if (isComplete) {
+    await badgeService.checkGameCompletionBadges(userId);
+  }
+
+  return game;
 },
 
 

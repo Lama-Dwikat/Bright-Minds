@@ -179,7 +179,23 @@ async submitQuiz(req, res) {
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
+},
+// quiz.controller.js
+async getQuizzesSolvedByUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const quizzes = await quizService.getQuizzesSolvedByUser(userId);
+
+    if (!quizzes || quizzes.length === 0) {
+      return res.status(404).json({ message: "No quizzes found for this user" });
+    }
+
+    res.status(200).json({ quizzes });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 }
+
 
 
 

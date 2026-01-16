@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import StoryView from "../models/storyView.model.js";
 import Badge from "../models/badge.model.js";
 import Story from "../models/story.model.js"; // ✅ ضروري لعدّ القصص
+import Game from "../models/game.model.js";
+
 
 export const badgeService = {
   // 🥇 بادج: أول قصة / قصص الطفل
@@ -66,6 +68,27 @@ export const badgeService = {
     await Badge.create({ childId, type, earnedAt: new Date() });
     console.log(`🏅 Badge earned: ${type} by child ${childId}`);
   },
+
+
+
+async checkGameCompletionBadges(childId) {
+  try {
+    const completedGamesCount = await Game.countDocuments({
+      "playedBy.userId": childId,
+      "playedBy.complete": true,
+    });
+
+    console.log(`🎮 User ${childId} has completed ${completedGamesCount} games`);
+
+    if (completedGamesCount >= 2) {
+      await this.giveBadge(childId, "Champion Gamer"); // only saves if not exists
+    }
+
+  } catch (error) {
+    console.error("❌ Game Completion Badge error:", error.message);
+  }
+}
+
 };
 
 export default badgeService;

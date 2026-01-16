@@ -16,8 +16,9 @@ import uploadRouter  from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
 import { playlistRouter } from "./routes/playlist.route.js";    
 import { historyRouter} from "./routes/videoHistory.route.js"; 
-import {dailywatchRouter} from './routes/dailyWatch.route.js'
 import { notificationRouter } from "./routes/notification.routes.js";
+import {dailywatchRouter} from './routes/dailyTime.route.js'
+
 import { gameRouter } from "./routes/game.route.js";
 import storyTemplateRouter from "./routes/storyTemplate.routes.js";
 import { badgeRouter } from "./routes/badge.routes.js";
@@ -57,7 +58,7 @@ app.use('/api', storyRouter);
 app.use('/api',videoRouter);
 app.use('/api',quizRouter);
 app.use('/api', aiRouter);
-app.use('/api',quizeRouter);
+app.use('/api',quizRouter);
 app.use('/api/ai', aiRouter);
 app.use('/api', reviewStoryRouter);
 app.use('/api', storyLikeRouter );

@@ -161,6 +161,18 @@ export const gameController={
     }
   },
 
+    async getGamesByName(req,res){
+   try{
+      const games =await gameService.getGameByName(req.params.name);
+      res.status(200).json(games);
+    }catch(e){
+      if (e.message === "Game not found") {
+        return res.status(404).json({ message: e.message });
+        }
+      res.status(500).json({error:e.message});
+    }
+  },
+
   async  updateGameById(req,res){
   try{
     const updatedGame=await gameService.updateGameById(req.params.id,req.body);
@@ -224,6 +236,20 @@ export const gameController={
       res.status(500).json({ error: err.message });
     }
   },
+
+     async generateThemeWords(req, res) {
+    try {
+      const { theme, ageGroup } = req.body;
+      const words = await gameService.generateThemeWords(theme, ageGroup);
+      res.status(200).json(words);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
+
+
+
   async getClueImages (req, res) {
   try {
     const { word } = req.query; // word to get images for
@@ -234,4 +260,23 @@ export const gameController={
   }
 },
 
-}
+
+
+async saveUserScore (req, res) {
+ try {
+    const { gameId, userId, score, complete } = req.body;
+
+    if (!gameId || !userId || score == null) {
+      return res.status(400).json({ message: "Missing required data" });
+    }
+
+    const game = await gameService.saveScoreService(gameId, userId, score, complete);
+
+    return res.json({ message: "Score saved successfully", game });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+
+},
+};

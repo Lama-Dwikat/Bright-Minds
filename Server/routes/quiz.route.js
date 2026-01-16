@@ -17,5 +17,6 @@ quizRouter.put("/quiz/update-question/:quizId/:questionIndex",quizController.upd
 quizRouter.post( "/quiz/check-pronunciation/:quizId/:questionIndex", quizController.checkPronunciation);
 quizRouter.get('/quiz/getQuizByVideoId/:videoId',quizController.getQuizByVideoId);
 quizRouter.post("/quiz/submitQuiz", quizController.submitQuiz);
+quizRouter.get('/quiz/solvedByUser/:userId', quizController.getQuizzesSolvedByUser);
 
 

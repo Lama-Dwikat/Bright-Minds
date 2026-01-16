@@ -154,7 +154,7 @@ child: Padding(
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProfilePage(userId: userId!),
+                      builder: (context) => ProfilePage(),
                     ),
                   );
                 } else if (value == 'LogOut') {
