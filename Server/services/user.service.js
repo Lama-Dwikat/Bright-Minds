@@ -109,7 +109,8 @@ export  const userService = {
 
         // Get all users
     async getAllUsers() {
-        return await User.find().select('-profilePicture -cv');
+        return await User.find();
+        //.select('-profilePicture -cv');
     },
 
     // Approve CV
@@ -204,6 +205,13 @@ async getUserByParentCode(code) {
 
             async getParentKids(parentId){
                 return await User.find({parentId:parentId});
+            },
+                async getAdmins(){
+                return await User.find({role:"admin"});
+            },
+
+                 async getSupervisors(){
+                return await User.find({role:"supervisor"});
             }
 };
 

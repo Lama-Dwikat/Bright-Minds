@@ -27,6 +27,9 @@ import { drawingCopyAiRouter } from "./routes/drawingCopyAi.route.js";
 import { drawingTimeRouter } from "./routes/drawingTime.route.js";
 import { kidsQuoteRouter } from "./routes/kidsQuote.routes.js";
 import { colorByNumberProgressRouter } from "./routes/colorByNumberProgress.route.js";
+import {chatRouter} from "./routes/chat.route.js";
+import { initChatSocket } from "./services/socket.service.js";
+import authMiddleware from "./middlewares/auth.middleware.js";
 
 const app = express()
 const server = http.createServer(app);
@@ -77,6 +80,8 @@ app.use("/api", drawingRouter);
 app.use("/api", drawingCopyAiRouter);
 app.use("/api", drawingTimeRouter);
 app.use("/api", kidsQuoteRouter);
+app.use("/api", chatRouter);
+
 app.use("/", colorByNumberProgressRouter);
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");

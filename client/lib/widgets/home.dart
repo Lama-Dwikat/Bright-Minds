@@ -19,7 +19,7 @@ import 'package:bright_minds/screens/homeChild.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
 import 'package:bright_minds/screens/homeAdmin.dart';
 import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
-
+import 'package:bright_minds/screens/chat.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -284,13 +284,37 @@ child: Padding(
 ),
 
                     const SizedBox(width: 29),
+                    // navItem(
+                    //   icon: Icons.chat_outlined,
+                    //   label: "Messages",
+                    //   color: Colors.white,
+                    //   onTap: () {
+                    //     Navigator.push(context,MaterialPageRoute(builder: (context)=> ChatUsersScreen(currentUserId:userId!)));
+                    //   },
+                    //   iconSize: MediaQuery.of(context).size.width * 0.09,
+                    // ),
                     navItem(
-                      icon: Icons.chat_outlined,
-                      label: "Messages",
-                      color: Colors.white,
-                      onTap: () {},
-                      iconSize: MediaQuery.of(context).size.width * 0.09,
-                    ),
+  icon: Icons.chat_outlined,
+  label: "Messages",
+  color: Colors.white,
+  onTap: () {
+    if (userId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatUsersScreen(currentUserId: userId!),
+        ),
+      );
+    } else {
+      print("User ID not loaded yet.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Loading user data, please wait...")),
+      );
+    }
+  },
+  iconSize: MediaQuery.of(context).size.width * 0.09,
+),
+
                     navItem(
                       icon: Icons.settings_outlined,
                       label: "Settings",

@@ -29,7 +29,8 @@ userRouter.post("/users/addFavouriteVideo/:id", userController.addFavouriteVideo
 userRouter.post("/users/deleteFavouriteVideo/:id", userController.deleteFavouriteVideo);
 userRouter.get("/users/getUserFavourite/:id", userController.getUserFavourite);
 userRouter.get("/users/getParentKids/:parentId", userController.getParentKids);
-
+userRouter.get("/users/getAdmins/", userController.getAdmins);
+userRouter.get("/users/getSupervisors/", userController.getSupervisos);
 
 
 
