@@ -1,49 +1,4 @@
-// import mongoose from "mongoose";
 
-// const gameSchema = new mongoose.Schema({
-//     numberToGuess: { type: Number, 
-//         required: true },
-// //      type: { type: String, required: true }, // 'spelling'
-// //   title: String,
-// //   ageGroup: String,
-// //   word: String,
-// //   clueImage: String,
-// //   letters: [String],
-// //   audio: { wordAudio: String, lettersAudioBase: String },
-// //   settings: Object,
-// //   status: { type: String, default: "draft" },
-// //   createdBy: String,
-// //   createdAt: { type: Date, default: () => new Date() },
-// //   clockGame: {
-// //   enabled: { type: Boolean, default: false },
-// //   difficulty: { type: String, default: "easy" }, // easy | medium | hard
-// // },
-
-// // mathGame: {
-// //   enabled: { type: Boolean, default: false },
-// //   operation: { type: String, default: "add" }, // add | subtract | multiply
-// //   min: { type: Number, default: 1 },
-// //   max: { type: Number, default: 10 }
-// // },
-
-// // score: { type: Number, default: 0 },
-
-
-// },
-
-// {
-//     timestamps:true,
-// }
-// );
-
-
-
-
-
-
-
-// const Game = mongoose.model("Game", gameSchema);
-// export default Game;
 
 
 import mongoose from "mongoose";
@@ -53,10 +8,11 @@ const gameSchema= new mongoose.Schema({
         required:true,
     },
     input:[{
-        text:mongoose.Schema.Types.Mixed,
-        image:String,
-        correctAnswer:mongoose.Schema.Types.Mixed,
+        text:[mongoose.Schema.Types.Mixed],
+        image:[String],
+        correctAnswer:[mongoose.Schema.Types.Mixed],
          clue: String, 
+         lettersClue: [String],
         level:{
             type:Number,
             default:1,
@@ -64,7 +20,7 @@ const gameSchema= new mongoose.Schema({
     }],
     ageGroup:{
         type:String,
-        enum:["3-5","6-8","9-12"],
+        enum:["5-8","9-12","5-12"],
         required:true,
     },
     createdBy:{
@@ -77,8 +33,11 @@ const gameSchema= new mongoose.Schema({
             type:mongoose.Schema.Types.ObjectId,
             ref:"User"
         },
-        score: { type: Number, default: 0 }
+        score: { type: Number, default: 0 },
+        complete: { type: Boolean, default: false },
+        playedAt: { type: Date, default: Date.now }
     }
+
     ],
     isPublished:{
         type:Boolean,
@@ -87,9 +46,22 @@ const gameSchema= new mongoose.Schema({
     description:String,
     type:{
         type:String,
-        enum:["Spelling","Math","Clock", "Memory","Puzzle","Snake","Sorting","Matching","Guessing"],
+        enum:["Spelling","Math","Clock", "Memory","Puzzle","Snake","Sorting","Matching","Guessing","Grid","MissLetters", "Ruler"],
         required:true,
-    }
+    },
+    
+    theme:String,
+
+    maxTrials: { 
+      type: Number, 
+       default: 3 }, 
+
+     scorePerQuestion: { type: Number, default: 1},
+      Image:[String],
+     
+
+
+      timePerQuestionMin: { type: Number, default: 15 },
 
 },
 {

@@ -17,8 +17,17 @@ date:{
     type:Date,
     required:true,
 },
+limitPlayMin:{
+    type:Number,
+    default:30
+},
+dailyPlayMin:{
+    type:Number,
+    default:0,
+},
 },
 {
+
     timestamps:true
 }
 );

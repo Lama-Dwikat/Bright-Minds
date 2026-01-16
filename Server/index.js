@@ -16,7 +16,7 @@ import uploadRouter  from './routes/upload.routes.js';
 import { taskRouter } from './routes/task.route.js';
 import { playlistRouter } from "./routes/playlist.route.js";    
 import { historyRouter} from "./routes/videoHistory.route.js"; 
-import {dailywatchRouter} from './routes/dailyWatch.route.js'
+import {dailywatchRouter} from './routes/dailyTime.route.js'
 import { gameRouter } from "./routes/game.route.js";
 
 const app = express()

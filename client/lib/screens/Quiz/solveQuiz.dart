@@ -27,6 +27,9 @@ class _SolveQuizPageState extends State<SolveQuizPage> {
   String? userId;
   final FlutterTts flutterTts = FlutterTts();
   final stt.SpeechToText _speech = stt.SpeechToText();
+bool showResult = false;
+int score = 0;
+List<bool> correctAnswers = [];
 
   @override
   void initState() {
@@ -177,7 +180,7 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
 }
 
 
-  @override
+ @override
   Widget build(BuildContext context) {
     if (loading) {
       return const Scaffold(
@@ -194,54 +197,85 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
     final questions = quizData!["questions"] as List<dynamic>;
 
     return Scaffold(
-      appBar: AppBar(title: Text(quizData!["title"] ?? "Solve Quiz")),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: questions.length,
-        itemBuilder: (context, index) {
-          final q = questions[index];
-          final options = q["options"] as List<dynamic>;
-          final questionType = q["question_type"];
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+       // centerTitle: true,
+        title: Text(
+          quizData!["title"] ?? "Fun Quiz 🎉",
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.deepPurple,
+          ),
+        ),
+      ),
+      //extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: quizBackground(),
+        child: ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: questions.length,
+          itemBuilder: (context, index) {
+            final q = questions[index];
+            final options = q["options"] as List<dynamic>;
+            final questionType = q["question_type"];
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: quizCardDecoration(),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Question Text with TTS
+                  // Question Header
                   Row(
                     children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.purple,
+                        child: Text(
+                          "${index + 1}",
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          "Q${index + 1}: ${q["question_text"]}",
+                          q["question_text"],
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.volume_up),
+                        icon: const Icon(Icons.volume_up, color: Colors.pink),
                         onPressed: () => speak(q["question_text"] ?? ""),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 5),
+                  const SizedBox(height: 10),
+
                   // Question Image
                   if (q["question_image"] != null)
-                    Image.memory(
-                      base64Decode(q["question_image"]),
-                      height: 150,
-                      fit: BoxFit.cover,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.memory(
+                        base64Decode(q["question_image"]),
+                        height: 160,
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  // Question Audio (for TTS pronunciation)
-                  if (q["question_audio"] != null &&
-                      q["question_audio"].toString().isNotEmpty)
+                  const SizedBox(height: 10),
+
+                  // Question Audio
+                  if (q["question_audio"] != null && q["question_audio"].toString().isNotEmpty)
                     Row(
                       children: [
-                        const Text("Listen Word: "),
+                        const Text("🔊 Listen: "),
                         IconButton(
-                          icon: const Icon(Icons.volume_up),
+                          icon: const Icon(Icons.volume_up, color: Colors.purple),
                           onPressed: () => speak(q["question_audio"]),
                         ),
                       ],
@@ -250,31 +284,67 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
 
                   // Voice-answer type
                   if (questionType == "voice-answer")
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: isListeningMap[index] == true
-                                  ? () => stopListening(index)
-                                  : () => startListening(index),
-                              child: Text(isListeningMap[index] == true ? "Stop" : "Speak"),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "🎤 Speak your answer!",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text("You said: ${spokenAnswers[index] ?? ""}"),
-                            ),
-                            ElevatedButton(
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              ElevatedButton.icon(
+                                icon: Icon(
+                                  isListeningMap[index] == true ? Icons.stop : Icons.mic,
+                                ),
+                                label: Text(isListeningMap[index] == true ? "Stop" : "Speak"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 223, 159, 235),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                                onPressed: isListeningMap[index] == true
+                                    ? () => stopListening(index)
+                                    : () => startListening(index),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  spokenAnswers[index] ?? "Say something...",
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Center(
+                            child: ElevatedButton(
                               onPressed: () => checkVoiceAnswer(index, q["correctAnswer"] ?? ""),
-                              child: const Text("Check Answer"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text("✅ Check Answer"),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
 
-                  // Options for multiple-choice or true-false
+                  // Multiple-choice / True-False
                   if (questionType != "voice-answer")
                     Column(
                       children: options.asMap().entries.map((entry) {
@@ -282,18 +352,15 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
                         var opt = entry.value;
                         Widget optionWidget;
 
-                        if (opt["optionText"] != null &&
-                            opt["optionText"].toString().isNotEmpty) {
+                        if (opt["optionText"] != null && opt["optionText"].toString().isNotEmpty) {
                           optionWidget = Text(opt["optionText"]);
-                        } else if (opt["optionImage"] != null &&
-                            opt["optionImage"].toString().isNotEmpty) {
+                        } else if (opt["optionImage"] != null && opt["optionImage"].toString().isNotEmpty) {
                           optionWidget = Image.memory(
                             base64Decode(opt["optionImage"]),
                             height: 100,
                             fit: BoxFit.cover,
                           );
-                        } else if (opt["optionAudio"] != null &&
-                            opt["optionAudio"].toString().isNotEmpty) {
+                        } else if (opt["optionAudio"] != null && opt["optionAudio"].toString().isNotEmpty) {
                           optionWidget = Row(
                             children: [
                               const Text("Audio Option"),
@@ -307,42 +374,69 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
                           optionWidget = const Text("No Content");
                         }
 
-                        return Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile(
-                                title: optionWidget,
-                                value: opt["optionText"] ??
-                                    opt["optionAudio"] ??
-                                    "Image_${index}_$optIndex",
-                                groupValue: answers[index],
-                                onChanged: (v) => selectAnswer(index, v),
-                              ),
-                            ),
-                            // TTS for text options
-                            if (opt["optionText"] != null &&
-                                opt["optionText"].toString().isNotEmpty)
-                              IconButton(
-                                icon: const Icon(Icons.volume_up),
-                                onPressed: () => speak(opt["optionText"]),
-                              ),
-                          ],
+                        return RadioListTile(
+                          value: opt["optionText"] ?? opt["optionAudio"] ?? "Image_${index}_$optIndex",
+                          groupValue: answers[index],
+                          onChanged: (v) => selectAnswer(index, v),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          tileColor: Colors.pink.shade50,
+                          title: optionWidget,
+                          activeColor: Colors.purple,
                         );
                       }).toList(),
                     ),
                 ],
               ),
-            ),
-          );
-        },
+            );
+          },
+          
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
         child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            backgroundColor: Colors.deepPurple,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
           onPressed: submitQuiz,
-          child: const Text("Submit Quiz"),
+          child: const Text(
+            "🎉 Submit Quiz",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color:Colors.white),
+          ),
         ),
       ),
     );
   }
+}
+
+BoxDecoration quizBackground() {
+  return const BoxDecoration(
+    gradient: LinearGradient(
+      colors: [
+        Color(0xFFFFD6E8),
+        Color(0xFFD6ECFF),
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  );
+}
+BoxDecoration quizCardDecoration() {
+  return BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(20),
+    boxShadow: [
+      BoxShadow(
+        color: Colors.pink.withOpacity(0.2),
+        blurRadius: 8,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  );
 }

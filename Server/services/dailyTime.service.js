@@ -1,4 +1,4 @@
-import Dailywatch from "../models/dailyWatch.model.js";
+import Dailywatch from "../models/dailyTime.model.js";
 
 
 export const dailywatchService={
@@ -21,7 +21,6 @@ async getDailywatchRecord(userId){
 
 
 async calculateDailyWatch(userId , minutes){
-   // const today = this.normalizeDate();
     let record = await this.getDailywatchRecord(userId);
     if (record.dailyWatchMin >= record.limitWatchMin){
         return  {allowed:false,message:"Daily Watch Limit Reached"};
@@ -59,7 +58,8 @@ async canWatch(userId){
     return  await Dailywatch.findOneAndDelete({userId:userId,date:today});
 
  },
- async getUserWatchRecord(userId){
+ 
+ async getUserRecord(userId){
     return await Dailywatch.find({userId});
        
 

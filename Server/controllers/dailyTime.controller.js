@@ -1,4 +1,4 @@
-import {dailywatchService} from "../services/dailyWatch.service.js";
+import {dailywatchService} from "../services/dailyTime.service.js";
 
 
 export const dailywatchController={

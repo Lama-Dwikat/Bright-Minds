@@ -153,8 +153,26 @@ async submitQuiz(data) {
   await quiz.save();
 
   return { totalMark, attemptNumber: submission ? submission.attemptNumber : 1 };
-}
+},
 
+// quiz.service.js
+async getQuizzesSolvedByUser(userId) {
+  // Find all quizzes where the submissions array contains this user
+  const quizzes = await Quiz.find({ "submissions.userId": userId });
+
+  // Map to include quiz title and user's mark
+  const result = quizzes.map(quiz => {
+    const submission = quiz.submissions.find(s => s.userId.toString() === userId);
+    return {
+      quizId: quiz._id,
+      quizTitle: quiz.title,
+      totalMark: submission ? submission.totalMark : 0,
+      attemptNumber: submission ? submission.attemptNumber : 0
+    };
+  });
+
+  return result;
+}
 
 
   }

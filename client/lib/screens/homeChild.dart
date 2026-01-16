@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/screens/childStory.dart';
 import 'package:bright_minds/screens/videosKids.dart';
+import 'package:bright_minds/screens/gameKids.dart';
 
 
 class HomeChild extends StatefulWidget {
@@ -121,7 +122,7 @@ class _HomeChildState extends State<HomeChild> {
                  // icon: Icons.videogame_asset_rounded,
                  imagePath: "assets/images/Games.png",
                   color: Colors.green[100]!,
-                 onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => StoryKidsScreen()));},
+                 onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => gamesKidScreen()));},
 
                 ),
                 _mainButton(

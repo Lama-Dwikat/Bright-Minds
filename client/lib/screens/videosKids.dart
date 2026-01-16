@@ -12,7 +12,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'dart:async';
-import 'package:bright_minds/screens/solveQuiz.dart';
+import 'package:bright_minds/screens/Quiz/solveQuiz.dart';
 
 
 
@@ -187,108 +187,6 @@ class _VideosKidState extends State<VideosKidScreen> {
   // Play video
   // -------------------------
 
-
-// void playVideo(dynamic video) async {
-//   // 1️⃣ Check if user can watch
-//   final canWatch = await canWatchVideo(); 
-//   if (!canWatch) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text("Daily watch limit reached! Try again tomorrow."))
-//     );
-//     return; // block playback
-//   }
-
-//   // 2️⃣ Dispose old controller
-//   // if (ytController != null) {
-//   //   ytController!.pause();
-//   //   ytController!.dispose();
-//   // }
-// if (ytController != null) {
-//   ytController!.pause();          // NEW: pause old video
-//   ytController!.dispose();        // NEW: dispose old controller
-//   ytController = null;            // NEW: explicitly set to null
-// }
-// _positionTimer?.cancel();          // NEW: cancel previous timer
-// saveFinalDuration();               // NEW: save old video's duration
-
-
-//   final videoId = YoutubePlayer.convertUrlToId(video['url']);
-//   if (videoId == null) return;
-
- 
-
-//   setState(() {
-//      ytController = YoutubePlayerController(
-//     initialVideoId: videoId,
-//     flags: const YoutubePlayerFlags(autoPlay: true, mute: false),
-//   );
-
-//     currentVideo = video;
-//     recommendedVideos = []; // clear previous recommendations
-//   });
-//   ytController!.addListener(videoListener);
-
-//   // 3️⃣ Save history
-//   await saveWatchHistory(video['_id']);
-
-//   // 4️⃣ Increment video views
-//   try {
-//     // await http.put(
-//     //   Uri.parse("${getBackendUrl()}/api/videos/incrementView/${video['_id']}"),
-//     //   headers: {"Content-Type": "application/json"},
-//     // );
-//     await http.put(
-//   Uri.parse("${getBackendUrl()}/api/videos/incrementView/${video['_id']}"),
-//   headers: {"Content-Type": "application/json"},
-//   body: jsonEncode({"userId": userId}),
-// );
-
-//   } catch (e) {
-//     print("❌ Failed to increment view: $e");
-//   }
-
-//   // 5️⃣ Stop previous timer
-//   _positionTimer?.cancel();
-//   int _lastSentSeconds = 0;
-
-//   _positionTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
-//     if (_currentHistoryId == null || ytController == null) return;
-
-//     final posSeconds = ytController!.value.position.inSeconds;
-//     final incrementSeconds = posSeconds - _lastSentSeconds; // only send new seconds
-//     if (incrementSeconds <= 0) return;
-
-//     _lastSentSeconds = posSeconds;
-//     final incrementMinutes = incrementSeconds / 60;
-
-//     final response = await http.post(
-//       Uri.parse("${getBackendUrl()}/api/dailywatch/calculateRecord/$userId"),
-//       headers: {"Content-Type": "application/json"},
-//       body: jsonEncode({"minutes": incrementMinutes}),
-//     );
-
-//     if (response.statusCode == 200) {
-//       final data = jsonDecode(response.body);
-//       if (!data['allowed']) {
-//         // Stop video immediately if daily limit reached
-//         _positionTimer?.cancel();
-//         ytController?.pause();
-//         ytController?.dispose();
-//         setState(() {
-//           currentVideo = null;
-//           ytController = null;
-//         });
-
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text("Daily watch limit reached!"))
-//         );
-//       }
-//     }
-//   });
-
-//   // 6️⃣ Load recommended videos if needed
-//    loadRecommendedVideos();
-// }
 
 void playVideo(dynamic video) async {
   final canWatch = await canWatchVideo(); 

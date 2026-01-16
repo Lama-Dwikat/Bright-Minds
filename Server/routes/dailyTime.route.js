@@ -1,4 +1,4 @@
-import { dailywatchController } from "../controllers/dailyWatch.controller.js";
+import { dailywatchController } from "../controllers/dailyTime.controller.js";
 import express from "express";
 
 export const dailywatchRouter=express.Router();
