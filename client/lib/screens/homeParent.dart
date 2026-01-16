@@ -8,8 +8,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
 import 'package:bright_minds/screens/parentDrawing/parentDrawingReport.dart';
+import 'package:bright_minds/screens/parentStory/parentStoryReport.dart';
 
-// ⭐ استيراد شاشة رسومات الأطفال للأهل
 import 'package:bright_minds/screens/parentDrawing/parentKidsDrawings.dart';
 
 class HomeParent extends StatefulWidget {
@@ -192,9 +192,25 @@ Padding(
           );
         },
       ),
+      const SizedBox(height: 12),
+_buildParentActionCard(
+  context,
+  title: "Story Writing Report",
+  subtitle: "Histogram + stories + supervisor review",
+  icon: Icons.menu_book_rounded,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ParentStoryTimeReportScreen(),
+      ),
+    );
+  },
+),
     ],
   ),
 ),
+
 
 
           // --- Date picker button ---
