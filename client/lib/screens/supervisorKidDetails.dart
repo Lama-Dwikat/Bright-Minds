@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class KidDetails extends StatefulWidget {
   final Map<String, dynamic> kid;
@@ -25,6 +27,10 @@ class _KidDetailsState extends State<KidDetails> {
   String parentName = "Loading...";
   List kidHistory =  [];
    Map<String, List> videoHistoryByKid = {};
+Map<String, List> storiesByKid = {};
+bool loadingStories = false;
+Map<String, List> drawingsByKid = {};
+bool loadingDrawings = false;
 
 
   @override
@@ -32,6 +38,9 @@ class _KidDetailsState extends State<KidDetails> {
     super.initState();
     fetchParentName();
      getKidHistory(widget.kid['_id']);
+     getKidStories(widget.kid['_id']);
+getKidDrawings(widget.kid['_id']);
+
 
   }
 
@@ -105,11 +114,116 @@ class _KidDetailsState extends State<KidDetails> {
       print("❌ Error fetching history: $err");
     }
   }
+ Future<String?> _getToken() async {
+  
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString("token");
+}
+
+Future<void> getKidStories(String kidId) async {
+  setState(() => loadingStories = true);
+
+  try {
+    final token = await _getToken();
+    if (token == null) {
+      print("❌ No token found");
+      storiesByKid[kidId] = [];
+      setState(() {});
+      return;
+    }
+
+    final response = await http.get(
+      Uri.parse('${getBackendUrl()}/api/story/getstoriesbychild/$kidId'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // بعض الأحيان بيرجع {success:true,data:[...]} أو بيرجع array مباشرة
+      List storiesList;
+      if (data is Map && data["data"] is List) {
+        storiesList = data["data"];
+      } else if (data is List) {
+        storiesList = data;
+      } else {
+        storiesList = [];
+      }
+
+      storiesByKid[kidId] = storiesList;
+      setState(() {});
+    } else {
+      print("❌ Failed stories: ${response.statusCode} ${response.body}");
+      storiesByKid[kidId] = [];
+      setState(() {});
+    }
+  } catch (e) {
+    print("❌ Error fetching stories: $e");
+    storiesByKid[kidId] = [];
+    setState(() {});
+  } finally {
+    setState(() => loadingStories = false);
+  }
+}
+Future<void> getKidDrawings(String kidId) async {
+  setState(() => loadingDrawings = true);
+
+  try {
+    final token = await _getToken();
+    if (token == null) {
+      drawingsByKid[kidId] = [];
+      setState(() {});
+      return;
+    }
+
+    final response = await http.get(
+      Uri.parse('${getBackendUrl()}/api/supervisor/kid-drawings/$kidId'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List list;
+      if (data is Map && data["data"] is List) {
+        list = data["data"];
+      } else if (data is List) {
+        list = data;
+      } else {
+        list = [];
+      }
+
+      drawingsByKid[kidId] = list;
+      setState(() {});
+    } else {
+      drawingsByKid[kidId] = [];
+      setState(() {});
+      print("❌ Failed drawings: ${response.statusCode} ${response.body}");
+    }
+  } catch (e) {
+    drawingsByKid[kidId] = [];
+    setState(() {});
+    print("❌ Error fetching drawings: $e");
+  } finally {
+    setState(() => loadingDrawings = false);
+  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
     final age = calculateAge(widget.kid["age"]);
        kidHistory = videoHistoryByKid[widget.kid['_id']] ?? [];
+       final kidStories = storiesByKid[widget.kid['_id']] ?? [];
+final kidDrawings = drawingsByKid[widget.kid['_id']] ?? [];
+
     final profilePictureBytes = widget.kid["profilePicture"]?["data"]?["data"];
     final profilePicture = (profilePictureBytes != null && profilePictureBytes is List)
         ? ClipOval(
@@ -271,7 +385,278 @@ ExpansionTile(
   ],
 ),
 
+const SizedBox(height: 12),
 
+ExpansionTile(
+  title: const Text(
+    "Stories History",
+    style: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    ),
+  ),
+  children: [
+    if (loadingStories)
+      const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: CircularProgressIndicator(),
+      )
+    else if (kidStories.isEmpty)
+      const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Text("No stories available."),
+      )
+    else
+      SizedBox(
+        height: 230, // ✅ اكبر عشان ما يصير overflow
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: kidStories.map((storyItem) {
+              final title = (storyItem['title'] ?? "Untitled").toString();
+              final status = (storyItem['status'] ?? "unknown").toString();
+
+              final cover = storyItem['coverImage'];
+              final updatedAt = storyItem['updatedAt'];
+
+              final latestReview = storyItem['latestReview'];
+
+              String reviewedText = "No review";
+              if (latestReview != null && latestReview is Map) {
+                final rating = latestReview['rating'];
+                final comment = latestReview['comment'];
+                final stars = (rating is int) ? ("⭐" * rating) : "";
+                reviewedText = "$stars ${comment ?? ""}".trim();
+              }
+
+              String dateText = "Unknown";
+              try {
+                if (updatedAt != null) {
+                  dateText = DateFormat('yyyy-MM-dd')
+                      .format(DateTime.parse(updatedAt).toLocal());
+                }
+              } catch (_) {}
+
+              return SizedBox(
+                height: 210, // ✅ مهم جداً عشان Expanded يشتغل
+                child: Container(
+                  width: 170,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: (cover != null &&
+                                cover.toString().startsWith("http"))
+                            ? Image.network(
+                                cover,
+                                width: double.infinity,
+                                height: 75,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: double.infinity,
+                                height: 75,
+                                color: const Color(0xFFFFE0E0),
+                                child: const Icon(
+                                  Icons.menu_book_rounded,
+                                  size: 32,
+                                  color: Color(0xFFD97B83),
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 6),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 2),
+
+                            Text(
+                              "Status: $status",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
+                            ),
+
+                            const SizedBox(height: 2),
+                            Text(
+                              "Updated: $dateText",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.grey),
+                            ),
+
+                            const SizedBox(height: 4),
+                            Text(
+                              reviewedText,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+  ],
+),
+
+
+const SizedBox(height: 12),
+
+ExpansionTile(
+  title: const Text(
+    "Drawings History",
+    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+  ),
+  children: [
+    if (loadingDrawings)
+      const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: CircularProgressIndicator(),
+      )
+    else if (kidDrawings.isEmpty)
+      const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Text("No drawings available."),
+      )
+    else
+      SizedBox(
+        height: 220,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: kidDrawings.map((d) {
+              final status = (d['status'] ?? "unknown").toString();
+              final updatedAt = d['updatedAt'];
+
+              // ✅ الصورة: حسب شو راجع عندك
+              // ممكن تكون d["imageUrl"] أو d["drawingImage"] أو media.url
+final img = d['drawingUrl'];
+
+              // اسم النشاط لو عملنا populate
+              final activityTitle = (d['activityId'] is Map)
+                  ? (d['activityId']['title'] ?? "Drawing").toString()
+                  : "Drawing";
+
+              String dateText = "Unknown";
+              try {
+                if (updatedAt != null) {
+                  dateText = DateFormat('yyyy-MM-dd')
+                      .format(DateTime.parse(updatedAt).toLocal());
+                }
+              } catch (_) {}
+
+              return SizedBox(
+                height: 200,
+                child: Container(
+                  width: 170,
+                  margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: (img != null && img.toString().startsWith("http"))
+                            ? Image.network(
+                                img.toString(),
+                                width: double.infinity,
+                                height: 90,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: double.infinity,
+                                height: 90,
+                                color: const Color(0xFFFFE0E0),
+                                child: const Icon(Icons.brush_rounded,
+                                    size: 32, color: Color(0xFFD97B83)),
+                              ),
+                      ),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              activityTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "Status: $status",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "Updated: $dateText",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+  ],
+),
 
 
 

@@ -738,5 +738,51 @@ async getDrawingImageForSupervisor(req, res) {
     }
   },
 
+async getDrawingsByKidForSupervisor(req, res) {
+  try {
+    const { kidId } = req.params;
+
+    // ✅ debug صحيح
+    console.log("kidId param =", kidId);
+
+    const any = await ChildDrawing.findOne().select("_id childId activityId isSubmitted createdAt");
+    console.log("sample drawing =", any);
+
+    const count1 = await ChildDrawing.countDocuments({ childId: kidId });
+    console.log("count childId =", count1);
+
+    // ✅ هان في خيارين:
+    // 1) تجيبي كل الرسومات
+    // 2) أو بس submitted (زي شاشة السوبرفايزر العامة)
+    // أنا بخليها تجيب الكل عشان KidDetails يكون “History”
+    const drawings = await ChildDrawing.find({ childId: kidId })
+      .sort({ createdAt: -1 })
+      .populate("activityId", "title type imageUrl outlineImageUrl")
+      .select(
+        "_id childId activityId createdAt updatedAt isSubmitted submittedAt rating supervisorComment drawingUrl drawingImage"
+      );
+
+    const result = drawings.map((d) => ({
+      id: d._id,
+      activityId: d.activityId?._id,
+      activityTitle: d.activityId?.title ?? "Drawing",
+      activityType: d.activityId?.type ?? "",
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+      isSubmitted: d.isSubmitted ?? false,
+      submittedAt: d.submittedAt ?? null,
+      rating: d.rating ?? null,
+      supervisorComment: d.supervisorComment ?? "",
+      drawingUrl: d.drawingUrl ?? "",
+      // fallback base64 (اختياري)
+      hasBuffer: !!d.drawingImage?.data,
+    }));
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (e) {
+    console.error("getDrawingsByKidForSupervisor error:", e);
+    return res.status(500).json({ success: false, message: e.message });
+  }
+},
 
 };

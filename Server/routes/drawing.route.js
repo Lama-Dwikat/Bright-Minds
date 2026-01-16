@@ -156,3 +156,9 @@ drawingRouter.get(
   roleMiddleware(["parent"]),
   childDrawingController.getKidsDrawingsForParent
 );
+drawingRouter.get(
+  "/supervisor/kid-drawings/:kidId",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  childDrawingController.getDrawingsByKidForSupervisor
+);
