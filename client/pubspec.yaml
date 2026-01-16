@@ -36,7 +36,7 @@ dependencies:
   http_parser: ^4.0.2
   image: ^4.2.0
   flutter_colorpicker: ^1.0.3
-
+  open_filex: ^4.5.0
 
 
 

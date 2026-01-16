@@ -19,7 +19,9 @@ import 'package:bright_minds/screens/homeChild.dart';
 import 'package:bright_minds/screens/homeSupervisor.dart';
 import 'package:bright_minds/screens/homeAdmin.dart';
 import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
-
+import 'package:bright_minds/screens/Settings/parentSettingsScreen.dart';
+import 'package:bright_minds/screens/Settings/childSettingsScreen.dart';
+import 'package:bright_minds/screens/Settings/supervisorSettingsScreen.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -295,7 +297,31 @@ child: Padding(
                       icon: Icons.settings_outlined,
                       label: "Settings",
                       color: Colors.white,
-                      onTap: () {},
+                      onTap: () {
+  if (role == 'parent') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ParentSettingsScreen()),
+    );
+  }
+  else if (role == 'child') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChildSettingsScreen()),
+    );
+  } else if (role == 'supervisor') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SupervisorSettingsScreen()),
+    );
+  } else {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ParentSettingsScreen()),
+    );
+  }
+},
+
                       iconSize: MediaQuery.of(context).size.width * 0.09,
                     ),
                   ],

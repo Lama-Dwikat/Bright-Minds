@@ -28,7 +28,30 @@ userRouter.get('/users/kidsForSupervisor/:id', userController.getKidsForSupervis
 userRouter.post("/users/addFavouriteVideo/:id", userController.addFavouriteVideo);
 userRouter.post("/users/deleteFavouriteVideo/:id", userController.deleteFavouriteVideo);
 userRouter.get("/users/getUserFavourite/:id", userController.getUserFavourite);
-userRouter.get("/users/getParentKids/:parentId", userController.getParentKids);
+//userRouter.get("/users/getParentKids/:parentId", userController.getParentKids);
+userRouter.post(
+  "/users/link-child-by-email",
+  authMiddleware.authentication,
+  userController.linkChildToParentByEmail
+);
+userRouter.get(
+  "/users/my-kids",
+  authMiddleware.authentication,
+  userController.getMyKids
+);
+userRouter.post(
+  "/users/link-child-by-email",
+  authMiddleware.authentication,
+  userController.linkChildToParentByEmail
+);
+
+userRouter.post("/users/unlink-child", authMiddleware.authentication, roleMiddleware(["parent"]), userController.unlinkChild);
+userRouter.get(
+  "/users/my-cv",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor"]),
+  userController.getMyCv
+);
 
 
 

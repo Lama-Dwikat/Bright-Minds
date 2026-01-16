@@ -157,7 +157,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Edit field dialog
-  Future<void> _editField(String field) async {
+  /*Future<void> _editField(String field) async {
     final controller = TextEditingController(text: user?[field] ?? "");
 
     final updated = await showDialog<String>(
@@ -196,7 +196,54 @@ class _ProfilePageState extends State<ProfilePage> {
         debugPrint("Failed to update $field");
       }
     }
+  }*/
+  Future<void> _editField(String field) async {
+  final controller = TextEditingController(text: user?[field] ?? "");
+
+  final updated = await showDialog<String>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text("Edit ${field[0].toUpperCase()}${field.substring(1)}"),
+      content: TextField(
+        controller: controller,
+        decoration: InputDecoration(hintText: "Enter new $field"),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          child: const Text("Save"),
+        ),
+      ],
+    ),
+  );
+
+  if (updated != null && updated.isNotEmpty) {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final response = await http.put(
+      Uri.parse('${getBackendUrl()}/api/users/updateprofile/$userId'),
+      headers: {
+        "Content-Type": "application/json",
+        if (token != null) "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({field: updated}),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        user?[field] = updated;
+      });
+    } else {
+      debugPrint("Failed to update $field: ${response.body}");
+    }
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

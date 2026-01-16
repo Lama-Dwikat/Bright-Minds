@@ -1,6 +1,7 @@
 import {userService} from '../services/user.service.js';
 import mongoose, { get } from 'mongoose';
 import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 export const userController = {
 
@@ -324,13 +325,143 @@ async linkChildToParent(req, res) {
       return res.status(500).json({ error: error.message });                  }
        },
        
-     async getParentKids(req,res){
+   /*  async getParentKids(req,res){
         try{
      const user = await userService.getParentKids(req.params.parentId);
   return res.status(200).json(user);
     } catch (error) {
       return res.status(500).json({ error: error.message });                  }
-       },
+       },*/
+       async getParentKids(req, res) {
+  try {
+    const { parentId } = req.params;
+
+    const kids = await User.find({
+      parentId: parentId,
+      role: "child",
+    }).select("_id name email age ageGroup parentId");
+
+    return res.status(200).json(kids);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+
+
+/*(req, res) {
+  try {
+    if (req.user.role !== "parent") {
+      return res.status(403).json({ error: "Only parents can view kids" });
+    }
+    const kids = await userService.getParentKids(req.user._id);
+    return res.status(200).json(kids);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}*/
+async getMyKids(req, res) {
+  try {
+    if (req.user.role !== "parent") {
+      return res.status(403).json({ error: "Only parents can view kids" });
+    }
+
+    const kids = await userService.getParentKids(req.user._id);
+    return res.status(200).json(kids);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+
+//  Parent links a child using child's email
+async linkChildToParentByEmail(req, res) {
+  try {
+    const { childEmail } = req.body;
+
+    if (!childEmail) {
+      return res.status(400).json({ error: "childEmail is required" });
+    }
+
+    // only parent can link
+    if (req.user.role !== "parent") {
+      return res.status(403).json({ error: "Only parents can link children" });
+    }
+
+    const email = childEmail.toLowerCase().trim();
+
+    // find child
+    const child = await userService.getUserByEmail(email);
+    if (!child) {
+      return res.status(404).json({ error: "Child must register first" });
+    }
+
+    if (child.role !== "child") {
+      return res.status(400).json({ error: "Email is not for a child account" });
+    }
+
+    // already linked to another parent?
+    if (child.parentId && child.parentId.toString() !== req.user._id.toString()) {
+      return res.status(409).json({ error: "Child already linked to another parent" });
+    }
+
+    child.parentId = req.user._id;
+    await child.save();
+
+    return res.status(200).json({
+      message: "Child linked successfully",
+      child: { id: child._id, name: child.name, email: child.email, parentId: child.parentId },
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+// Parent unlink child (remove parentId)
+async unlinkChild(req, res) {
+  try {
+    const { childId } = req.body;
+
+    if (!childId) return res.status(400).json({ error: "childId is required" });
+
+    if (req.user.role !== "parent") {
+      return res.status(403).json({ error: "Only parents can unlink children" });
+    }
+
+    const child = await User.findById(childId);
+    if (!child) return res.status(404).json({ error: "Child not found" });
+
+    // ensure this child belongs to THIS parent
+    if (!child.parentId || child.parentId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "This child is not linked to you" });
+    }
+
+    child.parentId = null;
+    await child.save();
+
+    return res.status(200).json({ message: "Unlinked ✅" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+// GET /api/users/my-cv
+async getMyCv(req, res) {
+  try {
+    if (req.user.role !== "supervisor") {
+      return res.status(403).json({ error: "Only supervisors can view CV" });
+    }
+
+    const u = await User.findById(req.user._id);
+    if (!u) return res.status(404).json({ error: "User not found" });
+
+    if (!u.cv || !u.cv.data) {
+      return res.status(404).json({ error: "No CV uploaded" });
+    }
+
+    res.set("Content-Type", u.cv.contentType || "application/pdf");
+    return res.status(200).send(u.cv.data); // send pdf bytes
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+},
 
 
 }

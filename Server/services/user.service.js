@@ -202,9 +202,11 @@ async getUserByParentCode(code) {
      return user?.favouriteVideos.map(v => v.video.toString()) || [];    
                   },
 
-            async getParentKids(parentId){
-                return await User.find({parentId:parentId});
-            }
+           async getParentKids(parentId) {
+  return await User.find({ role: "child", parentId })
+    .select("_id name email age ageGroup parentId profilePicture createdAt");
+}
+
 };
 
 
