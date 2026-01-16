@@ -59,13 +59,47 @@ async canWatch(userId){
 
  },
  
+
+
+
  async getUserRecord(userId){
     return await Dailywatch.find({userId});
-       
-
+    
 },
 
 
+async calculateDailyPlay(userId, minutes) {
+    let record = await this.getDailywatchRecord(userId);
+
+    if (record.dailyPlayMin >= record.limitPlayMin) {
+      return { allowed: false, message: "Daily Game Limit Reached" };
+    }
+
+    const newTotal = record.dailyPlayMin + minutes;
+    if (newTotal >= record.limitPlayMin) {
+      record.dailyPlayMin = record.limitPlayMin;
+      await record.save();
+      return { allowed: false, message: "Daily Game Limit Reached" };
+    }
+
+    record.dailyPlayMin = newTotal;
+    await record.save();
+    return { allowed: true, data: newTotal };
+  },
+
+  async canPlay(userId) {
+    let record = await this.getDailywatchRecord(userId);
+    return { allowed: record.dailyPlayMin < record.limitPlayMin };
+  },
+
+  async calculatePlayTimeRemaining(userId) {
+    let record = await this.getDailywatchRecord(userId);
+    if (record.dailyPlayMin >= record.limitPlayMin) {
+      return { allowed: false, message: "Daily Game Limit Reached" };
+    }
+    const min = record.limitPlayMin - record.dailyPlayMin;
+    return { allowed: true, data: min };
+  },
 
 
 

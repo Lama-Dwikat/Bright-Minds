@@ -19,7 +19,7 @@ date:{
 },
 limitPlayMin:{
     type:Number,
-    default:30
+    default:45
 },
 dailyPlayMin:{
     type:Number,

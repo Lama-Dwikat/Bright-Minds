@@ -45,6 +45,81 @@ class _gamesKidState extends State<gamesKidScreen> {
     return "http://localhost:3000";
   }
 
+
+
+
+Timer? _gameTimer;
+int _sessionSeconds = 0;
+
+// Start a timer when a game starts
+void _startGameTimer() {
+  _sessionSeconds = 0;
+  _gameTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _sessionSeconds++;
+  });
+}
+
+// Stop timer and send elapsed minutes to backend
+Future<void> _endGameTimerAndSave() async {
+  _gameTimer?.cancel();
+  final elapsedMinutes = _sessionSeconds / 60.0;
+
+  final url = Uri.parse("${getBackendUrl()}/api/dailywatch/calculatePlay/$userId");
+  try {
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"minutes": elapsedMinutes}),
+    );
+
+    final data = jsonDecode(response.body);
+    if (!data['allowed']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(data['message'] ?? "Daily game limit reached")),
+      );
+    }
+  } catch (e) {
+    debugPrint("❌ Error saving play time: $e");
+  }
+}
+
+// Check if user can play before opening a game
+Future<bool> _canPlay() async {
+  final url = Uri.parse("${getBackendUrl()}/api/dailywatch/canPlay/$userId");
+  try {
+    final response = await http.get(url);
+    final data = jsonDecode(response.body);
+    return data['allowed'] ?? false;
+  } catch (e) {
+    debugPrint("❌ Error checking play permission: $e");
+    return false;
+  }
+}
+
+Future<void> _openGame(Widget Function() gameScreenBuilder) async {
+  // 1️⃣ Check if user can play
+  bool allowed = await _canPlay();
+  if (!allowed) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("You have reached the daily 40-minute game limit.")),
+    );
+    return; // stop here
+  }
+
+  // 2️⃣ Start counting time
+  _startGameTimer();
+
+  // 3️⃣ Open the game screen
+  await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => gameScreenBuilder()),
+  );
+
+  // 4️⃣ Stop timer and save play time to backend
+  await _endGameTimerAndSave();
+}
+
+
   // -------------------------
   // Load Games
   // -------------------------
@@ -137,82 +212,38 @@ class _gamesKidState extends State<gamesKidScreen> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(28),
+           
+
                       onTap: () {
-                        // -------------------------
-                        // INLINE GAME NAVIGATION
-                        // -------------------------
-                        if (game['type'] == 'Guessing') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                 GuessGameScreen(),
-                            ),
-                          );
-                        } else if (game['type'] == 'Snake') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SnakeGameScreen(),
-                            ),
-                          );
-                        } else if (game['type'] == 'Grid') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                              GridGameScreen(),
-                          
-                            ),
-                          );
-                        } else if (game['type'] == 'MissLetters') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                              MissLetterScreen(),
-                          
-                            ),
-                          );
-                        }else if (game['type'] == 'Clock') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                    ClockGameScreen(),
-                          
-                            ),
-                          );}
-                        else if (game['type'] == 'Ruler') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                              RulerGameScreen(),
-                          
-                            ),
-                          );
-                        }
-                         else if (game['type'] == 'Memory') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                              MemoryPlayScreen(),
-                          
-                            ),
-                          );
+  switch (game['type']) {
+    case 'Guessing':
+      _openGame(() => GuessGameScreen());
+      break;
+    case 'Snake':
+      _openGame(() => const SnakeGameScreen());
+      break;
+    case 'Grid':
+      _openGame(() => GridGameScreen());
+      break;
+    case 'MissLetters':
+      _openGame(() => MissLetterScreen());
+      break;
+    case 'Clock':
+      _openGame(() => ClockGameScreen());
+      break;
+    case 'Ruler':
+      _openGame(() => RulerGameScreen());
+      break;
+    case 'Memory':
+      _openGame(() => MemoryPlayScreen());
+      break;
+    default:
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Game not available yet")),
+      );
+  }
+},
 
-
-                        }
-                         else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Game not available yet"),
-                            ),
-                          );
-                        }
-                      },
                       child: Stack(
                         children: [
                           ClipPath(

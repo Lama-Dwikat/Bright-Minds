@@ -74,7 +74,33 @@ async canWatch(req,res){
      }
 
        },
+  async calculateDailyPlay(req, res) {
+    try {
+      const { minutes } = req.body;
+      let record = await dailywatchService.calculateDailyPlay(req.params.id, minutes);
+      return res.status(200).json(record);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to calculate daily play time" });
+    }
+  },
 
+  async canPlay(req, res) {
+    try {
+      const record = await dailywatchService.canPlay(req.params.id);
+      return res.status(200).json(record);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to check game availability" });
+    }
+  },
+
+  async playTimeRemaining(req, res) {
+    try {
+      const record = await dailywatchService.calculatePlayTimeRemaining(req.params.id);
+      return res.status(200).json(record);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to calculate play time remaining" });
+    }
+  },
 
 
     };
