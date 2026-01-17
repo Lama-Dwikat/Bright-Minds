@@ -17,7 +17,7 @@ class Sign extends StatelessWidget {
   children:[
     Container(
  decoration: BoxDecoration(
-    gradient: AppColors.pinkToPeach, // use the gradient here
+    gradient: AppColors.buttonGradientGold  , // use the gradient here
     borderRadius: BorderRadius.circular(10),
   ),
         width: double.infinity,

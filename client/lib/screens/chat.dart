@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:bright_minds/widgets/home.dart';
 
 class ChatMessage {
   final String id;
@@ -142,7 +143,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
 
             if (supResponse.statusCode == 200) {
               final sup = jsonDecode(supResponse.body);
-              filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+            //  filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+            filteredUsers.add({
+  "id": sup["_id"],
+  "name": sup["name"],
+  "image": sup["profilePicture"], // 👈 add this
+});
+
             }
           }
         }
@@ -164,7 +171,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
               );
               if (supResponse.statusCode == 200) {
                 final sup = jsonDecode(supResponse.body);
-                filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+                //filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+                filteredUsers.add({
+  "id": sup["_id"],
+  "name": sup["name"],
+  "image": sup["profilePicture"], // 👈 add this
+});
+
               }
             }
           }
@@ -179,7 +192,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
         if (kidsResponse.statusCode == 200) {
           final kids = jsonDecode(kidsResponse.body) as List;
           for (var kid in kids) {
-            filteredUsers.add({"id": kid["_id"], "name": kid["name"]});
+       //     filteredUsers.add({"id": kid["_id"], "name": kid["name"]});
+       filteredUsers.add({
+  "id": kid["_id"],
+  "name": kid["name"],
+  "image": kid["profilePicture"], // 👈 add this
+});
+
             if (kid['parentId'] != null) {
               final parentResponse = await http.get(
                 Uri.parse("${getBackendUrl()}/api/users/getme/${kid['parentId']}"),
@@ -187,7 +206,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
               );
               if (parentResponse.statusCode == 200) {
                 final parent = jsonDecode(parentResponse.body);
-                filteredUsers.add({"id": parent["_id"], "name": parent["name"]});
+              //  filteredUsers.add({"id": parent["_id"], "name": parent["name"]});
+              filteredUsers.add({
+  "id": parent["_id"],
+  "name": parent["name"],
+  "image": parent["profilePicture"], // 👈 add this
+});
+
               }
             }
           }
@@ -201,7 +226,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
         if (adminsResponse.statusCode == 200) {
           final admins = jsonDecode(adminsResponse.body) as List;
           for (var admin in admins) {
-            filteredUsers.add({"id": admin["_id"], "name": admin["name"]});
+           // filteredUsers.add({"id": admin["_id"], "name": admin["name"]});
+           filteredUsers.add({
+  "id": admin["_id"],
+  "name": admin["name"],
+  "image": admin["profilePicture"], // 👈 add this
+});
+
           }
         }
       } else if (role == "admin") {
@@ -213,7 +244,13 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
         if (supResponse.statusCode == 200) {
           final supervisors = jsonDecode(supResponse.body) as List;
           for (var sup in supervisors) {
-            filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+          //  filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+          filteredUsers.add({
+  "id": sup["_id"],
+  "name": sup["name"],
+  "image": sup["profilePicture"], // 👈 add this
+});
+
           }
         }
 
@@ -245,49 +282,19 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
     }
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(title: const Text("Chat")),
-  //     body: isLoading
-  //         ? const Center(child: CircularProgressIndicator())
-  //         : ListView.builder(
-  //             itemCount: users.length,
-  //             itemBuilder: (context, index) {
-  //               final user = users[index];
-  //               return ListTile(
-  //                 leading: CircleAvatar(
-  //                   backgroundColor: Colors.blueAccent,
-  //                   child: Text(user['name'][0]),
-  //                 ),
-  //                 title: Text(user['name']),
-  //                 onTap: () {
-  //                   Navigator.push(
-  //                     context,
-  //                     MaterialPageRoute(
-  //                       builder: (_) => ChatScreen(
-  //                         currentUserId: widget.currentUserId,
-  //                         otherUserId: user['id'],
-  //                       ),
-  //                     ),
-  //                   );
-  //                 },
-  //               );
-  //             },
-  //           ),
-  //   );
-  // }
+
   @override
 Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFFFF6E5),
-    appBar: AppBar(
-      title: const Text("Friends Chat 💬"),
-      centerTitle: true,
-      backgroundColor: const Color(0xFFFFB703),
-      elevation: 0,
-    ),
-    body: isLoading
+  return HomePage(
+  //  backgroundColor: const Color(0xFFFFF6E5),
+      title: " Users List 💬",
+    child: Container(
+      decoration: const BoxDecoration(
+        color: const Color(0xFFFFF6E5),
+
+      ),
+     
+    child: isLoading
         ? const Center(child: CircularProgressIndicator())
         : ListView.builder(
             padding: const EdgeInsets.all(12),
@@ -301,48 +308,46 @@ Widget build(BuildContext context) {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.orange.withOpacity(0.15),
+                      color: Color(0xFF6E4A4A).withOpacity(0.15),
                       blurRadius: 6,
                       offset: const Offset(0, 4),
                     )
                   ],
                 ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.primaries[index % Colors.primaries.length],
-                    child: Text(
-                      user['name'][0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    user['name'],
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.chat_bubble_outline, color: Colors.orange),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
-                          currentUserId: widget.currentUserId,
-                          otherUserId: user['id'],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+             
+          child:  ListTile(
+  leading: KidAvatar(
+    name: user['name'], 
+    image: user['image'], 
+    index: index,
+  ),
+  title: Text(
+    user['name'] ?? "Unknown",
+    style: const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+  ),
+  trailing: const Icon(Icons.chat_bubble_outline, color: Colors.blue),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          currentUserId: widget.currentUserId,
+          otherUserId: user['id'],
+        ),
+      ),
+    );
+  },
+),
+
+
+            //    )
               );
             },
           ),
+  ),
   );
 }
 
@@ -454,81 +459,22 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(title: const Text("Chat")),
-  //     body: Column(
-  //       children: [
-  //         Expanded(
-  //           child: ListView.builder(
-  //             controller: _scrollController,
-  //             padding: const EdgeInsets.all(8),
-  //             itemCount: messages.length,
-  //             itemBuilder: (context, index) {
-  //               final msg = messages[index];
-  //               final isMe = msg.senderId == widget.currentUserId;
-
-  //               return Column(
-  //                 crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-  //                 children: [
-  //                   _ChatBubble(message: msg.message, isMe: isMe),
-  //                   const SizedBox(height: 2),
-  //                   Text(
-  //                     DateFormat('hh:mm a').format(msg.createdAt),
-  //                     style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-  //                   ),
-  //                 ],
-  //               );
-  //             },
-  //           ),
-  //         ),
-  //         if (isTyping)
-  //           Padding(
-  //             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-  //             child: Align(
-  //               alignment: Alignment.centerLeft,
-  //               child: Text(
-  //                 "${widget.otherUserId} is typing...",
-  //                 style: TextStyle(color: Colors.grey[700], fontStyle: FontStyle.italic),
-  //               ),
-  //             ),
-  //           ),
-  //         SafeArea(
-  //           child: Row(
-  //             children: [
-  //               Expanded(
-  //                 child: TextField(
-  //                   controller: _controller,
-  //                   decoration: const InputDecoration(
-  //                     hintText: "Type a message",
-  //                     contentPadding: EdgeInsets.all(12),
-  //                   ),
-  //                   onChanged: (text) {
-  //                     _socketService.emitTyping(widget.currentUserId, widget.otherUserId, text.isNotEmpty);
-  //                   },
-  //                 ),
-  //               ),
-  //               IconButton(
-  //                 icon: const Icon(Icons.send),
-  //                 onPressed: _sendMessage,
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   @override
 Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFFFF6E5),
     appBar: AppBar(
-      title: const Text("Chat Time 🧸"),
+title: const Text(
+  "Chat Time 🧸",
+  style: TextStyle(
+    color: Colors.white,
+    fontWeight: FontWeight.bold,
+  ),
+),
+
       centerTitle: true,
-      backgroundColor: const Color(0xFF8ECAE6),
+      backgroundColor: const Color.fromARGB(255, 227, 163, 1),
       elevation: 0,
     ),
     body: Column(
@@ -591,7 +537,7 @@ Widget build(BuildContext context) {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: "Say something fun 🎉",
+                      hintText: "Type your message ✨",
                       filled: true,
                       fillColor: const Color(0xFFFFF1C1),
                       border: OutlineInputBorder(
@@ -645,8 +591,8 @@ class _ChatBubble extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
         decoration: BoxDecoration(
           gradient: isMe
-              ? LinearGradient(colors: [Colors.blueAccent, Colors.lightBlueAccent])
-              : LinearGradient(colors: [Colors.grey[300]!, Colors.grey[400]!]),
+              ? LinearGradient(colors: [const Color.fromARGB(255, 119, 87, 75), const Color.fromARGB(255, 154, 114, 99)])
+              : LinearGradient(colors: [const Color.fromARGB(255, 235, 228, 176), const Color.fromARGB(255, 246, 237, 165)]),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -666,6 +612,66 @@ class _ChatBubble extends StatelessWidget {
           style: TextStyle(color: isMe ? Colors.white : Colors.black),
         ),
       ),
+    );
+  }
+}
+
+
+class KidAvatar extends StatelessWidget {
+  final String name;
+  final Map<String, dynamic>? image;
+  final int index;
+
+  const KidAvatar({
+    super.key,
+    required this.name,
+    required this.image,
+    required this.index,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = [
+      const Color(0xFFFF6F91),
+      const Color(0xFFFF9671),
+      const Color(0xFFFFC75F),
+      const Color(0xFF4D96FF),
+      const Color(0xFF6BCB77),
+      const Color(0xFF845EC2),
+    ];
+
+    final bgColor = colors[index % colors.length];
+
+    // 🧠 SAME LOGIC AS CODE 2
+    final imageBytes = image?["data"]?["data"];
+
+    Widget avatarChild;
+
+    if (imageBytes != null && imageBytes is List) {
+      avatarChild = ClipOval(
+        child: Image.memory(
+          Uint8List.fromList(List<int>.from(imageBytes)),
+          fit: BoxFit.cover,
+          width: 52,
+          height: 52,
+        ),
+      );
+    } else {
+    avatarChild = Text(
+  name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : "?",
+  style: const TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  ),
+);
+
+    }
+
+    return CircleAvatar(
+      radius: 26,
+      backgroundColor: bgColor,
+      child: avatarChild,
     );
   }
 }
