@@ -16,7 +16,7 @@ const notificationSchema = new mongoose.Schema(
     // نوع الاشعار (سهل للفلترة في الفرونت)
     type: {
       type: String,
-      enum: ["story", "drawing", "activity", "system"],
+      enum: ["story", "drawing", "activity", "system","video","game"],
       default: "system",
       index: true,
     },
@@ -25,6 +25,9 @@ const notificationSchema = new mongoose.Schema(
     storyId: { type: mongoose.Schema.Types.ObjectId, ref: "Story", default: null },
     drawingId: { type: mongoose.Schema.Types.ObjectId, ref: "ChildDrawing", default: null },
     activityId: { type: mongoose.Schema.Types.ObjectId, ref: "DrawingActivity", default: null },
+    gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", default: null },
+    videoId: { type: mongoose.Schema.Types.ObjectId, ref: "Video", default: null },
+
 
     // مين أرسل/سبب الاشعار
     fromUserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },

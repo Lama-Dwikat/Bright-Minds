@@ -172,7 +172,7 @@ Future<void> _confirmDelete(Map<String, dynamic> drawing, int index) async {
           "My Drawings",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.softSunYellow,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -228,7 +228,7 @@ Widget _buildGrid() {
               onTap: () => _openDrawingFullScreen(drawing),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.bgWarmPinkLight,
+                  color: AppColors.warmHoneyYellow,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: const [
                     BoxShadow(

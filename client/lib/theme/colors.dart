@@ -202,4 +202,105 @@ static const Gradient pinkToPeach = LinearGradient(
 
 
 
+
+
+
+
+
+
+
+
+
+
+//////////new ///////////////////////////////////
+
+// import 'package:flutter/material.dart';
+
+// class AppColors {
+
+  // --------------------------------------------------
+  // 🌼 Base Image Yellows
+  // --------------------------------------------------
+  static const Color creamYellow = Color(0xFFFFF8E6);
+  static const Color pastelYellow = Color(0xFFFFF0C2);
+  static const Color softSunYellow = Color(0xFFFFE7A3);
+  static const Color warmHoneyYellow = Color(0xFFFFD98C);
+  static const Color goldenYellow = Color(0xFFFFC95C);
+
+  // --------------------------------------------------
+  // 🧸 Text Colors (warm & soft – from image vibe)
+  // --------------------------------------------------
+  static const Color textPrimary = Color(0xFF7A4A3E);
+  static const Color textSecondary = Color(0xFF6A554F);
+  static const Color textAccent = Color(0xFF9A5A4A);
+
+  // --------------------------------------------------
+  // ⭐ Quote Section
+  // --------------------------------------------------
+  static const Color quoteCard = Color(0xFFFFE6C9);
+  static const Color quoteInner = Color(0xFFFFF3E8);
+
+  // --------------------------------------------------
+  // 🎮 Home Buttons
+  // --------------------------------------------------
+  static const Color storyButton = Color(0xFFFFE0B8);
+  static const Color videoButton = Color(0xFFFFE6D8);
+  static const Color gamesButton = Color(0xFFFFECE0);
+  static const Color drawingButton = Color(0xFFFFF0DA);
+
+  static const Color publishedStoriesButton = Color(0xFFFFE2C6);
+  static const Color badgesButton = Color(0xFFFFEBCF);
+
+  // --------------------------------------------------
+  // 🌈 Gradients (Smooth – No Dark Tones)
+  // --------------------------------------------------
+  static const Gradient backgroundMain = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      creamYellow,
+      pastelYellow,
+    ],
+  );
+
+  static const Gradient backgroundWarm = LinearGradient(
+    colors: [
+      pastelYellow,
+      softSunYellow,
+    ],
+  );
+
+  static const Gradient cardGradient = LinearGradient(
+    colors: [
+      quoteInner,
+      quoteCard,
+    ],
+  );
+
+  static const Gradient buttonGradientSoft = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      pastelYellow,
+      warmHoneyYellow,
+    ],
+  );
+
+  // static const Gradient buttonGradientGold = LinearGradient(
+  //   colors: [
+  //     softSunYellow,
+  //     goldenYellow,
+  //   ],
+  // );
+
+
+    static const Gradient buttonGradientGold = LinearGradient(
+          begin: Alignment.topLeft,
+    end: Alignment.topRight,
+    colors: [
+      Color.fromARGB(255, 244, 226, 179),
+      Color.fromARGB(255, 249, 216, 157),
+    ],
+  );
 }
+

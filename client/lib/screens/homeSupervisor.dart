@@ -107,6 +107,63 @@ String getBackendUrl() {
       print('Failed to load tasks: ${response.statusCode}');
     }
   }
+void _showAddTaskDialog() {
+  final TextEditingController taskController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Add New Task"),
+        content: TextField(
+          controller: taskController,
+          decoration: const InputDecoration(
+            hintText: "Enter task description",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (taskController.text.trim().isNotEmpty) {
+                addTask(taskController.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      );
+    },
+  );
+}
+Future<void> addTask(String description) async {
+  try {
+    final response = await http.post(
+      Uri.parse("${getBackendUrl()}/api/tasks/addTask"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "description": description,
+        "supervisorId": userId,
+        "done": false,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      fetchTasks(); // refresh list
+    } else {
+      print("Failed to add task: ${response.body}");
+    }
+  } catch (e) {
+    print("Error adding task: $e");
+  }
+}
 
 
 void updateTaskStatus(String taskId, bool isDone) async {
@@ -173,11 +230,11 @@ SizedBox(
                    // padding: const EdgeInsets.all(10),
                    padding: const EdgeInsets.only(left: 5, right: 10, bottom: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.bgWarmPink,
+                      color: AppColors.badgesButton,
                     border: const Border(
-                  top: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
-                   left: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
-                   right: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
+                  top: BorderSide(color: Color.fromARGB(255, 243, 182, 59), width: 2),
+                   left: BorderSide(color: Color.fromARGB(255, 222, 174, 77), width: 2),
+                   right: BorderSide(color: Color.fromARGB(255, 232, 175, 62), width: 2),
                   bottom: BorderSide(color: Colors.transparent, width: 0), // NO BOTTOM BORDER
                     ),     
                                    ),
@@ -196,9 +253,9 @@ SizedBox(
 Container(
  padding: const EdgeInsets.all(12),
   decoration: BoxDecoration(
-    color: AppColors.bgWarmPink,
+    color: const Color.fromARGB(255, 248, 217, 154),
     borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: AppColors.bgSoftPinkVeryDark, width: 1),
+    border: Border.all(color: const Color.fromARGB(255, 213, 160, 55), width: 1),
   ),
   child: Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +280,7 @@ Container(
               margin: const EdgeInsets.only(right: 6),
               decoration: BoxDecoration(
                 color: isToday
-                    ? AppColors.bgSoftPinkVeryDark
+                    ? const Color.fromARGB(255, 199, 153, 61)
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
@@ -240,16 +297,28 @@ Container(
         ),
       ),
       ),
-      const SizedBox(height: 12),
+    //  const SizedBox(height: 12),
 
       // Today's Tasks Header
-      Text(
-        "Today's Tasks",
-        style: GoogleFonts.robotoSlab(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+   Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      "Today's Tasks",
+      style: GoogleFonts.robotoSlab(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
       ),
+    ),
+    IconButton(
+      icon: const Icon(Icons.add_circle, color: Color(0xFF6E4A4A), size: 28),
+      onPressed: () {
+        _showAddTaskDialog();
+      },
+    ),
+  ],
+),
+
 
       const SizedBox(height: 12),
 
@@ -390,18 +459,18 @@ Container(
 
 
               
-              const SizedBox(height: 16),
-           _buildFullWidthButton(
-             label: "Kids",
-           imagePath: "assets/images/kids.png", // <-- your kids image
-              color: AppColors.peachPinkLight,
-              onPressed: () {
-               Navigator.push(
-             context,
-                MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
-             );
-          },
-               ),
+          //     const SizedBox(height: 16),
+          //  _buildFullWidthButton(
+          //    label: "Kids",
+          //  imagePath: "assets/images/kids.png", // <-- your kids image
+          //     color: AppColors.peachPinkLight,
+          //     onPressed: () {
+          //      Navigator.push(
+          //    context,
+          //       MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
+          //    );
+          // },
+          //      ),
 
 
              const SizedBox(height: 16),
@@ -418,7 +487,7 @@ Container(
                   label: "Stories",
                   //icon: Icons.menu_book_rounded,
                   imagePath: "assets/images/story2.png",
-                  color: AppColors.bgBlushRose,
+                    color: const Color(0xFFFFD9C0),
                     onTap: () {
     Navigator.push(
       context,
@@ -433,9 +502,8 @@ Container(
                 ),
                 _mainButton(
                   label: "Videos",
-                 // icon: Icons.ondemand_video_rounded,
                  imagePath: "assets/images/video.png",
-                  color: AppColors.bgBlushRoseLight,
+                  color: const Color.fromARGB(255, 254, 220, 168),
                    onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosPage()));},
 
                 ),
@@ -443,7 +511,7 @@ Container(
                   label: "Games",
                  // icon: Icons.videogame_asset_rounded,
                  imagePath: "assets/images/Games.png",
-                  color: AppColors.bgWarmPinkLight,
+                  color: const Color.fromARGB(255, 244, 201, 152),
                  onTap: () { 
                   Navigator.push(context, MaterialPageRoute(builder: (context) => GamesHomePage()));},
   
@@ -452,7 +520,7 @@ Container(
                   label: "Drawing",
                  // icon: Icons.brush_rounded,
                  imagePath: "assets/images/Drawing.png",
-                  color: AppColors.bgWarmPink,
+                  color: const Color(0xFFF9E2CE),
                  onTap: () {
   Navigator.push(
     context,
@@ -466,6 +534,19 @@ Container(
                 
               ],
             ),
+         const SizedBox(height: 16),
+       _buildFullWidthButton(
+  label: "Kids",
+  imagePath: "assets/images/kids.png",
+  color: const Color(0xFFFFE7C8),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
+    );
+  },
+),
+
 
             const SizedBox(height: 36),
             ],
@@ -573,3 +654,288 @@ Widget _mainButton({
   );
 }
 }
+
+// @override
+//   Widget build(BuildContext context) {
+//     return HomePage(
+//       child: SingleChildScrollView(
+//         padding: const EdgeInsets.all(20),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             const SizedBox(height: 16),
+
+//             // ⭐ Dynamic greeting
+//             Text(
+//               "Hi, $childName! 👋",
+//               style: GoogleFonts.poppins(
+//                 fontSize: 44,
+//                 fontWeight: FontWeight.bold,
+//                 color: const Color(0xFFB66A6A),
+//               ),
+//             ),
+//             Text(
+//               "Ready for a fun learning day?",
+//               style: GoogleFonts.poppins(
+//                 fontSize: 25,
+//                 color: const Color(0xFF5C4B51),
+//               ),
+//             ),
+
+//             const SizedBox(height: 24),
+
+//             // ✨ Quote box (API only)
+//             _quoteCard(),
+
+//             const SizedBox(height: 28),
+
+//             // 🔸 Menu buttons
+//             GridView.count(
+//               crossAxisCount: 2,
+//               shrinkWrap: true,
+//               physics: const NeverScrollableScrollPhysics(),
+//               crossAxisSpacing: 18,
+//               mainAxisSpacing: 18,
+//               children: [
+//                 _mainButton(
+//                   label: "Stories",
+//                   imagePath: "assets/images/story2.png",
+//                   color: const Color(0xFFFFD9C0),
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
+//                     );
+//                   },
+//                 ),
+//                 _mainButton(
+//                   label: "Videos",
+//                   imagePath: "assets/images/video.png",
+//                   color: const Color(0xFFE6C8D5),
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(builder: (_) => const VideosKidScreen()),
+//                     );
+//                   },
+//                 ),
+//                 _mainButton(
+//                   label: "Games",
+//                   imagePath: "assets/images/Games.png",
+//                   color: const Color(0xFFEFD8D8),
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(builder: (_) => const gamesKidScreen()),
+//                     );
+//                   },
+
+//                 ),
+//                 _mainButton(
+//                   label: "Drawing",
+//                   imagePath: "assets/images/Drawing.png",
+//                   color: const Color(0xFFF9E2CE),
+//                   onTap: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                         builder: (context) => const ChildDrawingActivitiesScreen(),
+//                       ),
+//                     );
+//                   },
+//                 ),
+//               ],
+//             ),
+
+//             const SizedBox(height: 25),
+
+    
+
+//             const SizedBox(height: 30),
+
+//             InkWell(
+//               onTap: () {
+//                 Navigator.push(
+//                   context,
+//                   MaterialPageRoute(
+//                     builder: (_) => ChildBadgesScreen(childName: childName),
+//                   ),
+//                 );
+//               },
+//               borderRadius: BorderRadius.circular(20),
+//               child: Container(
+//                 width: double.infinity,
+//                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+//                 decoration: BoxDecoration(
+//                   color: const Color(0xFFFFE7C8),
+//                   borderRadius: BorderRadius.circular(18),
+//                   boxShadow: const [
+//                     BoxShadow(
+//                       color: Colors.black12,
+//                       blurRadius: 6,
+//                       offset: Offset(0, 3),
+//                     ),
+//                   ],
+//                 ),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     const Icon(Icons.emoji_events_rounded,
+//                         color: Color(0xFF6E4A4A), size: 38),
+//                     const SizedBox(width: 10),
+//                     Text(
+//                       "Kids",
+//                       style: GoogleFonts.poppins(
+//                         fontSize: 30,
+//                         fontWeight: FontWeight.w600,
+//                         color: const Color(0xFF6E4A4A),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+
+//             const SizedBox(height: 30),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   // ✅ Quote UI (no image)
+//   Widget _quoteCard() {
+//     return Container(
+//       decoration: BoxDecoration(
+//         color: const Color(0xFFFFE6C9),
+//         borderRadius: BorderRadius.circular(18),
+//       ),
+//       padding: const EdgeInsets.all(14),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.stretch,
+//         children: [
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: Text(
+//                   "✨ Quote of the Day ✨",
+//                   style: GoogleFonts.robotoSlab(
+//                     fontSize: 28,
+//                     fontWeight: FontWeight.bold,
+//                     color: const Color(0xFFAD5E5E),
+//                   ),
+//                 ),
+//               ),
+//               IconButton(
+//                 tooltip: "Refresh",
+//                 onPressed: _quoteLoading ? null : _fetchKidsQuote,
+//                 icon: const Icon(Icons.refresh, color: Color(0xFF6E4A4A)),
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 12),
+
+//           if (_quoteLoading)
+//             const Center(child: CircularProgressIndicator())
+//           else if (_quoteError != null)
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFFFFF3E8),
+//                 borderRadius: BorderRadius.circular(14),
+//               ),
+//               padding: const EdgeInsets.all(12),
+//               child: Text(
+//                 _quoteError!,
+//                 textAlign: TextAlign.center,
+//                 style: GoogleFonts.robotoSlab(
+//                   fontSize: 28,
+//                   color: const Color(0xFF5C4B51),
+//                 ),
+//               ),
+//             )
+//           else
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFFFFF3E8),
+//                 borderRadius: BorderRadius.circular(14),
+//               ),
+//               padding: const EdgeInsets.all(12),
+//               child: Column(
+//                 children: [
+//                   Text(
+//                     _quoteText,
+//                     textAlign: TextAlign.center,
+//                     style: GoogleFonts.robotoSlab(
+//                       fontSize: 25,
+//                       color: const Color(0xFF5C4B51),
+//                     ),
+//                   ),
+//                   if (_quoteAuthor.trim().isNotEmpty) ...[
+//                     const SizedBox(height: 8),
+//                     Text(
+//                       "- $_quoteAuthor",
+//                       style: GoogleFonts.robotoSlab(
+//                         fontSize: 14,
+//                         fontWeight: FontWeight.w600,
+//                         color: const Color(0xFF6E4A4A),
+//                       ),
+//                     ),
+//                   ],
+//                 ],
+//               ),
+//             ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   // 🌼 styled button component
+//   Widget _mainButton({
+//     required String label,
+//     IconData? icon,
+//     String? imagePath,
+//     required Color color,
+//     required VoidCallback onTap,
+//   }) {
+//     return InkWell(
+//       onTap: onTap,
+//       borderRadius: BorderRadius.circular(24),
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: color,
+//           borderRadius: BorderRadius.circular(24),
+//           boxShadow: const [
+//             BoxShadow(
+//               color: Colors.black12,
+//               blurRadius: 6,
+//               offset: Offset(0, 3),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             if (imagePath != null)
+//               Image.asset(
+//                 imagePath,
+//                 height: 90,
+//                 width: 90,
+//                 fit: BoxFit.contain,
+//               )
+//             else if (icon != null)
+//               Icon(icon, size: 48, color: const Color(0xFF8F5F5F)),
+//             const SizedBox(height: 10),
+//             Text(
+//               label,
+//               style: GoogleFonts.poppins(
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//                 color: const Color(0xFF6F4C4C),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

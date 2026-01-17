@@ -4,6 +4,9 @@ import Video from "../models/video.model.js";
 import axios from "axios";
 import dotenv from 'dotenv';
 import mongoose from "mongoose";
+import { Notification } from "../models/notification.model.js";
+import User from "../models/user.model.js"; // add this at the top
+
 dotenv.config();
 
 export const videoService={
@@ -69,9 +72,54 @@ export const videoService={
       return await Video.findByIdAndUpdate(videoId, updateData,{new:true});
     },
   
-    async publishVideo(id , isPublished){
-       return await Video.findByIdAndUpdate(id , {isPublished:isPublished},{new:true})
-    },
+    // async publishVideo(id , isPublished){
+    //    return await Video.findByIdAndUpdate(id , {isPublished:isPublished},{new:true})
+    // },
+
+      async publishVideo(id, isPublished) {
+    const video = await Video.findByIdAndUpdate(
+      id,
+      { isPublished: isPublished },
+      { new: true }
+    );
+
+    if (!video) throw new Error("Video not found");
+
+    // ✅ Only send notification if video is now published
+    if (isPublished) {
+      // Send notification to all users in the relevant age group
+      // (Or to a custom list based on your app logic)
+      await this.sendVideoNotification(video);
+    }
+
+    return video;
+  },
+
+  async sendVideoNotification(video) {
+    try {
+      // Example: find all users in the video's age group
+      // Assuming you have a User model:
+      const users = await User.find({ ageGroup: video.ageGroup });
+
+      const notifications = users.map((user) => ({
+        userId: user._id,
+        title: "New Video Published 🎬",
+        message: `A new video "${video.title}" is available for you!`,
+        type: "video",
+        storyId: null,
+        drawingId: null,
+        activityId: null,
+        fromUserId: video.createdBy,
+        isRead: false,
+      }));
+
+      await Notification.insertMany(notifications);
+
+      console.log(`Notifications sent for video: ${video.title}`);
+    } catch (err) {
+      console.error("Error sending video notifications:", err);
+    }
+  },
     async deleteVideoById(id){
      return await Video.findByIdAndDelete(id);
     },
@@ -106,40 +154,6 @@ export const videoService={
 
 
 
-// Get top 5 videos by views
-// async  getTopViews(supervisorId = null) {
-//   const filter = supervisorId
-//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
-//     : {}; // no filter => all supervisors
-
-//   return await Video.find(filter)
-//     .sort({ views: -1 })
-//     .limit(5)
-//     .select("title views -_id");
-// },
-
-// // Get videos distribution by category
-// async  getVideosDistribution(supervisorId = null) {
-//   const matchStage = supervisorId
-//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
-//     : {};
-
-//   return await Video.aggregate([
-//     { $match: matchStage },
-//     { $group: { _id: "$category", count: { $sum: 1 } } },
-//     { $project: { _id: 0, category: "$_id", count: 1 } },
-//   ]);
-// },
-
-// // Get number of published videos
-// async getVideosNumbers(supervisorId = null) {
-//   const filter = {
-//     isPublished: true,
-//     ...(supervisorId && { createdBy: new mongoose.Types.ObjectId(supervisorId) }),
-//   };
-
-//   return await Video.countDocuments(filter);
-// },
 async  getVideosNumbers(supervisorId = null) {
   let filter = { isPublished: true };
 
@@ -151,40 +165,7 @@ async  getVideosNumbers(supervisorId = null) {
 },
 
 
-// // Get total number of videos
-// async getTotalVideos(supervisorId = null) {
-//   const filter = supervisorId
-//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
-//     : {};
-//   return await Video.countDocuments(filter);
-// },
 
-// Get total number of videos
-// async getTotalVideos(supervisorId = null) {
-//   let filter = {};
-
-//   if (supervisorId && mongoose.Types.ObjectId.isValid(supervisorId)) {
-//     filter.createdBy = new mongoose.Types.ObjectId(supervisorId);
-//   }
-
-//   return await Video.countDocuments(filter);
-// },
-
-// // Get total views
-// async getViewsNumbers(supervisorId = null) {
-//   const matchStage = supervisorId
-//     ? { createdBy: new mongoose.Types.ObjectId(supervisorId) }
-//     : {};
-
-//   const result = await Video.aggregate([
-//     { $match: matchStage },
-//     { $group: { _id: null, totalViews: { $sum: "$views" } } },
-//     { $project: { _id: 0, totalViews: 1 } },
-//   ]);
-
-//   return result.length > 0 ? result[0].totalViews : 0;
-// },
-// Get total number of videos
 async getTotalVideos(supervisorId = null) {
   let filter = {};
 

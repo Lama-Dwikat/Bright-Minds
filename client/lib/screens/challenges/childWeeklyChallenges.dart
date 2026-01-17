@@ -211,9 +211,9 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
   Color _catChipBg(String cat) {
     switch (cat) {
       case "religious":
-        return AppColors.bgWarmPink.withOpacity(0.18);
+        return const Color.fromARGB(255, 240, 199, 152).withOpacity(0.18);
       case "reading":
-        return AppColors.peachPink.withOpacity(0.18);
+        return const Color.fromARGB(255, 244, 223, 191).withOpacity(0.18);
       case "health":
         return Colors.green.withOpacity(0.14);
       case "sport":
@@ -279,7 +279,7 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
               value: percent,
               minHeight: 12,
               backgroundColor: Colors.black.withOpacity(0.06),
-              color: AppColors.bgWarmPink,
+              color: const Color.fromARGB(255, 243, 212, 192),
             ),
           ),
         ],
@@ -310,10 +310,10 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: done ? AppColors.bgSoftPinkLight : Colors.white,
+        color: done ? AppColors.gamesButton : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: done ? AppColors.bgWarmPink : Colors.black12,
+          color: done ? const Color.fromARGB(255, 236, 216, 190) : Colors.black12,
           width: done ? 2 : 1,
         ),
         boxShadow: [
@@ -333,7 +333,7 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
             height: 46,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.peachPink.withOpacity(0.22),
+              color: const Color.fromARGB(255, 241, 223, 197).withOpacity(0.22),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(sticker, style: const TextStyle(fontSize: 24)),
@@ -401,12 +401,12 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: done
-                      ? AppColors.bgWarmPink.withOpacity(0.18)
+                      ? AppColors.drawingButton.withOpacity(0.18)
                       : Colors.black.withOpacity(0.04),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: done
-                    ? const Icon(Icons.check_circle, color: AppColors.bgWarmPinkDark)
+                    ? const Icon(Icons.check_circle, color: Color.fromARGB(255, 249, 224, 190))
                     : locked
                         ? const Icon(Icons.lock_outline, color: Colors.black45)
                         : const Icon(Icons.radio_button_unchecked, color: Colors.black45),
@@ -442,9 +442,9 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
         "Week: ${DateFormat("yyyy-MM-dd").format(_weekStart)} → ${DateFormat("yyyy-MM-dd").format(_weekStart.add(const Duration(days: 6)))}";
 
     return Scaffold(
-      backgroundColor: AppColors.bgSoftPinkLight,
+      backgroundColor: AppColors.badgesButton,
       appBar: AppBar(
-        backgroundColor: AppColors.peachPink,
+        backgroundColor: const Color.fromARGB(255, 239, 214, 186),
         title: const Text("My Challenges"),
         actions: [
           IconButton(
@@ -487,7 +487,7 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const Icon(Icons.star, color: AppColors.bgWarmPink),
+                        const Icon(Icons.star, color: Color.fromARGB(255, 245, 221, 188)),
                       ],
                     ),
                   ),
@@ -508,7 +508,7 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
                                   width: 72,
                                   height: 72,
                                   decoration: BoxDecoration(
-                                    color: AppColors.peachPink.withOpacity(0.22),
+                                    color: const Color.fromARGB(255, 233, 204, 162).withOpacity(0.22),
                                     borderRadius: BorderRadius.circular(22),
                                   ),
                                   child: const Icon(Icons.inbox_outlined, size: 38),
@@ -527,7 +527,7 @@ class _ChildWeeklyChallengesScreenState extends State<ChildWeeklyChallengesScree
                                 const SizedBox(height: 12),
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.bgWarmPink,
+                                    backgroundColor: const Color.fromARGB(255, 249, 219, 176),
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),

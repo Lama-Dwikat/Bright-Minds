@@ -152,219 +152,583 @@ String getBackendUrl() {
 
 
 
-  @override
-  Widget build(BuildContext context) {
-    return Sign(
+//   @override
+//   Widget build(BuildContext context) {
+//     return Sign(
      
-     child:Column(children: [
-      Expanded(
-        flex:2,
-        child:SizedBox(height:10),
-         ),
-         Expanded(
-          flex:6,
-          child:Container(
-            padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
-      decoration:BoxDecoration(
-  color:Colors.white,
-  borderRadius:BorderRadius.only(
-    topLeft:Radius.circular(40),
-    topRight:Radius.circular(40),
-      )
-       ),
-    child:SingleChildScrollView(
-       child:Form(
-      key:_formSignInKey,
-        child:Column(
-     crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Text(" Every login is a new beginning  ",style:TextStyle(
-        fontSize:25,
-        fontWeight:FontWeight.w900,
-        color:Color.fromARGB(137, 8, 0, 0),
-      )
-      ),
-      const SizedBox(
-               height:30,
-             ),
+//      child:Column(children: [
+//       Expanded(
+//         flex:2,
+//         child:SizedBox(height:10),
+//          ),
+//          Expanded(
+//           flex:6,
+//           child:Container(
+//             padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
+//       decoration:BoxDecoration(
+//   color:Colors.white,
+//   borderRadius:BorderRadius.only(
+//     topLeft:Radius.circular(40),
+//     topRight:Radius.circular(40),
+//       )
+//        ),
+//     child:SingleChildScrollView(
+//        child:Form(
+//       key:_formSignInKey,
+//         child:Column(
+//      crossAxisAlignment: CrossAxisAlignment.center,
+//     children: [
+//       Text(" Every login is a new beginning  ",style:TextStyle(
+//         fontSize:25,
+//         fontWeight:FontWeight.w900,
+//         color:Color.fromARGB(135, 56, 44, 17),
+//       )
+//       ),
+//       const SizedBox(
+//                height:30,
+//              ),
         
         
         
       
-TextFormField(
-   controller: emailController,
-   validator: (value) {
- if (value == null || value.isEmpty) {
-    return "Please enter your email";
-     }
- if (!value.contains('@')) return "Invalid email";
-  return null;
-},
-  decoration:InputDecoration(
-    label:Text("Email"),
-    hintText:"Enter your Email",
-    hintStyle:TextStyle(
-      color:Colors.black26,
-    ),
-    prefixIcon: Icon(
-      Icons.email,
-      color:Colors.black26,
-    ),
+// TextFormField(
+//    controller: emailController,
+//    validator: (value) {
+//  if (value == null || value.isEmpty) {
+//     return "Please enter your email";
+//      }
+//  if (!value.contains('@')) return "Invalid email";
+//   return null;
+// },
+//   decoration:InputDecoration(
+//     label:Text("Email"),
+//     hintText:"Enter your Email",
+//     hintStyle:TextStyle(
+//       color:Colors.black26,
+//     ),
+//     prefixIcon: Icon(
+//       Icons.email,
+//       color:Colors.black26,
+//     ),
     
-    border:OutlineInputBorder(
-      borderSide:BorderSide(color: Colors.black12),
-      borderRadius:BorderRadius.circular(10),
-      ),
-     enabledBorder: OutlineInputBorder(
-    borderSide: BorderSide(color:Colors.black12
-    ),
-    borderRadius:BorderRadius.circular(10),
-    )
-    )
-    ),
+//     border:OutlineInputBorder(
+//       borderSide:BorderSide(color: Colors.black12),
+//       borderRadius:BorderRadius.circular(10),
+//       ),
+//      enabledBorder: OutlineInputBorder(
+//     borderSide: BorderSide(color:Colors.black12
+//     ),
+//     borderRadius:BorderRadius.circular(10),
+//     )
+//     )
+//     ),
 
 
-    const SizedBox(
-               height:30,
-             ),
+//     const SizedBox(
+//                height:30,
+//              ),
 
 
 
-    TextFormField(
-      controller: passwordController,
-      obscureText: true,
-      obscuringCharacter: '*',
-      validator:(value){
-        if(value==null || value.isEmpty){
-          return 'Please Enter your Password';
-        }
-        return null;
-        },decoration:InputDecoration(
-          label:Text("Password"),
-          hintText:"Enter Password",
-          hintStyle:TextStyle(
-           // color:const Color.fromARGB(111, 0, 0, 0),
-           color:AppColors.bgBlushRoseVeryDark,
-          ),
+//     TextFormField(
+//       controller: passwordController,
+//       obscureText: true,
+//       obscuringCharacter: '*',
+//       validator:(value){
+//         if(value==null || value.isEmpty){
+//           return 'Please Enter your Password';
+//         }
+//         return null;
+//         },decoration:InputDecoration(
+//           label:Text("Password"),
+//           hintText:"Enter Password",
+//           hintStyle:TextStyle(
+//            // color:const Color.fromARGB(111, 0, 0, 0),
+//            color:AppColors.bgBlushRoseVeryDark,
+//           ),
 
-          prefixIcon:const Icon(
-            (Icons.lock_outline),
-           // color:Color.fromARGB(111, 0, 0, 0)
-                      color:AppColors.bgBlushRoseVeryDark,
+//           prefixIcon:const Icon(
+//             (Icons.lock_outline),
+//            // color:Color.fromARGB(111, 0, 0, 0)
+//                       color:AppColors.bgBlushRoseVeryDark,
 
-          ),
-          border:OutlineInputBorder(
-            borderSide:BorderSide(
-             // color:const Color.fromARGB(77, 0, 0, 0),
-                        color:AppColors.bgBlushRoseVeryDark,
+//           ),
+//           border:OutlineInputBorder(
+//             borderSide:BorderSide(
+//              // color:const Color.fromARGB(77, 0, 0, 0),
+//                         color:AppColors.bgBlushRoseVeryDark,
 
-            ),
-            borderRadius:BorderRadius.circular(10)
-          ),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color:AppColors.bgBlushRoseVeryDark),
-         )
-    )
-    ),
-    SizedBox(
-      height:30),
-      Row(
-         mainAxisAlignment:MainAxisAlignment.spaceBetween,
-        children: [
-      Row(
-        children: [
-       Checkbox(
-        value: rememberPassword,
-        onChanged: (bool? value){
-          setState((){
-            rememberPassword=value!;
-            }
-            );
-            },
+//             ),
+//             borderRadius:BorderRadius.circular(10)
+//           ),
+//       enabledBorder: OutlineInputBorder(
+//         borderSide: BorderSide(color:AppColors.bgBlushRoseVeryDark),
+//          )
+//     )
+//     ),
+//     SizedBox(
+//       height:30),
+//       Row(
+//          mainAxisAlignment:MainAxisAlignment.spaceBetween,
+//         children: [
+//       Row(
+//         children: [
+//        Checkbox(
+//         value: rememberPassword,
+//         onChanged: (bool? value){
+//           setState((){
+//             rememberPassword=value!;
+//             }
+//             );
+//             },
            
-       ),
-            Text("Remember Me", style:TextStyle(
-              color:Colors.black45,
-            ),
-            ),
-        ],
-      ),
-            GestureDetector(
-              child:Text("Forget Password ?",style:TextStyle(
-                fontWeight: FontWeight.bold,
+//        ),
+//             Text("Remember Me", style:TextStyle(
+//               color:Colors.black45,
+//             ),
+//             ),
+//         ],
+//       ),
+//             GestureDetector(
+//               child:Text("Forget Password ?",style:TextStyle(
+//                 fontWeight: FontWeight.bold,
          
-              color:AppColors.bgBlushRoseVeryDark,
+//               color:AppColors.bgBlushRoseVeryDark,
 
-              ))
-            )
+//               ))
+//             )
 
 
           
         
-      ],
-      ),
-      const SizedBox(height: 30,),
-      SizedBox(
-        width:double.infinity,
-        child:ElevatedButton(
-          onPressed: (){
-            if(_formSignInKey.currentState!.validate() && rememberPassword){
+//       ],
+//       ),
+//       const SizedBox(height: 30,),
+//       SizedBox(
+//         width:double.infinity,
+//         child:ElevatedButton(
+//           onPressed: (){
+//             if(_formSignInKey.currentState!.validate() && rememberPassword){
       
-              print("Sign In button pressed");
+//               print("Sign In button pressed");
 
-              SignIn();
-            } 
-            else if (!rememberPassword){
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content:Text('Please agree to the processing of personal data')
-                  ),
-              );
-            }
-          }, 
-         /* onTap:()=>{
-            SignIn(),
-          },*/
-          child: const Text('Sign In')
-          ),
-        ),
-        const SizedBox(height:30),
+//               SignIn();
+//             } 
+//             else if (!rememberPassword){
+//               ScaffoldMessenger.of(context).showSnackBar(
+//                 const SnackBar(
+//                   content:Text('Please agree to the processing of personal data')
+//                   ),
+//               );
+//             }
+//           }, 
+//          /* onTap:()=>{
+//             SignIn(),
+//           },*/
+//           child: const Text('Sign In')
+//           ),
+//         ),
+//         const SizedBox(height:30),
        
-                      // Already have account
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("Don't have an account? "),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                              );
-                            },
-                            child: const Text(
-                              "Sign Up",
-                              style: TextStyle(
-                               color:AppColors.bgBlushRoseVeryDark,
-                                fontWeight: FontWeight.bold,
-                              ),
+//                       // Already have account
+//                       Row(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           const Text("Don't have an account? "),
+//                           GestureDetector(
+//                             onTap: () {
+//                               Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(builder: (context) => const SignUpScreen()),
+//                               );
+//                             },
+//                             child: const Text(
+//                               "Sign Up",
+//                               style: TextStyle(
+//                                color:AppColors.bgBlushRoseVeryDark,
+//                                 fontWeight: FontWeight.bold,
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+       
+//        ],
+//         ),
+//        ),
+//        ),
+//        ),
+//           ),
+//      ],
+//          ),
+//      );
+//   }
+// }
+
+
+       
+      
+
+      @override
+Widget build(BuildContext context) {
+  final Size screenSize = MediaQuery.of(context).size;
+  final double screenHeight = screenSize.height;
+  final double screenWidth = screenSize.width;
+
+  final bool isMobile = screenWidth < 600; // breakpoint
+
+  // MOBILE DESIGN (UNCHANGED)
+  Widget mobileSignIn = Sign(
+    child: Column(
+      children: [
+        Expanded(flex: 2, child: SizedBox(height: 10)),
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formSignInKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Every login is a new beginning",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900,
+                        color: Color.fromARGB(135, 56, 44, 17),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Email Field
+                    TextFormField(
+                      controller: emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your email";
+                        }
+                        if (!value.contains('@')) return "Invalid email";
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        label: Text("Email"),
+                        hintText: "Enter your Email",
+                        hintStyle: TextStyle(color: Colors.black26),
+                        prefixIcon: Icon(Icons.email, color: Colors.black26),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Password Field
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      obscuringCharacter: '*',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter your Password';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        label: Text("Password"),
+                        hintText: "Enter Password",
+                        hintStyle: TextStyle(
+                          color: AppColors.bgBlushRoseVeryDark,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline,
+                          color: AppColors.bgBlushRoseVeryDark,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.bgBlushRoseVeryDark,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.bgBlushRoseVeryDark,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Remember Me & Forget Password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: rememberPassword,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  rememberPassword = value!;
+                                });
+                              },
+                            ),
+                            Text(
+                              "Remember Me",
+                              style: TextStyle(color: Colors.black45),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          child: Text(
+                            "Forget Password?",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.bgBlushRoseVeryDark,
                             ),
                           ),
-                        ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    // Sign In Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formSignInKey.currentState!.validate() &&
+                              rememberPassword) {
+                            SignIn();
+                          } else if (!rememberPassword) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please agree to the processing of personal data')),
+                            );
+                          }
+                        },
+                        child: const Text('Sign In'),
                       ),
-       
-       ],
-        ),
-       ),
-       ),
-       ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Sign Up Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Don't have an account? "),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Sign Up",
+                            style: TextStyle(
+                              color: AppColors.bgBlushRoseVeryDark,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-     ],
-         ),
-     );
-  }
+        ),
+      ],
+    ),
+  );
+
+  // WEB/DESKTOP DESIGN
+  Widget webSignIn = Row(
+    children: [
+      // Left Image
+      Expanded(
+        child: Image.asset(
+          "assets/images/welcome.png",
+          fit: BoxFit.cover,
+          height: screenHeight,
+        ),
+      ),
+      // Right Form
+      Expanded(
+       child: Container(
+          color: const Color.fromARGB(255, 250, 225, 190), 
+        child: Center(
+          child: Container(
+            width: 450,
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 20,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formSignInKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      "Every login is a new beginning",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    // Email Field
+                    TextFormField(
+                      controller: emailController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your email";
+                        }
+                        if (!value.contains('@')) return "Invalid email";
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        label: Text("Email"),
+                        hintText: "Enter your Email",
+                        prefixIcon: Icon(Icons.email, color: Colors.black26),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Password Field
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: true,
+                      obscuringCharacter: '*',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please Enter your Password';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        label: Text("Password"),
+                        hintText: "Enter Password",
+                        prefixIcon: Icon(Icons.lock_outline,
+                            color: AppColors.bgBlushRoseVeryDark),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Remember Me Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: rememberPassword,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              rememberPassword = value!;
+                            });
+                          },
+                        ),
+                        Text(
+                          "Remember Me",
+                          style: TextStyle(color: Colors.black45),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Sign In Button
+                    SizedBox(
+                      height: 55,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 250, 225, 190),
+                        ),
+                        onPressed: () {
+                          if (_formSignInKey.currentState!.validate() &&
+                              rememberPassword) {
+                            SignIn();
+                          } else if (!rememberPassword) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'Please agree to the processing of personal data')),
+                            );
+                          }
+                        },
+                        child: Text(
+                          'Sign In',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // Sign Up Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Don't have an account? "),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Sign Up",
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      ),
+    ],
+  );
+
+  // Return mobile or web layout
+  return Scaffold(
+    body: isMobile ? mobileSignIn : webSignIn,
+  );
 }
-
-
-       
-      
+}
