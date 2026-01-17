@@ -43,10 +43,4 @@ challengeRouter.post(
   authMiddleware.authentication,
   challengeController.markDone
 );
-console.log("✅ challengeRouter routes:");
-challengeRouter.stack.forEach((r) => {
-  if (r.route && r.route.path) {
-    const methods = Object.keys(r.route.methods).join(",").toUpperCase();
-    console.log(methods, r.route.path);
-  }
-});
+
