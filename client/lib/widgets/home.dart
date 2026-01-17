@@ -24,8 +24,9 @@ import 'package:bright_minds/screens/Settings/childSettingsScreen.dart';
 import 'package:bright_minds/screens/Settings/supervisorSettingsScreen.dart';
 import 'package:bright_minds/screens/challenges/SupervisorWeeklyPlannerScreen.dart';
 import 'package:bright_minds/screens/challenges/childWeeklyChallenges.dart';
-
+import 'package:bright_minds/screens/challenges/parentKidWeeklyChallengesScreen.dart';
 import 'package:bright_minds/screens/chat.dart';
+import 'package:bright_minds/screens/challenges/parentChooseKidChallengesScreen.dart';
 
 
 
@@ -284,7 +285,17 @@ child: Padding(
       context,
       MaterialPageRoute(builder: (_) => const ChildWeeklyChallengesScreen()),
     );
-  }else {
+  }
+  else if (role == 'parent') {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const ParentChooseKidChallengesScreen(),
+    ),
+  );
+}
+
+  else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Challenges are available for supervisors only.")),
       );

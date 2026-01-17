@@ -43,4 +43,10 @@ challengeRouter.post(
   authMiddleware.authentication,
   challengeController.markDone
 );
+//challengeRouter.get("/parent/kid-week", authMiddleware.authentication, challengeController.getParentKidWeekProgress);
+challengeRouter.get(
+  "/challenges/parent/kid-week",
+  authMiddleware.authentication,
+  challengeController.getParentKidWeekProgress
+);
 

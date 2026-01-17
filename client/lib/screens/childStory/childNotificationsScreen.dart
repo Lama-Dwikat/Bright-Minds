@@ -23,7 +23,8 @@ class _ChildNotificationsScreenState extends State<ChildNotificationsScreen> {
   String getBackendUrl() {
     
     if (kIsWeb) {
-      return "http://192.168.1.122:3000"; // أو localhost حسبك
+     // return "http://192.168.1.122:3000"; // أو localhost حسبك
+     return "http://localhost:3000";
     } else if (Platform.isAndroid) {
       return "http://10.0.2.2:3000";
     } else {

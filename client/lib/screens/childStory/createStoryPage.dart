@@ -168,8 +168,8 @@ Future<void> _endTiming(String reason) async {
 
 String getBackendUrl() {
   if (kIsWeb) {
-    return "http://192.168.1.63:3000";
-
+   // return "http://192.168.1.63:3000";
+ return "http://localhost:3000";
   } else if (Platform.isAndroid) {
     // Android emulator
     return "http://10.0.2.2:3000";

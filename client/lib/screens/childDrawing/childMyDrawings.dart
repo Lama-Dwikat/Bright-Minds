@@ -22,7 +22,8 @@ class _ChildMyDrawingsScreenState extends State<ChildMyDrawingsScreen> {
 
   String getBackendUrl() {
     if (kIsWeb) {
-      return "http://192.168.1.63:3000";
+     // return "http://192.168.1.63:3000";
+      return "http://localhost:3000";
     } else if (Platform.isAndroid) {
       return "http://10.0.2.2:3000";
     } else {

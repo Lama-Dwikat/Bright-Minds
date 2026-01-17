@@ -72,7 +72,9 @@ class _ClockGameScreenState extends State<ClockGameScreen> {
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb)
+    // return "http://192.168.1.63:3000";
+    return "http://localhost:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }

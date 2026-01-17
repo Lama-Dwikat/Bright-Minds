@@ -1,7 +1,7 @@
 import ChallengeTemplate from "../models/challengeTemplate.model.js";
 import WeeklyChallengePlan from "../models/weeklyChallengePlan.model.js";
 import ChallengeProgress from "../models/challengeProgress.model.js";
-
+import User from "../models/user.model.js";
 function normalizeWeekStart(dateStrOrDate) {
   const d = new Date(dateStrOrDate);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -218,4 +218,43 @@ const ws = weekStart; // already "YYYY-MM-DD"
       return res.status(500).json({ error: error.message });
     }
   },
+  async getParentKidWeekProgress(req, res) {
+  try {
+    if (req.user.role !== "parent") {
+      return res.status(403).json({ error: "Only parent can access this endpoint" });
+    }
+
+    const { kidId, weekStart } = req.query;
+    if (!kidId || !weekStart) {
+      return res.status(400).json({ error: "kidId and weekStart are required" });
+    }
+
+    //const ws = normalizeWeekStart(weekStart);
+const ws = weekStart; // same format stored in DB
+
+    const kid = await User.findOne({ _id: kidId, parentId: req.user._id }).select("_id name email");
+    if (!kid) {
+      return res.status(404).json({ error: "Kid not found or not assigned to this parent" });
+    }
+
+    const plan = await WeeklyChallengePlan.findOne({
+  childIds: kidId,
+  weekStart: ws,
+  isActive: true,
+}).populate("days.templateId", "title category sticker");
+
+    if (!plan) {
+      return res.status(200).json({ kid, plan: null, progress: [] });
+    }
+
+    const progress = await ChallengeProgress.find({
+      planId: plan._id,
+      childId: kidId,
+    }).select("dayIndex done doneAt");
+
+    return res.status(200).json({ kid, plan, progress });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
 };
