@@ -28,6 +28,7 @@ import { drawingTimeRouter } from "./routes/drawingTime.route.js";
 import { kidsQuoteRouter } from "./routes/kidsQuote.routes.js";
 import { colorByNumberProgressRouter } from "./routes/colorByNumberProgress.route.js";
 import { storyWritingTimeRouter } from "./routes/storyWritingTime.route.js";
+import { challengeRouter } from "./routes/challenge.route.js";
 
 const app = express()
 const server = http.createServer(app);
@@ -80,6 +81,8 @@ app.use("/api", drawingTimeRouter);
 app.use("/api", kidsQuoteRouter);
 app.use("/api", storyWritingTimeRouter);
 app.use("/", colorByNumberProgressRouter);
+app.use("/api", challengeRouter);
+
 app.get('/', (req,res) => {
     res.send("hello from node api server using express");
 });

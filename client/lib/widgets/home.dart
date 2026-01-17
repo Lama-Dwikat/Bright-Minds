@@ -22,6 +22,8 @@ import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
 import 'package:bright_minds/screens/Settings/parentSettingsScreen.dart';
 import 'package:bright_minds/screens/Settings/childSettingsScreen.dart';
 import 'package:bright_minds/screens/Settings/supervisorSettingsScreen.dart';
+import 'package:bright_minds/screens/challenges/SupervisorWeeklyPlannerScreen.dart';
+import 'package:bright_minds/screens/challenges/childWeeklyChallenges.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -267,7 +269,24 @@ child: Padding(
                       icon: Icons.emoji_events_outlined,
                       label: "Competitions",
                       color: Colors.white,
-                      onTap: () {},
+                       onTap: () {
+    if (role == "supervisor") {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SupervisorWeeklyPlannerScreen()),
+      );
+    } 
+   else if (role == 'child') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ChildWeeklyChallengesScreen()),
+    );
+  }else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Challenges are available for supervisors only.")),
+      );
+    }
+  },
                       iconSize: MediaQuery.of(context).size.width * 0.09,
                     ),
                     navItem(
