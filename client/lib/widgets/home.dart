@@ -124,6 +124,12 @@ String getBackendUrl() {
  
   @override
   Widget build(BuildContext context) {
+
+      final Size screenSize = MediaQuery.of(context).size;
+  final double screenHeight = screenSize.height;
+  final double screenWidth = screenSize.width;
+
+  final bool isMobile = screenWidth < 600; // breakpoint
     return Scaffold(
       appBar: PreferredSize(
         preferredSize:
@@ -185,7 +191,7 @@ child: Padding(
                   child: Text("Log Out"),
                 ),
               ],
-              color: AppColors.bgSoftPinkLight,
+              color: const Color.fromARGB(255, 198, 159, 82),
               offset: const Offset(0, 50),
               child: CircleAvatar(
                 radius: 25,
@@ -438,3 +444,316 @@ child: Padding(
     );
   }
 }
+
+// import 'package:flutter/material.dart';
+// import 'dart:convert';
+// import 'dart:io';
+// import 'package:http/http.dart' as http;
+// import 'package:bright_minds/widgets/navItem.dart';
+// import 'package:bright_minds/theme/colors.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:flutter/foundation.dart';
+// import 'package:jwt_decoder/jwt_decoder.dart';
+
+// import 'package:bright_minds/screens/Signin.dart';
+// import 'package:bright_minds/screens/profilePage.dart';
+// import 'package:bright_minds/screens/homeParent.dart';
+// import 'package:bright_minds/screens/homeChild.dart';
+// import 'package:bright_minds/screens/homeSupervisor.dart';
+// import 'package:bright_minds/screens/homeAdmin.dart';
+// import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
+// import 'package:bright_minds/screens/Settings/parentSettingsScreen.dart';
+// import 'package:bright_minds/screens/Settings/childSettingsScreen.dart';
+// import 'package:bright_minds/screens/Settings/supervisorSettingsScreen.dart';
+// import 'package:bright_minds/screens/challenges/SupervisorWeeklyPlannerScreen.dart';
+// import 'package:bright_minds/screens/challenges/childWeeklyChallenges.dart';
+// import 'package:bright_minds/screens/chat.dart';
+
+// class HomePage extends StatefulWidget {
+//   const HomePage({super.key, this.child, this.title = "Home"});
+//   final Widget? child;
+//   final String title;
+
+//   @override
+//   State<HomePage> createState() => _HomePageState();
+// }
+
+// class _HomePageState extends State<HomePage> {
+//   String? userId;
+//   String? userName;
+//   String? role;
+//   Uint8List? profileImageBytes;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchUserData();
+//   }
+
+//   void fetchUserData() async {
+//     SharedPreferences pref = await SharedPreferences.getInstance();
+//     String? token = pref.getString('token');
+//     if (token == null) return;
+
+//     final decoded = JwtDecoder.decode(token);
+//     setState(() {
+//       userId = decoded['id'];
+//       userName = decoded['name'];
+//       role = decoded['role'];
+//     });
+
+//     fetchProfilePicture();
+//   }
+
+//   Future<void> fetchProfilePicture() async {
+//     final response = await http.get(
+//       Uri.parse('${getBackendUrl()}/api/users/getme/$userId'),
+//       headers: {"content-type": "application/json"},
+//     );
+
+//     if (response.statusCode == 200) {
+//       final data = jsonDecode(response.body);
+//       setState(() {
+//         profileImageBytes = Uint8List.fromList(
+//           List<int>.from(data['profilePicture']['data']['data']),
+//         );
+//       });
+//     }
+//   }
+
+//   String getBackendUrl() {
+//     if (kIsWeb) return "http://192.168.1.63:3000";
+//     if (Platform.isAndroid) return "http://10.0.2.2:3000";
+//     return "http://localhost:3000";
+//   }
+
+//   // =========================
+//   // BUILD
+//   // =========================
+//   @override
+//   Widget build(BuildContext context) {
+//     final bool isMobile = MediaQuery.of(context).size.width < 700;
+
+//     return isMobile ? _mobileLayout(context) : _webLayout(context);
+//   }
+
+//   // =========================
+//   // MOBILE LAYOUT (UNCHANGED)
+//   // =========================
+//   Widget _mobileLayout(BuildContext context) {
+//     return Scaffold(
+//       appBar: _mobileAppBar(context),
+//       body: SafeArea(
+//         child: widget.child ?? const Center(child: Text("No content")),
+//       ),
+//       bottomNavigationBar: _mobileBottomNav(context),
+//     );
+//   }
+
+//   // =========================
+//   // WEB LAYOUT (NEW)
+//   // =========================
+//   Widget _webLayout(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: const Color.fromARGB(255, 251, 237, 228),
+//       body: Row(
+//         children: [
+//           _webSidebar(context),
+//           Expanded(
+//             child: Column(
+//               children: [
+//                 _webTopBar(context),
+//                 Expanded(
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(24),
+//                     child: widget.child ??
+//                         const Center(child: Text("No content")),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   // =========================
+//   // MOBILE APP BAR
+//   // =========================
+//   PreferredSizeWidget _mobileAppBar(BuildContext context) {
+//     return AppBar(
+//       automaticallyImplyLeading: false,
+//       backgroundColor: const Color.fromARGB(255, 241, 196, 137),
+//       title: Row(
+//         children: [
+//           PopupMenuButton<String>(
+//             onSelected: _handleProfileMenu,
+//             itemBuilder: _profileMenuItems,
+//             child: CircleAvatar(
+//               backgroundImage:
+//                   profileImageBytes != null ? MemoryImage(profileImageBytes!) : null,
+//               child: profileImageBytes == null
+//                   ? const Icon(Icons.person)
+//                   : null,
+//             ),
+//           ),
+//           const SizedBox(width: 10),
+//           Expanded(
+//             child: Text(
+//               widget.title,
+//               style: const TextStyle(
+//                 color: Colors.brown,
+//                 fontWeight: FontWeight.bold,
+//                 fontSize: 22,
+//               ),
+//             ),
+//           ),
+//           Image.asset('assets/images/logo.png', width: 80),
+//         ],
+//       ),
+//     );
+//   }
+
+//   // =========================
+//   // WEB TOP BAR
+//   // =========================
+//   Widget _webTopBar(BuildContext context) {
+//     return Container(
+//       height: 70,
+//       padding: const EdgeInsets.symmetric(horizontal: 24),
+//       color: const Color.fromARGB(255, 241, 196, 137),
+//       child: Row(
+//         children: [
+//           Text(
+//             widget.title,
+//             style: const TextStyle(
+//               fontSize: 26,
+//               fontWeight: FontWeight.bold,
+//               color: Colors.brown,
+//             ),
+//           ),
+//           const Spacer(),
+//           PopupMenuButton<String>(
+//             onSelected: _handleProfileMenu,
+//             itemBuilder: _profileMenuItems,
+//             child: CircleAvatar(
+//               backgroundImage:
+//                   profileImageBytes != null ? MemoryImage(profileImageBytes!) : null,
+//               child: profileImageBytes == null
+//                   ? const Icon(Icons.person)
+//                   : null,
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   // =========================
+//   // WEB SIDEBAR
+//   // =========================
+//   Widget _webSidebar(BuildContext context) {
+//     return Container(
+//       width: 260,
+//           color: const Color.fromARGB(255, 250, 225, 190), // background color behind the form
+//       child: Column(
+//         children: [
+//           const SizedBox(height: 30),
+//           Image.asset('assets/images/logo.png', width: 140),
+//           const SizedBox(height: 30),
+
+//           _sideItem(Icons.home, "Home", _goHome),
+//           _sideItem(Icons.notifications, "Alerts", () {
+//             Navigator.push(context,
+//                 MaterialPageRoute(builder: (_) => const ChildNotificationsScreen()));
+//           }),
+//           _sideItem(Icons.chat, "Messages", () {
+//             if (userId != null) {
+//               Navigator.push(context,
+//                   MaterialPageRoute(builder: (_) => ChatUsersScreen(currentUserId: userId!)));
+//             }
+//           }),
+//           _sideItem(Icons.emoji_events, "Challenges", _openChallenges),
+//           _sideItem(Icons.settings, "Settings", _openSettings),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _sideItem(IconData icon, String text, VoidCallback onTap) {
+//     return ListTile(
+//       leading: Icon(icon, color: Colors.brown),
+//       title: Text(text),
+//       onTap: onTap,
+//     );
+//   }
+
+//   // =========================
+//   // MOBILE BOTTOM NAV (UNCHANGED)
+//   // =========================
+//   Widget _mobileBottomNav(BuildContext context) {
+//     return SizedBox(
+//       height: MediaQuery.of(context).size.height * 0.1,
+//       child: Center(child: Text("⬆️ Same bottom nav as before")),
+//     );
+//   }
+
+//   // =========================
+//   // HELPERS
+//   // =========================
+//   void _handleProfileMenu(String value) {
+//     if (value == 'myProfile') {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => ProfilePage()));
+//     } else {
+//       SharedPreferences.getInstance().then((prefs) {
+//         prefs.remove('token');
+//         Navigator.pushReplacement(
+//             context, MaterialPageRoute(builder: (_) => SignInScreen()));
+//       });
+//     }
+//   }
+
+//   List<PopupMenuEntry<String>> _profileMenuItems(BuildContext context) {
+//     return const [
+//       PopupMenuItem(value: 'myProfile', child: Text("My Profile")),
+//       PopupMenuItem(value: 'LogOut', child: Text("Log Out")),
+//     ];
+//   }
+
+//   void _goHome() {
+//     if (role == 'child') {
+//       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeChild()));
+//     } else if (role == 'parent') {
+//       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeParent()));
+//     } else if (role == 'supervisor') {
+//       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeSupervisor()));
+//     } else {
+//       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeAdmin()));
+//     }
+//   }
+
+//   void _openChallenges() {
+//     if (role == "supervisor") {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => const SupervisorWeeklyPlannerScreen()));
+//     } else if (role == "child") {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => const ChildWeeklyChallengesScreen()));
+//     }
+//   }
+
+//   void _openSettings() {
+//     if (role == 'parent') {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => const ParentSettingsScreen()));
+//     } else if (role == 'child') {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => const ChildSettingsScreen()));
+//     } else if (role == 'supervisor') {
+//       Navigator.push(context,
+//           MaterialPageRoute(builder: (_) => const SupervisorSettingsScreen()));
+//     }
+//   }
+// }

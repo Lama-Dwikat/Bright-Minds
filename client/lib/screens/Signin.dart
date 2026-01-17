@@ -47,8 +47,12 @@ bool _isNotValidate = false;
 String getBackendUrl() {
   if (kIsWeb) {
 
+<<<<<<< HEAD
     //return "http://192.168.1.63:3000";
      return "http://localhost:3000";
+=======
+    return "http://192.168.1.74:3000";
+>>>>>>> ae4dcdc (color changes)
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -450,21 +454,21 @@ Widget build(BuildContext context) {
                         label: Text("Password"),
                         hintText: "Enter Password",
                         hintStyle: TextStyle(
-                          color: AppColors.bgBlushRoseVeryDark,
+                          color: AppColors.textPrimary,
                         ),
                         prefixIcon: const Icon(
                           Icons.lock_outline,
-                          color: AppColors.bgBlushRoseVeryDark,
+                          color: AppColors.textPrimary,
                         ),
                         border: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: AppColors.bgBlushRoseVeryDark,
+                            color: AppColors.textPrimary,
                           ),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: AppColors.bgBlushRoseVeryDark,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -495,7 +499,7 @@ Widget build(BuildContext context) {
                             "Forget Password?",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.bgBlushRoseVeryDark,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -538,7 +542,7 @@ Widget build(BuildContext context) {
                           child: const Text(
                             "Sign Up",
                             style: TextStyle(
-                              color: AppColors.bgBlushRoseVeryDark,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -636,7 +640,7 @@ Widget build(BuildContext context) {
                         label: Text("Password"),
                         hintText: "Enter Password",
                         prefixIcon: Icon(Icons.lock_outline,
-                            color: AppColors.bgBlushRoseVeryDark),
+                            color: AppColors.textPrimary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),

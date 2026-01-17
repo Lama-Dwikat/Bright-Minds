@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // --------------------------------------------------
-  // 🎨 Solid Colors from Image (Renamed)
-  // --------------------------------------------------
+//   // --------------------------------------------------
+//   // 🎨 Solid Colors from Image (Renamed)
+//   // --------------------------------------------------
   static const Color lightLavender = Color(0xFFF4E7F8); // c1
   static const Color warmBeigePink = Color(0xFFF2DDDC); // c2
   static const Color peachPink = Color(0xFFF6BCBA);     // c3

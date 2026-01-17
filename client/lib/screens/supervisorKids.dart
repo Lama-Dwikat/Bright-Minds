@@ -412,7 +412,7 @@ String getBackendUrl() {
                       children: [
                         CircleAvatar(
                           radius: 28,
-                          backgroundColor: AppColors.bgBlushRoseDark,
+                          backgroundColor: const Color.fromARGB(255, 230, 172, 56),
                           child: Text(
                             kid["name"][0].toUpperCase(),
                             style: const TextStyle(

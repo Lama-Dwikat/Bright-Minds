@@ -211,7 +211,7 @@ class _GridWordTemplateState extends State<GridWordTemplate> {
                 right: 16,  // distance from right
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.bgBlushRoseDark,
+                    backgroundColor: const Color.fromARGB(255, 190, 111, 91),
                     padding: const EdgeInsets.symmetric(
                         vertical: 14, horizontal: 20),
                     shape: RoundedRectangleBorder(
@@ -316,7 +316,7 @@ class _GridWordTemplateState extends State<GridWordTemplate> {
                   const Text("Published"),
                   Switch(
                     value: published,
-                    activeColor: AppColors.bgBlushRoseVeryDark,
+                    activeColor: const Color.fromARGB(255, 190, 111, 91),
                     onChanged: (_) => togglePublish(index),
                   ),
                 ],
@@ -395,7 +395,7 @@ Widget build(BuildContext context) {
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize:32,
-                      color: AppColors.bgBlushRoseVeryDark,
+                      color: const Color.fromARGB(255, 190, 111, 91),
                     ),
               ),
 
@@ -434,7 +434,7 @@ Widget build(BuildContext context) {
                     borderSide: BorderSide.none,
                   ),
                   prefixIcon:
-                      const Icon(Icons.layers, color: AppColors.bgBlushRoseDark),
+                      const Icon(Icons.layers, color: const Color.fromARGB(255, 190, 111, 91)     ),
                 ),
               ),
 
@@ -457,7 +457,7 @@ Widget build(BuildContext context) {
                     borderSide: BorderSide.none,
                   ),
                   prefixIcon:
-                      const Icon(Icons.palette, color: AppColors.bgWarmPinkVeryDark),
+                      const Icon(Icons.palette, color:const Color.fromARGB(255, 190, 111, 91)),
                 ),
              
                 child: DropdownButtonHideUnderline(
@@ -500,7 +500,7 @@ Widget build(BuildContext context) {
                     borderSide: BorderSide.none,
                   ),
                   prefixIcon:
-                      const Icon(Icons.help_outline, color: AppColors.bgBlushRoseVeryDark),
+                      const Icon(Icons.help_outline, color:const Color.fromARGB(255, 190, 111, 91)),
                 ),
               ),
 
@@ -529,7 +529,7 @@ Widget build(BuildContext context) {
                     borderSide: BorderSide.none,
                   ),
                   prefixIcon:
-                      const Icon(Icons.help_outline, color: AppColors.bgBlushRoseVeryDark),
+                      const Icon(Icons.help_outline, color: const Color.fromARGB(255, 190, 111, 91)),
                 ),
               ),
 
@@ -552,7 +552,7 @@ Widget build(BuildContext context) {
                     borderSide: BorderSide.none,
                   ),
                   prefixIcon:
-                      const Icon(Icons.help_outline, color: AppColors.bgBlushRoseVeryDark),
+                      const Icon(Icons.help_outline, color: const Color.fromARGB(255, 190, 111, 91)),
                 ),
               ),
 
@@ -562,7 +562,7 @@ Widget build(BuildContext context) {
               // ➜ Next Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.bgBlushRoseDark,
+                  backgroundColor: const Color.fromARGB(255, 190, 111, 91),
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
@@ -891,7 +891,7 @@ class _GridCreatorScreenState extends State<GridCreatorScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: currentLevel == widget.levels - 1
                       ? Colors.green
-                      : AppColors.bgBlushRoseVeryDark,
+                      : const Color.fromARGB(255, 190, 111, 91),
                 ),
                 child: Text(
                   currentLevel == widget.levels - 1 ? "Create Game" : "Next",

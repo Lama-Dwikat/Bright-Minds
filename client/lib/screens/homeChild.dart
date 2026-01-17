@@ -40,7 +40,7 @@ class _HomeChildState extends State<HomeChild> {
   Timer? _quoteTimer;
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -139,8 +139,24 @@ class _HomeChildState extends State<HomeChild> {
     }
   }
 
+
+
+  // =========================================================
+  // BUILD
+  // =========================================================
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
+
+    return isMobile
+        ? _mobileLayout(context) // 📱 unchanged
+        : _webLayout(context);   // 💻 new
+  }
+
+  // =========================================================
+  // MOBILE LAYOUT (UNCHANGED)
+  // =========================================================
+  Widget _mobileLayout(BuildContext context) {
     return HomePage(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -149,7 +165,6 @@ class _HomeChildState extends State<HomeChild> {
           children: [
             const SizedBox(height: 16),
 
-            // ⭐ Dynamic greeting
             Text(
               "Hi, $childName! 👋",
               style: GoogleFonts.poppins(
@@ -167,166 +182,237 @@ class _HomeChildState extends State<HomeChild> {
             ),
 
             const SizedBox(height: 24),
-
-            // ✨ Quote box (API only)
             _quoteCard(),
-
             const SizedBox(height: 28),
 
-            // 🔸 Menu buttons
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisSpacing: 18,
               mainAxisSpacing: 18,
-              children: [
-                _mainButton(
-                  label: "Stories",
-                  imagePath: "assets/images/story2.png",
-                  color: const Color(0xFFFFD9C0),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
-                    );
-                  },
-                ),
-                _mainButton(
-                  label: "Videos",
-                  imagePath: "assets/images/video.png",
-                  color: const Color.fromARGB(255, 254, 220, 168),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const VideosKidScreen()),
-                    );
-                  },
-                ),
-                _mainButton(
-                  label: "Games",
-                  imagePath: "assets/images/Games.png",
-                  color: const Color.fromARGB(255, 244, 201, 152),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const gamesKidScreen()),
-                    );
-                  },
-
-                ),
-                _mainButton(
-                  label: "Drawing",
-                  imagePath: "assets/images/Drawing.png",
-                  color: const Color(0xFFF9E2CE),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ChildDrawingActivitiesScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+              children: _menuButtons(context),
             ),
 
             const SizedBox(height: 25),
 
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ChildPublishedStoriesScreen()),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD8C4),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.menu_book_rounded,
-                        color: Color(0xFF6E4A4A), size: 38),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Published Kids Stories",
-                      style: GoogleFonts.poppins(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E4A4A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            InkWell(
+            _actionButton(
+              context,
+              text: "Published Kids Stories",
+              icon: Icons.menu_book_rounded,
+              color: const Color(0xFFFFD8C4),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ChildBadgesScreen(childName: childName),
-                  ),
+                      builder: (_) => const ChildPublishedStoriesScreen()),
                 );
               },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE7C8),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.emoji_events_rounded,
-                        color: Color(0xFF6E4A4A), size: 38),
-                    const SizedBox(width: 10),
-                    Text(
-                      "My Badges",
-                      style: GoogleFonts.poppins(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E4A4A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
 
             const SizedBox(height: 30),
+
+            _actionButton(
+              context,
+              text: "My Badges",
+              icon: Icons.emoji_events_rounded,
+              color: const Color(0xFFFFE7C8),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          ChildBadgesScreen(childName: childName)),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  // ✅ Quote UI (no image)
+  // =========================================================
+  // WEB LAYOUT
+  // =========================================================
+  Widget _webLayout(BuildContext context) {
+    return HomePage(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Hi, $childName! 👋",
+                  style: GoogleFonts.poppins(
+                    fontSize: 56,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFB66A6A),
+                  ),
+                ),
+                Text(
+                  "Ready for a fun learning day?",
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    color: const Color(0xFF5C4B51),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+                _quoteCard(),
+                const SizedBox(height: 40),
+
+                GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisSpacing: 24,
+                  mainAxisSpacing: 24,
+                  children: _menuButtons(context),
+                ),
+
+                const SizedBox(height: 40),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _actionButton(
+                        context,
+                        text: "Published Kids Stories",
+                        icon: Icons.menu_book_rounded,
+                        color: const Color(0xFFFFD8C4),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const ChildPublishedStoriesScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: _actionButton(
+                        context,
+                        text: "My Badges",
+                        icon: Icons.emoji_events_rounded,
+                        color: const Color(0xFFFFE7C8),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    ChildBadgesScreen(childName: childName)),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =========================================================
+  // SHARED WIDGETS
+  // =========================================================
+  List<Widget> _menuButtons(BuildContext context) {
+    return [
+      _mainButton(
+        label: "Stories",
+        imagePath: "assets/images/story2.png",
+        color: const Color(0xFFFFD9C0),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
+          );
+        },
+      ),
+      _mainButton(
+        label: "Videos",
+        imagePath: "assets/images/video.png",
+        color: const Color.fromARGB(255, 254, 220, 168),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const VideosKidScreen()),
+          );
+        },
+      ),
+      _mainButton(
+        label: "Games",
+        imagePath: "assets/images/Games.png",
+        color: const Color.fromARGB(255, 244, 201, 152),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const gamesKidScreen()),
+          );
+        },
+      ),
+      _mainButton(
+        label: "Drawing",
+        imagePath: "assets/images/Drawing.png",
+        color: const Color(0xFFF9E2CE),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const ChildDrawingActivitiesScreen()),
+          );
+        },
+      ),
+    ];
+  }
+
+  Widget _actionButton(
+    BuildContext context, {
+    required String text,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 38, color: const Color(0xFF6E4A4A)),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 30,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF6E4A4A),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _quoteCard() {
     return Container(
       decoration: BoxDecoration(
@@ -350,73 +436,37 @@ class _HomeChildState extends State<HomeChild> {
                 ),
               ),
               IconButton(
-                tooltip: "Refresh",
                 onPressed: _quoteLoading ? null : _fetchKidsQuote,
-                icon: const Icon(Icons.refresh, color: Color(0xFF6E4A4A)),
+                icon: const Icon(Icons.refresh,
+                    color: Color(0xFF6E4A4A)),
               ),
             ],
           ),
           const SizedBox(height: 12),
-
           if (_quoteLoading)
             const Center(child: CircularProgressIndicator())
           else if (_quoteError != null)
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E8),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                _quoteError!,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.robotoSlab(
-                  fontSize: 28,
-                  color: const Color(0xFF5C4B51),
-                ),
-              ),
-            )
+            Text(_quoteError!)
           else
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E8),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  Text(
-                    _quoteText,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.robotoSlab(
-                      fontSize: 25,
-                      color: const Color(0xFF5C4B51),
-                    ),
-                  ),
-                  if (_quoteAuthor.trim().isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      "- $_quoteAuthor",
-                      style: GoogleFonts.robotoSlab(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E4A4A),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            Column(
+              children: [
+                Text(
+                  _quoteText,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.robotoSlab(fontSize: 25),
+                ),
+                if (_quoteAuthor.isNotEmpty)
+                  Text("- $_quoteAuthor"),
+              ],
             ),
         ],
       ),
     );
   }
 
-  // 🌼 styled button component
   Widget _mainButton({
     required String label,
-    IconData? icon,
-    String? imagePath,
+    required String imagePath,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -428,25 +478,13 @@ class _HomeChildState extends State<HomeChild> {
           color: color,
           borderRadius: BorderRadius.circular(24),
           boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
+            BoxShadow(color: Colors.black12, blurRadius: 6),
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (imagePath != null)
-              Image.asset(
-                imagePath,
-                height: 90,
-                width: 90,
-                fit: BoxFit.contain,
-              )
-            else if (icon != null)
-              Icon(icon, size: 48, color: const Color(0xFF8F5F5F)),
+            Image.asset(imagePath, height: 90),
             const SizedBox(height: 10),
             Text(
               label,
@@ -462,3 +500,328 @@ class _HomeChildState extends State<HomeChild> {
     );
   }
 }
+
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return HomePage(
+  //     child: SingleChildScrollView(
+  //       padding: const EdgeInsets.all(20),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const SizedBox(height: 16),
+
+  //           // ⭐ Dynamic greeting
+  //           Text(
+  //             "Hi, $childName! 👋",
+  //             style: GoogleFonts.poppins(
+  //               fontSize: 44,
+  //               fontWeight: FontWeight.bold,
+  //               color: const Color(0xFFB66A6A),
+  //             ),
+  //           ),
+  //           Text(
+  //             "Ready for a fun learning day?",
+  //             style: GoogleFonts.poppins(
+  //               fontSize: 25,
+  //               color: const Color(0xFF5C4B51),
+  //             ),
+  //           ),
+
+  //           const SizedBox(height: 24),
+
+  //           // ✨ Quote box (API only)
+  //           _quoteCard(),
+
+  //           const SizedBox(height: 28),
+
+  //           // 🔸 Menu buttons
+  //           GridView.count(
+  //             crossAxisCount: 2,
+  //             shrinkWrap: true,
+  //             physics: const NeverScrollableScrollPhysics(),
+  //             crossAxisSpacing: 18,
+  //             mainAxisSpacing: 18,
+  //             children: [
+  //               _mainButton(
+  //                 label: "Stories",
+  //                 imagePath: "assets/images/story2.png",
+  //                 color: const Color(0xFFFFD9C0),
+  //                 onTap: () {
+  //                   Navigator.push(
+  //                     context,
+  //                     MaterialPageRoute(builder: (_) => const StoryKidsScreen()),
+  //                   );
+  //                 },
+  //               ),
+  //               _mainButton(
+  //                 label: "Videos",
+  //                 imagePath: "assets/images/video.png",
+  //                 color: const Color.fromARGB(255, 254, 220, 168),
+  //                 onTap: () {
+  //                   Navigator.push(
+  //                     context,
+  //                     MaterialPageRoute(builder: (_) => const VideosKidScreen()),
+  //                   );
+  //                 },
+  //               ),
+  //               _mainButton(
+  //                 label: "Games",
+  //                 imagePath: "assets/images/Games.png",
+  //                 color: const Color.fromARGB(255, 244, 201, 152),
+  //                 onTap: () {
+  //                   Navigator.push(
+  //                     context,
+  //                     MaterialPageRoute(builder: (_) => const gamesKidScreen()),
+  //                   );
+  //                 },
+
+  //               ),
+  //               _mainButton(
+  //                 label: "Drawing",
+  //                 imagePath: "assets/images/Drawing.png",
+  //                 color: const Color(0xFFF9E2CE),
+  //                 onTap: () {
+  //                   Navigator.push(
+  //                     context,
+  //                     MaterialPageRoute(
+  //                       builder: (context) => const ChildDrawingActivitiesScreen(),
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ],
+  //           ),
+
+  //           const SizedBox(height: 25),
+
+  //           InkWell(
+  //             onTap: () {
+  //               Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(builder: (_) => const ChildPublishedStoriesScreen()),
+  //               );
+  //             },
+  //             borderRadius: BorderRadius.circular(20),
+  //             child: Container(
+  //               width: double.infinity,
+  //               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+  //               decoration: BoxDecoration(
+  //                 color: const Color(0xFFFFD8C4),
+  //                 borderRadius: BorderRadius.circular(18),
+  //                 boxShadow: const [
+  //                   BoxShadow(
+  //                     color: Colors.black12,
+  //                     blurRadius: 6,
+  //                     offset: Offset(0, 3),
+  //                   ),
+  //                 ],
+  //               ),
+  //               child: Row(
+  //                 mainAxisAlignment: MainAxisAlignment.center,
+  //                 children: [
+  //                   const Icon(Icons.menu_book_rounded,
+  //                       color: Color(0xFF6E4A4A), size: 38),
+  //                   const SizedBox(width: 10),
+  //                   Text(
+  //                     "Published Kids Stories",
+  //                     style: GoogleFonts.poppins(
+  //                       fontSize: 30,
+  //                       fontWeight: FontWeight.w600,
+  //                       color: const Color(0xFF6E4A4A),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+
+  //           const SizedBox(height: 30),
+
+  //           InkWell(
+  //             onTap: () {
+  //               Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(
+  //                   builder: (_) => ChildBadgesScreen(childName: childName),
+  //                 ),
+  //               );
+  //             },
+  //             borderRadius: BorderRadius.circular(20),
+  //             child: Container(
+  //               width: double.infinity,
+  //               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+  //               decoration: BoxDecoration(
+  //                 color: const Color(0xFFFFE7C8),
+  //                 borderRadius: BorderRadius.circular(18),
+  //                 boxShadow: const [
+  //                   BoxShadow(
+  //                     color: Colors.black12,
+  //                     blurRadius: 6,
+  //                     offset: Offset(0, 3),
+  //                   ),
+  //                 ],
+  //               ),
+  //               child: Row(
+  //                 mainAxisAlignment: MainAxisAlignment.center,
+  //                 children: [
+  //                   const Icon(Icons.emoji_events_rounded,
+  //                       color: Color(0xFF6E4A4A), size: 38),
+  //                   const SizedBox(width: 10),
+  //                   Text(
+  //                     "My Badges",
+  //                     style: GoogleFonts.poppins(
+  //                       fontSize: 30,
+  //                       fontWeight: FontWeight.w600,
+  //                       color: const Color(0xFF6E4A4A),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+
+  //           const SizedBox(height: 30),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // ✅ Quote UI (no image)
+//   Widget _quoteCard() {
+//     return Container(
+//       decoration: BoxDecoration(
+//         color: const Color(0xFFFFE6C9),
+//         borderRadius: BorderRadius.circular(18),
+//       ),
+//       padding: const EdgeInsets.all(14),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.stretch,
+//         children: [
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: Text(
+//                   "✨ Quote of the Day ✨",
+//                   style: GoogleFonts.robotoSlab(
+//                     fontSize: 28,
+//                     fontWeight: FontWeight.bold,
+//                     color: const Color(0xFFAD5E5E),
+//                   ),
+//                 ),
+//               ),
+//               IconButton(
+//                 tooltip: "Refresh",
+//                 onPressed: _quoteLoading ? null : _fetchKidsQuote,
+//                 icon: const Icon(Icons.refresh, color: Color(0xFF6E4A4A)),
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 12),
+
+//           if (_quoteLoading)
+//             const Center(child: CircularProgressIndicator())
+//           else if (_quoteError != null)
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFFFFF3E8),
+//                 borderRadius: BorderRadius.circular(14),
+//               ),
+//               padding: const EdgeInsets.all(12),
+//               child: Text(
+//                 _quoteError!,
+//                 textAlign: TextAlign.center,
+//                 style: GoogleFonts.robotoSlab(
+//                   fontSize: 28,
+//                   color: const Color(0xFF5C4B51),
+//                 ),
+//               ),
+//             )
+//           else
+//             Container(
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFFFFF3E8),
+//                 borderRadius: BorderRadius.circular(14),
+//               ),
+//               padding: const EdgeInsets.all(12),
+//               child: Column(
+//                 children: [
+//                   Text(
+//                     _quoteText,
+//                     textAlign: TextAlign.center,
+//                     style: GoogleFonts.robotoSlab(
+//                       fontSize: 25,
+//                       color: const Color(0xFF5C4B51),
+//                     ),
+//                   ),
+//                   if (_quoteAuthor.trim().isNotEmpty) ...[
+//                     const SizedBox(height: 8),
+//                     Text(
+//                       "- $_quoteAuthor",
+//                       style: GoogleFonts.robotoSlab(
+//                         fontSize: 14,
+//                         fontWeight: FontWeight.w600,
+//                         color: const Color(0xFF6E4A4A),
+//                       ),
+//                     ),
+//                   ],
+//                 ],
+//               ),
+//             ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   // 🌼 styled button component
+//   Widget _mainButton({
+//     required String label,
+//     IconData? icon,
+//     String? imagePath,
+//     required Color color,
+//     required VoidCallback onTap,
+//   }) {
+//     return InkWell(
+//       onTap: onTap,
+//       borderRadius: BorderRadius.circular(24),
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: color,
+//           borderRadius: BorderRadius.circular(24),
+//           boxShadow: const [
+//             BoxShadow(
+//               color: Colors.black12,
+//               blurRadius: 6,
+//               offset: Offset(0, 3),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             if (imagePath != null)
+//               Image.asset(
+//                 imagePath,
+//                 height: 90,
+//                 width: 90,
+//                 fit: BoxFit.contain,
+//               )
+//             else if (icon != null)
+//               Icon(icon, size: 48, color: const Color(0xFF8F5F5F)),
+//             const SizedBox(height: 10),
+//             Text(
+//               label,
+//               style: GoogleFonts.poppins(
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//                 color: const Color(0xFF6F4C4C),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

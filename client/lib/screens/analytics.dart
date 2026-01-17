@@ -211,7 +211,7 @@ void initState() {
             children: [
               const Text(
                   "View insights and performance metrics",
-                  style: TextStyle(color: AppColors.bgBlushRoseVeryDark)),
+                  style: TextStyle(color: AppColors.textAccent)),
               const SizedBox(height: 16),
 
               // Stats Cards
@@ -221,10 +221,10 @@ void initState() {
                 runSpacing: 16,
                 children: [
                  
-                _buildStatCard(Icons.videocam, 'Total Videos', totalVideos.toString(),'',  AppColors.peachPinkDark),
-                _buildStatCard(Icons.video_library, 'Published Videos', totalPublished.toString(),'',AppColors.peachPinkDark),
-                _buildStatCard(Icons.play_arrow, 'Total Playlists', totalPlaylists.toString(),'',AppColors.peachPinkDark),
-                _buildStatCard(Icons.remove_red_eye, 'Total Views', totalViews.toString(),'', AppColors.peachPinkDark),
+                _buildStatCard(Icons.videocam, 'Total Videos', totalVideos.toString(),'',  const Color.fromARGB(255, 216, 155, 139)),
+                _buildStatCard(Icons.video_library, 'Published Videos', totalPublished.toString(),'',const Color.fromARGB(255, 216, 155, 139)),
+                _buildStatCard(Icons.play_arrow, 'Total Playlists', totalPlaylists.toString(),'',const Color.fromARGB(255, 216, 155, 139)),
+                _buildStatCard(Icons.remove_red_eye, 'Total Views', totalViews.toString(),'', const Color.fromARGB(255, 216, 155, 139)),
                   
                 ],
               ),
@@ -338,7 +338,7 @@ Widget _buildBarChartCard(String title, List<Map<String, dynamic>> data) {
           xValueMapper: (d, _) => d['label'],
           yValueMapper: (d, _) => d['value'],
           borderRadius: BorderRadius.circular(8),
-          pointColorMapper: (_, __) => AppColors.peachPinkVeryDark,
+          pointColorMapper: (_, __) => AppColors.textAccent,
           width: 0.7,
           spacing: 0.2,
           dataLabelSettings: const DataLabelSettings(
@@ -375,7 +375,7 @@ Widget _buildContentByTopic() {
       const Text("Content by Topic", style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       const Text("Distribution of videos across different topics",
-          style: TextStyle(color: AppColors.peachPinkVeryDark)),
+          style: TextStyle(color: AppColors.textAccent)),
       const SizedBox(height: 16),
       Column(
         children: topicData.map((topic) {
@@ -388,8 +388,8 @@ Widget _buildContentByTopic() {
                 const SizedBox(height: 4),
                 LinearProgressIndicator(
                   value: topic['percent'] as double,
-                  color: AppColors.peachPinkVeryDark,
-                  backgroundColor: AppColors.peachPinkLight,
+                  color: AppColors.textAccent,
+                  backgroundColor: const Color.fromARGB(255, 249, 205, 194),
                   minHeight: 8,
                 ),
               ],

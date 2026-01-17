@@ -231,8 +231,8 @@ class _GamesHomePageState extends State<GamesHomePage> {
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.bgBlushRoseVeryDark,
-                          AppColors.bgBlushRoseDark,
+                          AppColors.textAccent,
+                          Color.fromARGB(255, 209, 148, 133),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,

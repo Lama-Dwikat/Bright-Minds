@@ -198,7 +198,7 @@ Future<void> _publishStory(String storyId) async {
       case "needs_edit":
         return Colors.blueGrey;
       default:
-        return AppColors.bgBlushRoseDark;
+        return const Color.fromARGB(255, 229, 171, 54);
     }
   }
 

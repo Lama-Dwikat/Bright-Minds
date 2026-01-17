@@ -349,7 +349,7 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.bgBlushRoseDark,
+              backgroundColor: const Color.fromARGB(255, 232, 192, 112),
             ),
             child: const Text("Yes, Delete"),
             onPressed: () async {
@@ -472,7 +472,7 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(8),
                                             ),
-                                            backgroundColor: AppColors.bgWarmPinkDark,
+                                            backgroundColor: const Color.fromARGB(255, 245, 199, 105),
                                           ),
                                           onPressed: () {
                                             Navigator.push(
@@ -600,19 +600,19 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
                           Row(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.bgWarmPinkVeryDark, size: 20),
+                                icon: const Icon(Icons.edit, color: Color.fromARGB(255, 242, 181, 59), size: 20),
                                 onPressed: () => showEditDialog(video),
                                 tooltip: "Edit Video",
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.bgWarmPinkVeryDark, size: 20),
+                                icon: const Icon(Icons.delete, color: Color.fromARGB(255, 242, 181, 59), size: 20),
                                 onPressed: () => _showDeleteConfirmation(video["_id"]),
                                 tooltip: "Delete Video",
                               ),
                               IconButton(
                                 icon: Icon(
                                   video["isPublished"] == true ? Icons.check_circle : Icons.check_circle_outline,
-                                  color: video["isPublished"] == true ? Colors.green : AppColors.bgWarmPinkVeryDark,
+                                  color: video["isPublished"] == true ? Colors.green : Color.fromARGB(255, 242, 181, 59),
                                 ),
                                 onPressed: () => publishVideo(video["_id"], !(video["isPublished"] == true)),
                                 tooltip: video["isPublished"] == true ? "Unpublish" : "Publish",

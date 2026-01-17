@@ -236,7 +236,7 @@ final kidDrawings = drawingsByKid[widget.kid['_id']] ?? [];
           )
         : CircleAvatar(
             radius: 60,
-            backgroundColor: AppColors.bgBlushRoseDark,
+            backgroundColor: AppColors.goldenYellow,
             child: Text(
               widget.kid["name"][0].toUpperCase(),
               style: const TextStyle(
@@ -304,7 +304,7 @@ final kidDrawings = drawingsByKid[widget.kid['_id']] ?? [];
           final duration = video["duration"] ?? 0;
           return ListTile(
             leading: const Icon(Icons.play_circle_fill,
-                color: AppColors.bgBlushRoseDark),
+                color: Color.fromARGB(255, 218, 161, 48)),
             title: Text("Video ID: ${video["video"] ?? "N/A"}"),
             subtitle:
                 Text("Watched at: $watchedAt, Duration: $duration mins"),

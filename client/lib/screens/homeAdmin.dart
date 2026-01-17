@@ -176,7 +176,7 @@ class _HomeAdminState extends State<HomeAdmin> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("View insights and performance metrics",
-                style: TextStyle(color: AppColors.bgBlushRoseVeryDark)),
+                style: TextStyle(color: const Color.fromARGB(255, 217, 150, 18))),
             const SizedBox(height: 16),
 
             // ===== Stats Cards =====
@@ -186,13 +186,13 @@ class _HomeAdminState extends State<HomeAdmin> {
                 runSpacing: 16,
                 children: [
                   _buildStatCard(Icons.videocam, 'Total Videos', totalVideos.toString(),
-                      '', AppColors.peachPinkDark),
+                      '', AppColors.goldenYellow),
                   _buildStatCard(Icons.video_library, 'Published Videos',
-                      totalPublished.toString(), '', AppColors.peachPinkDark),
+                      totalPublished.toString(), '', AppColors.goldenYellow),
                   _buildStatCard(Icons.play_arrow, 'Total Playlists',
-                      totalPlaylists.toString(), '', AppColors.peachPinkDark),
+                      totalPlaylists.toString(), '', AppColors.goldenYellow),
                   _buildStatCard(Icons.remove_red_eye, 'Total Views',
-                      totalViews.toString(), '', AppColors.peachPinkDark),
+                      totalViews.toString(), '', AppColors.goldenYellow),
                 ],
               ),
             ),
@@ -341,7 +341,7 @@ class _HomeAdminState extends State<HomeAdmin> {
             xValueMapper: (d, _) => d['label'],
             yValueMapper: (d, _) => d['value'],
             borderRadius: BorderRadius.circular(8),
-            pointColorMapper: (_, __) => AppColors.peachPinkVeryDark,
+            pointColorMapper: (_, __) => const Color.fromARGB(255, 217, 150, 18),
             width: 0.7,
             spacing: 0.2,
             dataLabelSettings: const DataLabelSettings(isVisible: true),
@@ -367,7 +367,7 @@ class _HomeAdminState extends State<HomeAdmin> {
         const Text("Content by Topic", style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         const Text("Distribution of videos across different topics",
-            style: TextStyle(color: AppColors.peachPinkVeryDark)),
+            style: TextStyle(color: const Color.fromARGB(255, 217, 150, 18))),
         const SizedBox(height: 16),
         Column(
           children: topicData.map((topic) {
@@ -380,8 +380,8 @@ class _HomeAdminState extends State<HomeAdmin> {
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
                     value: topic['percent'] as double,
-                    color: AppColors.peachPinkVeryDark,
-                    backgroundColor: AppColors.peachPinkLight,
+                    color: const Color.fromARGB(255, 217, 150, 18),
+                    backgroundColor: const Color.fromARGB(255, 246, 210, 137),
                     minHeight: 8,
                   ),
                 ],

@@ -499,7 +499,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
                               : const SizedBox(width: 56, height: 40),
                           title: Text(title),
                           trailing: IconButton(
-                            icon: const Icon(Icons.remove_circle, color: AppColors.bgBlushRoseDark),
+                            icon: const Icon(Icons.remove_circle, color: Color.fromARGB(255, 234, 172, 47)),
                             onPressed: () async {
                               await deleteVideoFromPlaylist(playlist["_id"], vidId);
                               setStateDialog(() {
@@ -522,7 +522,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
                   Navigator.pop(context);
                   await deletePlaylist(playlist["_id"]);
                 },
-                child: const Text("Delete", style: TextStyle(color: AppColors.bgBlushRoseDark)),
+                child: const Text("Delete", style: TextStyle(color: Color.fromARGB(255, 234, 172, 47))),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -550,7 +550,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.bgBlushRoseVeryDark),
+            style: ElevatedButton.styleFrom(backgroundColor: Color.fromARGB(255, 201, 138, 11)),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Delete"),
           ),
@@ -633,7 +633,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
                                 IconButton(
                                   icon: Icon(
                                     p["isPublished"] == true ? Icons.check_circle : Icons.check_circle_outline,
-                                    color: p["isPublished"] == true ? Colors.green : AppColors.bgWarmPinkVeryDark,
+                                    color: p["isPublished"] == true ? Colors.green : Color.fromARGB(255, 181, 125, 12),
                                   ),
                                   onPressed: () => publishPlaylist(p["_id"], !(p["isPublished"] == true)),
                                   tooltip: p["isPublished"] == true ? "Unpublish" : "Publish",
@@ -651,7 +651,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
 
                                 // Delete (with confirmation)
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color:AppColors.bgBlushRoseVeryDark),
+                                  icon: const Icon(Icons.delete, color:Color.fromARGB(255, 181, 125, 12)),
                                   onPressed: () => _confirmDeletePlaylist(p["_id"]),
                                   tooltip: "Delete playlist",
                                 ),
@@ -667,7 +667,7 @@ class _SupervisorPlaylistScreenState extends State<SupervisorPlaylistScreen> {
         onPressed: showCreatePlaylistDialog,
         label: const Text("Create Playlist"),
         icon: const Icon(Icons.playlist_add),
-          backgroundColor: AppColors.bgBlushRose, // for example
+          backgroundColor: Color.fromARGB(255, 236, 187, 89), // for example
       ),
     );
   }

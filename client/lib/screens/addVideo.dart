@@ -602,7 +602,7 @@ Widget build(BuildContext context) {
     fetchVideos();
   },
   style: ElevatedButton.styleFrom(
-    backgroundColor: AppColors.bgBlushRoseVeryDark,
+    backgroundColor: const Color.fromARGB(255, 215, 152, 25),
     foregroundColor: Colors.white,
     //padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 26),
     shape: RoundedRectangleBorder(
@@ -738,7 +738,7 @@ Widget build(BuildContext context) {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.bgBlushRoseVeryDark,
+                backgroundColor: const Color.fromARGB(255, 193, 136, 24),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 26),
@@ -746,7 +746,7 @@ Widget build(BuildContext context) {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 elevation: 8,
-                shadowColor: AppColors.bgBlushRoseDark,
+                shadowColor: const Color.fromARGB(255, 215, 151, 23),
               ),
             ),
           ),

@@ -261,7 +261,7 @@ class _ProfilePageState extends State<ProfilePage> {
           )
         : CircleAvatar(
             radius: 60,
-            backgroundColor: AppColors.bgBlushRoseDark,
+            backgroundColor: AppColors.textAccent,
             child: Text(
               user?["name"]?.substring(0, 1).toUpperCase() ?? "U",
               style: const TextStyle(
@@ -397,7 +397,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                               leading: const Icon(
                                                   Icons.play_circle_fill,
                                                   color:
-                                                      AppColors.bgBlushRoseDark),
+                                                      AppColors.textAccent),
                                               title: Text(
                                                   "Video ID: ${video["videoId"]?["_id"] ?? "N/A"}"),
                                               subtitle: Text(
@@ -435,7 +435,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             return ListTile(
                                               leading: const Icon(Icons.quiz,
                                                   color:
-                                                      AppColors.bgBlushRoseDark),
+                                                      AppColors.textAccent),
                                               title:
                                                   Text(quiz["quizTitle"] ?? "N/A"),
                                               subtitle: Text(
@@ -550,7 +550,7 @@ Row(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.bgBlushRoseDark.withOpacity(0.15),
+                  color: AppColors.textAccent.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Text(
@@ -558,7 +558,7 @@ Row(
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.bgBlushRoseDark,
+                    color: AppColors.textAccent,
                     letterSpacing: 1,
                   ),
                 ),
