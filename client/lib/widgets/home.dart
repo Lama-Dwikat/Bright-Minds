@@ -127,7 +127,7 @@ String getBackendUrl() {
           flexibleSpace: Container(
             decoration: BoxDecoration(
              // gradient: AppColors.pinkToPeach,
-             color:AppColors.peachPink,
+             color:Color.fromARGB(255, 241, 196, 137),
             ),
 
 
@@ -201,7 +201,7 @@ child: Padding(
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.brown,
                   fontSize: 23,
                   fontWeight: FontWeight.bold,
                 ),
@@ -247,7 +247,7 @@ child: Padding(
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.peachPink,
+             color:Color.fromARGB(255, 241, 196, 137),
                     blurRadius: 12,
                     offset: const Offset(0, -4),
                   ),
@@ -335,15 +335,18 @@ child: Padding(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.bgWarmPink,
-                      AppColors.bgWarmPinkDark
+                 Color.fromARGB(255, 214, 179, 133),
+
+                 Color.fromARGB(255, 224, 196, 159),
+
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.bgWarmPinkDark,
+                          color:Color.fromARGB(255, 241, 196, 137),
+
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),

@@ -1,5 +1,6 @@
 
 
+import 'package:bright_minds/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -468,13 +469,13 @@ Widget build(BuildContext context) {
 title: const Text(
   "Chat Time 🧸",
   style: TextStyle(
-    color: Colors.white,
+    color: Colors.brown,
     fontWeight: FontWeight.bold,
   ),
 ),
 
       centerTitle: true,
-      backgroundColor: const Color.fromARGB(255, 227, 163, 1),
+      backgroundColor:  AppColors.warmHoneyYellow,
       elevation: 0,
     ),
     body: Column(

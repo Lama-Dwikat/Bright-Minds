@@ -10,6 +10,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../models/story_model.dart';
 import 'package:bright_minds/screens/childStory/createStoryPage.dart';
 import 'package:bright_minds/screens/childStory/readOnlyStoryPage.dart';
+import 'package:bright_minds/theme/colors.dart';
 
 
 class StoryKidsScreen extends StatefulWidget {
@@ -404,7 +405,7 @@ final story = _filteredStories[index];
             color: const Color(0xFFEEE5FF),
             child: const Icon(
               Icons.menu_book_rounded,
-              color: Color(0xFFEBA1AB),
+              color: AppColors.warmHoneyYellow,
               size: 50,
             ),
           ),
@@ -624,7 +625,7 @@ Color _statusColor(String status) {
       width: 75,
       height: 75,
       decoration: BoxDecoration(
-        color: const Color(0xFFEBA1AB),  // بنفسجي
+        color: const Color.fromARGB(255, 250, 206, 148),  // بنفسجي
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -657,7 +658,7 @@ Color _statusColor(String status) {
     child: ChoiceChip(
       label: Text(label),
       selected: _selectedStatus == value,
-      selectedColor: Color(0xFFEBA1AB),
+      selectedColor: AppColors.storyButton,
       onSelected: (selected) {
         setState(() {
           _selectedStatus = value;

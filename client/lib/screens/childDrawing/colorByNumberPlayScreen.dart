@@ -254,7 +254,7 @@ class _ColorByNumberPlayScreenState extends State<ColorByNumberPlayScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         title: Text(
           "Color by Number",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.w900),
@@ -276,7 +276,7 @@ class _ColorByNumberPlayScreenState extends State<ColorByNumberPlayScreen> {
             child: ElevatedButton.icon(
               onPressed: _saving ? null : _saveAndSend,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.bgWarmPink,
+                backgroundColor: AppColors.warmHoneyYellow,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
@@ -301,7 +301,7 @@ class _ColorByNumberPlayScreenState extends State<ColorByNumberPlayScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.bgWarmPink.withOpacity(0.10), Colors.white],
+            colors: [AppColors.warmHoneyYellow.withOpacity(0.10), Colors.white],
           ),
         ),
         child: ListView(
@@ -396,15 +396,15 @@ class _ColorByNumberPlayScreenState extends State<ColorByNumberPlayScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.brush, color: AppColors.bgWarmPink),
+          const Icon(Icons.brush, color: AppColors.warmHoneyYellow),
           const SizedBox(width: 10),
          
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.bgWarmPink.withOpacity(0.14),
+              color: AppColors.warmHoneyYellow.withOpacity(0.14),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.bgWarmPink.withOpacity(0.28)),
+              border: Border.all(color: AppColors.warmHoneyYellow.withOpacity(0.28)),
             ),
             child: Text(
               "Selected: $n",

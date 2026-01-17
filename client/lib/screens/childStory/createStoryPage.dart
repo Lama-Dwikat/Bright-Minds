@@ -1,3 +1,4 @@
+import 'package:bright_minds/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
@@ -65,7 +66,7 @@ final TextEditingController _titleController = TextEditingController();
   final TextEditingController _textController = TextEditingController();
 
   // Main Brand Color
-  final Color mainPurple = const Color(0xFFD97B83);
+  final Color mainPurple = AppColors.pastelYellow;
 
   final List<String> storyImageAssets = [
     'assets/story_images/discussion.png',
@@ -129,7 +130,7 @@ void initState() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F5), // soft purple background
+      backgroundColor: const Color.fromARGB(255, 246, 228, 201), // soft purple background
       body: SafeArea(
         child: Stack(
           
@@ -363,14 +364,14 @@ if (item["type"] == "audio") {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.audiotrack, color: Color(0xFFD97B83)),
+          const Icon(Icons.audiotrack, color: Color.fromARGB(255, 240, 169, 70)),
           const SizedBox(width: 8),
           Text(
             "Voice note",
             style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
           ),
           IconButton(
-            icon: const Icon(Icons.play_arrow, color: Color(0xFFD97B83)),
+            icon: const Icon(Icons.play_arrow, color: Color.fromARGB(255, 240, 169, 70)),
             onPressed: () async {
               // 🔊 شغّل الصوت
               final file = File(item["path"]);
@@ -461,12 +462,12 @@ if (isGeneratingAI)
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE0E0),
+        color: const Color.fromARGB(255, 237, 198, 145),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          Icon(Icons.edit, color:Color(0xFFD97B83) ),
+          Icon(Icons.edit, color:Color.fromARGB(255, 240, 169, 70) ),
           const SizedBox(width: 10),
 
           // ---------- Editable Story Title ----------
@@ -489,17 +490,17 @@ if (isGeneratingAI)
 
           // ---------- Save Button ----------
           IconButton(
-            icon: const Icon(Icons.save_rounded, color: Color(0xFFD97B83), size: 28),
+            icon: const Icon(Icons.save_rounded, color: Color.fromARGB(255, 240, 169, 70), size: 28),
             tooltip: "Save your story",
             onPressed: () async {
               final choice = await showDialog<String>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFFFFE0E0),
+                  backgroundColor: AppColors.badgesButton,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   title: Row(
                     children: const [
-                      Icon(Icons.save_rounded, color: Color(0xFFD97B83), size: 30),
+                      Icon(Icons.save_rounded, color: Color.fromARGB(255, 240, 169, 70), size: 30),
                       SizedBox(width: 10),
                       Text(
                         "Save Story",
@@ -522,7 +523,7 @@ if (isGeneratingAI)
                   actions: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD97B83),
+                        backgroundColor: Color.fromARGB(255, 240, 169, 70),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.pop(context, "send"),
@@ -531,7 +532,7 @@ if (isGeneratingAI)
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFD97B83),
+                        foregroundColor: const Color.fromARGB(255, 250, 202, 134), 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
@@ -564,7 +565,7 @@ if (isGeneratingAI)
   style: GoogleFonts.poppins(
     fontSize: 20,
     fontWeight: FontWeight.w600,
-    color:Color(0xFFD97B83) ,
+    color:Color.fromARGB(255, 241, 164, 55) ,
   ),
 );
 
@@ -578,7 +579,7 @@ if (isGeneratingAI)
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      color: const Color(0xFFFFE0E0),
+      color: AppColors.badgesButton,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -588,8 +589,8 @@ IconButton(
   icon: Icon(
     (_isListening || isRecording) ? Icons.stop_circle_outlined : Icons.mic,
     color: (_isListening || isRecording)
-        ? Colors.redAccent
-        : const Color(0xFFD97B83),
+        ? Color.fromARGB(255, 245, 168, 60)
+        : const Color.fromARGB(255, 251, 198, 122),
     size: 32,
   ),
   tooltip: "Add Voice or Speech",
@@ -616,7 +617,7 @@ IconButton(
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFFFE0E0),
+        backgroundColor: AppColors.badgesButton,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
@@ -634,7 +635,7 @@ IconButton(
         actions: [
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD97B83),
+              backgroundColor: const Color.fromARGB(255, 240, 169, 70),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
@@ -651,9 +652,9 @@ IconButton(
             ),
             onPressed: () => Navigator.pop(context, "speech"),
             icon: const Icon(Icons.record_voice_over,
-                color: Color(0xFFD97B83)),
+                color: Color.fromARGB(255, 240, 169, 70)),
             label: const Text("Speak to Write",
-                style: TextStyle(color: Color(0xFFD97B83))),
+                style: TextStyle(color: Color.fromARGB(255, 240, 169, 70))),
           ),
         ],
       ),
@@ -680,7 +681,7 @@ IconButton(
          
          // previous and next page 
          IconButton(
-  icon: const Icon(Icons.undo, color: Color(0xFFD97B83)),
+  icon: const Icon(Icons.undo, color: Color.fromARGB(255, 240, 169, 70)),
   tooltip: "Previous Page",
   onPressed: currentPageIndex > 0
       ? () {
@@ -691,7 +692,7 @@ IconButton(
       : null, 
 ),
 IconButton(
-  icon: const Icon(Icons.redo, color: Color(0xFFD97B83)),
+  icon: const Icon(Icons.redo, color: Color.fromARGB(255, 240, 169, 70)),
   tooltip: "Next Page",
   onPressed: currentPageIndex < pages.length - 1
       ? () {
@@ -705,7 +706,7 @@ IconButton(
 
 // delete the page 
   IconButton(
-  icon: const Icon(Icons.delete, color: Color(0xFFD97B83)),
+  icon: const Icon(Icons.delete, color: Color.fromARGB(255, 240, 169, 70)),
   tooltip: "Delete this page",
   onPressed: () async {
     if (pages.isEmpty) return;
@@ -717,7 +718,7 @@ IconButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFD97B83), size: 30),
+            Icon(Icons.warning_amber_rounded, color: Color.fromARGB(255, 240, 169, 70), size: 30),
             SizedBox(width: 10),
             Text(
               "Delete Page?",
@@ -741,7 +742,7 @@ IconButton(
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: Color(0xFFD97B83),
+              foregroundColor: Color.fromARGB(255, 240, 169, 70),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
@@ -792,11 +793,11 @@ IconButton(
       builder: (context) {
         print("🟢 Dialog opened!");
         return AlertDialog(
-          backgroundColor: const Color(0xFFFFE0E0),
+          backgroundColor: Color.fromARGB(255, 249, 234, 213),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Row(
             children: const [
-              Icon(Icons.add_circle_rounded, color: Color(0xFFD97B83), size: 30),
+              Icon(Icons.add_circle_rounded, color: Color.fromARGB(255, 240, 169, 70), size: 30),
               SizedBox(width: 10),
               Text(
                 "Add New Page?",
@@ -820,7 +821,7 @@ IconButton(
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFFD97B83),
+                foregroundColor: Color.fromARGB(255, 240, 169, 70),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
@@ -829,7 +830,7 @@ IconButton(
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFFD97B83),
+                backgroundColor: Color.fromARGB(255, 240, 169, 70),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () => Navigator.pop(context, true),
@@ -869,7 +870,7 @@ IconButton(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          color: Color(0xFFD97B83),
+          color: Color.fromARGB(255, 240, 169, 70),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -915,7 +916,7 @@ IconButton(
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFD97B83),
+                      color: Color.fromARGB(255, 240, 169, 70),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -982,7 +983,7 @@ IconButton(
 
   Widget _toolOption(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFFD97B83)),
+      leading: Icon(icon, color: Color.fromARGB(255, 240, 169, 70)),
       title: Text(title, style: GoogleFonts.poppins(fontSize: 18)),
       onTap: onTap,
     );
@@ -1014,7 +1015,7 @@ IconButton(
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD97B83),
+                backgroundColor: Color.fromARGB(255, 240, 169, 70),
               ),
               onPressed: () {
                 final input = _textController.text.trim();
@@ -1221,7 +1222,7 @@ Widget _drawingToolsOverlay() {
             value: strokeWidth,
             min: 2,
             max: 20,
-            activeColor: const Color(0xFFD97B83),
+            activeColor: Color.fromARGB(255, 240, 169, 70),
             onChanged: (v) => setState(() => strokeWidth = v),
           ),
 
@@ -1230,17 +1231,17 @@ Widget _drawingToolsOverlay() {
           // ↩️ Undo / Redo
           IconButton(
             tooltip: "Undo",
-            icon: const Icon(Icons.undo, color: Color(0xFFD97B83), size: 26),
+            icon: const Icon(Icons.undo, color: Color.fromARGB(255, 240, 169, 70), size: 26),
             onPressed: _undoDraw,
           ),
           IconButton(
             tooltip: "Redo",
-            icon: const Icon(Icons.redo, color: Color(0xFFD97B83), size: 26),
+            icon: const Icon(Icons.redo, color: Color.fromARGB(255, 240, 169, 70), size: 26),
             onPressed: _redoDraw,
           ),
 // BACK
           const Divider(
-            color: Color(0xFFFFE0E0),
+            color: Color.fromARGB(255, 246, 230, 208),
             thickness: 1,
             height: 15,
           ),
@@ -1249,7 +1250,7 @@ Widget _drawingToolsOverlay() {
           IconButton(
             tooltip: "Done Drawing",
             icon: const Icon(Icons.check_circle_rounded,
-                color: Color(0xFFD97B83), size: 30),
+                color: Color.fromARGB(255, 240, 169, 70), size: 30),
             onPressed: () async {
   // 1) حول الرسم لصورة PNG
   final pngBytes = await _exportDrawingAsImage();
@@ -1286,13 +1287,13 @@ Widget _drawingToolsOverlay() {
               final confirm = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: const Color(0xFFFFE0E0),
+                  backgroundColor: Color.fromARGB(255, 240, 169, 70),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),
                   title: Row(
                     children: const [
                       Icon(Icons.warning_amber_rounded,
-                          color: Color(0xFFD97B83), size: 30),
+                          color: Color.fromARGB(255, 240, 169, 70), size: 30),
                       SizedBox(width: 10),
                       Text(
                         "Delete drawing?",
@@ -1316,7 +1317,7 @@ Widget _drawingToolsOverlay() {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFFD97B83),
+                        foregroundColor: Color.fromARGB(255, 240, 169, 70),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
@@ -2116,7 +2117,7 @@ void _openAIGenerateDialog() {
     context: context,
     builder: (context) {
       return AlertDialog(
-        backgroundColor: Color(0xFFFFE0E0),
+        backgroundColor: Color.fromARGB(255, 248, 237, 221),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text("Generate AI Image", style: TextStyle(fontSize: 20)),
         content: TextField(
@@ -2130,7 +2131,7 @@ void _openAIGenerateDialog() {
             onPressed: () => Navigator.pop(context),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFD97B83)),
+            style: ElevatedButton.styleFrom(backgroundColor: Color.fromARGB(255, 240, 169, 70)),
             child: Text("Generate"),
             onPressed: () {
               final prompt = controller.text.trim();

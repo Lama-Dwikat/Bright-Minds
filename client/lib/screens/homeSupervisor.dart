@@ -107,6 +107,63 @@ String getBackendUrl() {
       print('Failed to load tasks: ${response.statusCode}');
     }
   }
+void _showAddTaskDialog() {
+  final TextEditingController taskController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Add New Task"),
+        content: TextField(
+          controller: taskController,
+          decoration: const InputDecoration(
+            hintText: "Enter task description",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (taskController.text.trim().isNotEmpty) {
+                addTask(taskController.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("Add"),
+          ),
+        ],
+      );
+    },
+  );
+}
+Future<void> addTask(String description) async {
+  try {
+    final response = await http.post(
+      Uri.parse("${getBackendUrl()}/api/tasks/addTask"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "description": description,
+        "supervisorId": userId,
+        "done": false,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      fetchTasks(); // refresh list
+    } else {
+      print("Failed to add task: ${response.body}");
+    }
+  } catch (e) {
+    print("Error adding task: $e");
+  }
+}
 
 
 void updateTaskStatus(String taskId, bool isDone) async {
@@ -173,11 +230,11 @@ SizedBox(
                    // padding: const EdgeInsets.all(10),
                    padding: const EdgeInsets.only(left: 5, right: 10, bottom: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.bgWarmPink,
+                      color: AppColors.badgesButton,
                     border: const Border(
-                  top: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
-                   left: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
-                   right: BorderSide(color: AppColors.bgSoftPinkVeryDark, width: 2),
+                  top: BorderSide(color: Color.fromARGB(255, 243, 182, 59), width: 2),
+                   left: BorderSide(color: Color.fromARGB(255, 222, 174, 77), width: 2),
+                   right: BorderSide(color: Color.fromARGB(255, 232, 175, 62), width: 2),
                   bottom: BorderSide(color: Colors.transparent, width: 0), // NO BOTTOM BORDER
                     ),     
                                    ),
@@ -196,9 +253,9 @@ SizedBox(
 Container(
  padding: const EdgeInsets.all(12),
   decoration: BoxDecoration(
-    color: AppColors.bgWarmPink,
+    color: const Color.fromARGB(255, 248, 217, 154),
     borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: AppColors.bgSoftPinkVeryDark, width: 1),
+    border: Border.all(color: const Color.fromARGB(255, 213, 160, 55), width: 1),
   ),
   child: Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +280,7 @@ Container(
               margin: const EdgeInsets.only(right: 6),
               decoration: BoxDecoration(
                 color: isToday
-                    ? AppColors.bgSoftPinkVeryDark
+                    ? const Color.fromARGB(255, 199, 153, 61)
                     : Colors.transparent,
                 shape: BoxShape.circle,
               ),
@@ -240,16 +297,28 @@ Container(
         ),
       ),
       ),
-      const SizedBox(height: 12),
+    //  const SizedBox(height: 12),
 
       // Today's Tasks Header
-      Text(
-        "Today's Tasks",
-        style: GoogleFonts.robotoSlab(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+   Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      "Today's Tasks",
+      style: GoogleFonts.robotoSlab(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
       ),
+    ),
+    IconButton(
+      icon: const Icon(Icons.add_circle, color: Color(0xFF6E4A4A), size: 28),
+      onPressed: () {
+        _showAddTaskDialog();
+      },
+    ),
+  ],
+),
+
 
       const SizedBox(height: 12),
 
@@ -390,18 +459,18 @@ Container(
 
 
               
-              const SizedBox(height: 16),
-           _buildFullWidthButton(
-             label: "Kids",
-           imagePath: "assets/images/kids.png", // <-- your kids image
-              color: AppColors.peachPinkLight,
-              onPressed: () {
-               Navigator.push(
-             context,
-                MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
-             );
-          },
-               ),
+          //     const SizedBox(height: 16),
+          //  _buildFullWidthButton(
+          //    label: "Kids",
+          //  imagePath: "assets/images/kids.png", // <-- your kids image
+          //     color: AppColors.peachPinkLight,
+          //     onPressed: () {
+          //      Navigator.push(
+          //    context,
+          //       MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
+          //    );
+          // },
+          //      ),
 
 
              const SizedBox(height: 16),
@@ -418,7 +487,7 @@ Container(
                   label: "Stories",
                   //icon: Icons.menu_book_rounded,
                   imagePath: "assets/images/story2.png",
-                  color: AppColors.bgBlushRose,
+                    color: const Color(0xFFFFD9C0),
                     onTap: () {
     Navigator.push(
       context,
@@ -433,9 +502,8 @@ Container(
                 ),
                 _mainButton(
                   label: "Videos",
-                 // icon: Icons.ondemand_video_rounded,
                  imagePath: "assets/images/video.png",
-                  color: AppColors.bgBlushRoseLight,
+                  color: const Color.fromARGB(255, 254, 220, 168),
                    onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosPage()));},
 
                 ),
@@ -443,7 +511,7 @@ Container(
                   label: "Games",
                  // icon: Icons.videogame_asset_rounded,
                  imagePath: "assets/images/Games.png",
-                  color: AppColors.bgWarmPinkLight,
+                  color: const Color.fromARGB(255, 244, 201, 152),
                  onTap: () { 
                   Navigator.push(context, MaterialPageRoute(builder: (context) => GamesHomePage()));},
   
@@ -452,7 +520,7 @@ Container(
                   label: "Drawing",
                  // icon: Icons.brush_rounded,
                  imagePath: "assets/images/Drawing.png",
-                  color: AppColors.bgWarmPink,
+                  color: const Color(0xFFF9E2CE),
                  onTap: () {
   Navigator.push(
     context,
@@ -466,6 +534,19 @@ Container(
                 
               ],
             ),
+         const SizedBox(height: 16),
+       _buildFullWidthButton(
+  label: "Kids",
+  imagePath: "assets/images/kids.png",
+  color: const Color(0xFFFFE7C8),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
+    );
+  },
+),
+
 
             const SizedBox(height: 36),
             ],

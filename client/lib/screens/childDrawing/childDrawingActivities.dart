@@ -155,7 +155,7 @@ class _ChildDrawingActivitiesScreenState
           "Drawing",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         // ✅ زر معرض الرسومات
         actions: [
           IconButton(

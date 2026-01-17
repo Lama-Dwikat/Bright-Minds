@@ -298,8 +298,8 @@ static const Gradient pinkToPeach = LinearGradient(
           begin: Alignment.topLeft,
     end: Alignment.topRight,
     colors: [
-      Color.fromARGB(255, 233, 214, 162),
-      Color.fromARGB(255, 208, 174, 116),
+      Color.fromARGB(255, 244, 226, 179),
+      Color.fromARGB(255, 249, 216, 157),
     ],
   );
 }
