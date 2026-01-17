@@ -211,116 +211,21 @@ _buildParentActionCard(
   ),
 ),
 
-
-
-          // --- Date picker button ---
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () => pickDate(context),
-                  child: Text(selectedDate != null
-                      ? DateFormat('yyyy-MM-dd').format(selectedDate!)
-                      : "Select date"),
-                ),
-                if (selectedDate != null)
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedDate = null; // clear filter
-                      });
-                    },
-                    icon: const Icon(Icons.clear),
-                  ),
-              ],
-            ),
+    _buildParentActionCard(
+      context,
+      title: "Video Watching Report",
+      subtitle: "View watch history & limits",
+      icon: Icons.video_library_rounded,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ParentVideoReportScreen(),
           ),
+        );}
+    )
 
-          Expanded(
-            child: kids.isEmpty
-                ? const Center(child: Text("No kids found"))
-                : ListView.builder(
-                    itemCount: kids.length,
-                    itemBuilder: (context, index) {
-                      final kid = kids[index];
-                      final kidId = kid['_id'];
-                      final kidHistory = videoHistoryByKid[kidId] ?? [];
-                      final kidDailyWatch = dailyWatchByKid[kidId] ?? [];
 
-                      // Filter by selected date
-                      final filteredHistory = kidHistory
-                          .where((h) =>
-                              h['watchedAt'] != null &&
-                              isSameDate(h['watchedAt']))
-                          .toList();
-
-                      final filteredDailyWatch = kidDailyWatch
-                          .where((r) =>
-                              r['date'] != null && isSameDate(r['date']))
-                          .toList();
-
-                      return ExpansionTile(
-                        title: Text(kid['name'] ?? "Unknown Kid"),
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "Video History",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          if (filteredHistory.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("No history for this date"),
-                            ),
-                          ...filteredHistory.map((historyItem) {
-                            final video = historyItem['videoId'];
-                            return ListTile(
-                              leading: (video != null &&
-                                      video['thumbnailUrl'] != null)
-                                  ? Image.network(
-                                      video['thumbnailUrl'],
-                                      width: 60,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : const Icon(Icons.video_library),
-                              title: Text(video?['title'] ?? "Unknown"),
-                              subtitle: Text(
-                                "Watched at: ${historyItem['watchedAt'] != null ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(historyItem['watchedAt']).toLocal()) : "Unknown"}\n"
-                                "Duration: ${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min",
-                              ),
-                            );
-                          }).toList(),
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "Daily Watch Records",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          if (filteredDailyWatch.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("No daily watch for this date"),
-                            ),
-                          ...filteredDailyWatch.map(
-                            (record) => ListTile(
-                              title: Text(
-                                "Date: ${record['date'] != "" ? DateFormat('yyyy-MM-dd').format(DateTime.parse(record['date']).toLocal()) : "Unknown"}",
-                              ),
-                              subtitle: Text(
-                                "Watched: ${(record['dailyWatchMin'] ?? 0).toStringAsFixed(2)} min / "
-                                "Limit: ${record['limitWatchMin'] ?? 0} min",
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-          ),
         ],
       ),
     );
@@ -357,7 +262,7 @@ Widget _buildParentActionCard(
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFFF7D6D6), // pink soft
+              color: const Color.fromARGB(255, 236, 209, 145), // pink soft
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, size: 26, color: Colors.black87),
@@ -390,4 +295,412 @@ Widget _buildParentActionCard(
       ),
     ),
   );
+}
+
+
+// class ParentVideoReportScreen extends StatefulWidget {
+//   const ParentVideoReportScreen({super.key});
+
+//   @override
+//   State<ParentVideoReportScreen> createState() =>
+//       _ParentVideoReportScreenState();
+// }
+
+// class _ParentVideoReportScreenState extends State<ParentVideoReportScreen> {
+//   String parentId = "";
+
+//   List kids = [];
+//   Map<String, List> videoHistoryByKid = {};
+//   Map<String, List> dailyWatchByKid = {};
+
+//   DateTime? selectedDate;
+
+//   String getBackendUrl() {
+//     if (kIsWeb) return "http://192.168.1.63:3000";
+//     if (Platform.isAndroid) return "http://10.0.2.2:3000";
+//     return "http://localhost:3000";
+//   }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     loadParentAndKids();
+//   }
+
+//   Future<void> loadParentAndKids() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final token = prefs.getString("token");
+//     if (token == null) return;
+
+//     final decoded = JwtDecoder.decode(token);
+//     parentId = decoded['id'];
+
+//     await getKids();
+//   }
+
+//   Future<void> getKids() async {
+//     final res = await http.get(
+//       Uri.parse('${getBackendUrl()}/api/users/getParentKids/$parentId'),
+//     );
+
+//     if (res.statusCode == 200) {
+//       kids = jsonDecode(res.body);
+//       setState(() {});
+
+//       for (var kid in kids) {
+//         final id = kid['_id'];
+//         await getKidHistory(id);
+//         await getKidDailyWatch(id);
+//       }
+//     }
+//   }
+
+//   Future<void> getKidHistory(String kidId) async {
+//     final res = await http.get(
+//       Uri.parse('${getBackendUrl()}/api/history/getHistory/$kidId'),
+//     );
+
+//     if (res.statusCode == 200) {
+//       videoHistoryByKid[kidId] = jsonDecode(res.body);
+//       setState(() {});
+//     }
+//   }
+
+//   Future<void> getKidDailyWatch(String kidId) async {
+//     final res = await http.get(
+//       Uri.parse('${getBackendUrl()}/api/dailywatch/getUserWatchRecord/$kidId'),
+//     );
+
+//     if (res.statusCode == 200) {
+//       dailyWatchByKid[kidId] = jsonDecode(res.body);
+//       setState(() {});
+//     }
+//   }
+
+//   bool isSameDate(String dateStr) {
+//     if (selectedDate == null) return true;
+//     final d = DateTime.parse(dateStr).toLocal();
+//     return d.year == selectedDate!.year &&
+//         d.month == selectedDate!.month &&
+//         d.day == selectedDate!.day;
+//   }
+
+//   Future<void> pickDate() async {
+//     final picked = await showDatePicker(
+//       context: context,
+//       initialDate: selectedDate ?? DateTime.now(),
+//       firstDate: DateTime(2023),
+//       lastDate: DateTime.now(),
+//     );
+
+//     if (picked != null) {
+//       setState(() => selectedDate = picked);
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return HomePage(
+//       title: "Video Report",
+//       child: Column(
+//         children: [
+//           Row(
+//             children: [
+//               ElevatedButton(
+//                 onPressed: pickDate,
+//                 child: Text(
+//                   selectedDate == null
+//                       ? "Select date"
+//                       : DateFormat('yyyy-MM-dd').format(selectedDate!),
+//                 ),
+//               ),
+//               if (selectedDate != null)
+//                 IconButton(
+//                   icon: const Icon(Icons.clear),
+//                   onPressed: () => setState(() => selectedDate = null),
+//                 ),
+//             ],
+//           ),
+
+//           Expanded(
+//             child: kids.isEmpty
+//                 ? const Center(child: Text("No kids found"))
+//                 : ListView.builder(
+//                     itemCount: kids.length,
+//                     itemBuilder: (context, index) {
+//                       final kid = kids[index];
+//                       final id = kid['_id'];
+
+//                       final history =
+//                           videoHistoryByKid[id]?.where((h) {
+//                         return h['watchedAt'] != null &&
+//                             isSameDate(h['watchedAt']);
+//                       }).toList() ??
+//                               [];
+
+//                       return ExpansionTile(
+//                         title: Text(kid['name']),
+//                         children: history.isEmpty
+//                             ? [
+//                                 const Padding(
+//                                   padding: EdgeInsets.all(8),
+//                                   child: Text("No video activity"),
+//                                 )
+//                               ]
+//                             : history.map((h) {
+//                                 final video = h['videoId'];
+//                                 return ListTile(
+//                                   leading: video?['thumbnailUrl'] != null
+//                                       ? Image.network(
+//                                           video['thumbnailUrl'],
+//                                           width: 60,
+//                                           fit: BoxFit.cover,
+//                                         )
+//                                       : const Icon(Icons.video_library),
+//                                   title: Text(video?['title'] ?? ""),
+//                                   subtitle: Text(
+//                                     "Watched: ${DateFormat('HH:mm').format(DateTime.parse(h['watchedAt']).toLocal())}",
+//                                   ),
+//                                 );
+//                               }).toList(),
+//                       );
+//                     },
+//                   ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+class ParentVideoReportScreen extends StatefulWidget {
+  const ParentVideoReportScreen({super.key});
+
+  @override
+  State<ParentVideoReportScreen> createState() =>
+      _ParentVideoReportScreenState();
+}
+
+class _ParentVideoReportScreenState extends State<ParentVideoReportScreen> {
+  String parentId = "";
+  List kids = [];
+
+  Map<String, List> videoHistoryByKid = {};
+  DateTime? selectedDate;
+
+  String getBackendUrl() {
+    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (Platform.isAndroid) return "http://10.0.2.2:3000";
+    return "http://localhost:3000";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadParentAndKids();
+  }
+
+  Future<void> loadParentAndKids() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+    if (token == null) return;
+
+    parentId = JwtDecoder.decode(token)['id'];
+    await getKids();
+  }
+
+  Future<void> getKids() async {
+    final res = await http.get(
+      Uri.parse('${getBackendUrl()}/api/users/getParentKids/$parentId'),
+    );
+
+    if (res.statusCode == 200) {
+      kids = jsonDecode(res.body);
+      setState(() {});
+      for (var kid in kids) {
+        await getKidHistory(kid['_id']);
+      }
+    }
+  }
+
+  Future<void> getKidHistory(String kidId) async {
+    final res = await http.get(
+      Uri.parse('${getBackendUrl()}/api/history/getHistory/$kidId'),
+    );
+
+    if (res.statusCode == 200) {
+      videoHistoryByKid[kidId] = jsonDecode(res.body);
+      setState(() {});
+    }
+  }
+
+  bool isSameDate(String dateStr) {
+    if (selectedDate == null) return true;
+    final d = DateTime.parse(dateStr).toLocal();
+    return d.year == selectedDate!.year &&
+        d.month == selectedDate!.month &&
+        d.day == selectedDate!.day;
+  }
+
+  Future<void> pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => selectedDate = picked);
+  }
+
+  /// 🎯 VIDEO CATEGORY HISTOGRAM
+  Map<String, int> buildCategoryHistogram(List history) {
+    final Map<String, int> map = {};
+    for (var h in history) {
+      final category = h['videoId']?['category'] ?? 'Other';
+      map[category] = (map[category] ?? 0) + 1;
+    }
+    return map;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width > 800;
+
+    return Scaffold(
+      backgroundColor: const Color(0xffF6F7FB),
+      appBar: AppBar(
+        title: const Text("Video Watching Report"),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            /// 📅 DATE PICKER
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.calendar_today),
+                  label: Text(
+                    selectedDate == null
+                        ? "Select date"
+                        : DateFormat('yyyy-MM-dd').format(selectedDate!),
+                  ),
+                  onPressed: pickDate,
+                ),
+                if (selectedDate != null)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() => selectedDate = null),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            Expanded(
+              child: kids.isEmpty
+                  ? const Center(child: Text("No kids found"))
+                  : GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isWide ? 2 : 1,
+                        childAspectRatio: isWide ? 2.4 : 1.2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemCount: kids.length,
+                      itemBuilder: (_, index) {
+                        final kid = kids[index];
+                        final history = (videoHistoryByKid[kid['_id']] ?? [])
+                            .where((h) =>
+                                h['watchedAt'] != null &&
+                                isSameDate(h['watchedAt']))
+                            .toList();
+
+                        final histogram =
+                            buildCategoryHistogram(history);
+
+                        return _buildKidCard(
+                          kid['name'],
+                          history.length,
+                          histogram,
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 🧒 KID CARD + HISTOGRAM
+  Widget _buildKidCard(
+    String name,
+    int totalVideos,
+    Map<String, int> histogram,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Watched videos: $totalVideos",
+            style: const TextStyle(color: Colors.black54),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// 📊 HISTOGRAM
+          Expanded(
+            child: histogram.isEmpty
+                ? const Center(child: Text("No video activity"))
+                : Column(
+                    children: histogram.entries.map((e) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 90,
+                              child: Text(e.key),
+                            ),
+                            Expanded(
+                              child: LinearProgressIndicator(
+                                value: e.value / totalVideos,
+                                minHeight: 10,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text("${e.value}"),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
 }

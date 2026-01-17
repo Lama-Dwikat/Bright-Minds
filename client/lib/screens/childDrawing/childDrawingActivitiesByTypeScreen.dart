@@ -26,7 +26,7 @@ class ChildDrawingActivitiesByTypeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         title: Text(
           title,
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.w900),
@@ -78,7 +78,7 @@ class ChildDrawingActivitiesByTypeScreen extends StatelessWidget {
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: AppColors.bgWarmPinkLight,
+                      color: AppColors.warmHoneyYellow,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: const [
                         BoxShadow(

@@ -463,5 +463,20 @@ async getMyCv(req, res) {
   }
 },
 
+        async getAdmins(req,res){
+        try{
+     const user = await userService.getAdmins();
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
+
+           async getSupervisos(req,res){
+        try{
+     const user = await userService.getSupervisors();
+  return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });                  }
+       },
 
 }

@@ -25,6 +25,9 @@ import 'package:bright_minds/screens/Settings/supervisorSettingsScreen.dart';
 import 'package:bright_minds/screens/challenges/SupervisorWeeklyPlannerScreen.dart';
 import 'package:bright_minds/screens/challenges/childWeeklyChallenges.dart';
 
+import 'package:bright_minds/screens/chat.dart';
+
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, this.child,this.title = "Home"});
@@ -131,7 +134,7 @@ String getBackendUrl() {
           flexibleSpace: Container(
             decoration: BoxDecoration(
              // gradient: AppColors.pinkToPeach,
-             color:AppColors.peachPink,
+             color:Color.fromARGB(255, 241, 196, 137),
             ),
 
 
@@ -205,7 +208,7 @@ child: Padding(
                 softWrap: true,
                 overflow: TextOverflow.visible,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.brown,
                   fontSize: 23,
                   fontWeight: FontWeight.bold,
                 ),
@@ -251,7 +254,7 @@ child: Padding(
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.peachPink,
+             color:Color.fromARGB(255, 241, 196, 137),
                     blurRadius: 12,
                     offset: const Offset(0, -4),
                   ),
@@ -305,13 +308,37 @@ child: Padding(
 ),
 
                     const SizedBox(width: 29),
+                    // navItem(
+                    //   icon: Icons.chat_outlined,
+                    //   label: "Messages",
+                    //   color: Colors.white,
+                    //   onTap: () {
+                    //     Navigator.push(context,MaterialPageRoute(builder: (context)=> ChatUsersScreen(currentUserId:userId!)));
+                    //   },
+                    //   iconSize: MediaQuery.of(context).size.width * 0.09,
+                    // ),
                     navItem(
-                      icon: Icons.chat_outlined,
-                      label: "Messages",
-                      color: Colors.white,
-                      onTap: () {},
-                      iconSize: MediaQuery.of(context).size.width * 0.09,
-                    ),
+  icon: Icons.chat_outlined,
+  label: "Messages",
+  color: Colors.white,
+  onTap: () {
+    if (userId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatUsersScreen(currentUserId: userId!),
+        ),
+      );
+    } else {
+      print("User ID not loaded yet.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Loading user data, please wait...")),
+      );
+    }
+  },
+  iconSize: MediaQuery.of(context).size.width * 0.09,
+),
+
                     navItem(
                       icon: Icons.settings_outlined,
                       label: "Settings",
@@ -356,15 +383,18 @@ child: Padding(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.bgWarmPink,
-                      AppColors.bgWarmPinkDark
+                 Color.fromARGB(255, 214, 179, 133),
+
+                 Color.fromARGB(255, 224, 196, 159),
+
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.bgWarmPinkDark,
+                          color:Color.fromARGB(255, 241, 196, 137),
+
                       blurRadius: 15,
                       offset: const Offset(0, 6),
                     ),

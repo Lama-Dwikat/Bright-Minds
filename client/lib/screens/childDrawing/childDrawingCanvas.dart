@@ -592,7 +592,7 @@ class _ChildDrawingCanvasScreenState extends State<ChildDrawingCanvasScreen> {
           widget.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         actions: [
           IconButton(
             icon: const Icon(Icons.clear),

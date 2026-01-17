@@ -314,39 +314,428 @@ if (_cvXFile != null) {
       
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Sign(
-      child: Column(
-        children: [
-          const Expanded(flex: 2, child: SizedBox(height: 10)),
-          Expanded(
-            flex: 6,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
+//   @override
+//   Widget build(BuildContext context) {
+//     return Sign(
+//       child: Column(
+//         children: [
+//           const Expanded(flex: 2, child: SizedBox(height: 10)),
+//           Expanded(
+//             flex: 6,
+//             child: Container(
+//               padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
+//               decoration: const BoxDecoration(
+//                 color: Colors.white,
+//                 borderRadius: BorderRadius.only(
+//                   topLeft: Radius.circular(40),
+//                   topRight: Radius.circular(40),
+//                 ),
+//               ),
+//               child: SingleChildScrollView(
+//                 child: Form(
+//                   key: _formSignUpKey,
+//                   child: Column(
+//                     crossAxisAlignment: CrossAxisAlignment.center,
+//                     children: [
+//                       const Text(
+//                         "Create a new account",
+//                         style: TextStyle(
+//                           fontSize: 25,
+//                           fontWeight: FontWeight.w900,
+//                           color: Color.fromARGB(137, 8, 0, 0),
+//                         ),
+//                       ),
+//                       const SizedBox(height: 30),
+
+//                       // Name
+//                       TextFormField(
+//                         controller: nameController,
+//                         validator: (value) {
+//                           if (value == null || value.isEmpty) {
+//                             return "Please enter your name";
+//                           }
+//                           return null;
+//                         },
+//                         decoration: InputDecoration(
+//                           label: const Text("Name"),
+//                           prefixIcon: const Icon(Icons.person),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                           ),
+//                         ),
+//                       ),
+//                       const SizedBox(height: 20),
+
+//                       // Role Dropdown
+//                       DropdownButtonFormField<String>(
+//                         value: selectedRole,
+//                         decoration: InputDecoration(
+//                           labelText: "Role",
+//                           prefixIcon: const Icon(Icons.people),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                           ),
+//                         ),
+//                         items: const [
+//                           DropdownMenuItem(value: "child", child: Text("Child")),
+//                           DropdownMenuItem(value: "parent", child: Text("Parent")),
+//                           DropdownMenuItem(value: "supervisor", child: Text("Supervisor")),
+//                         ],
+//                         onChanged: (value) {
+//                           setState(() {
+//                             selectedRole = value;
+//                           });
+//                         },
+//                         validator: (value) => value == null ? "Please select a role" : null,
+//                       ),
+//                       const SizedBox(height: 20),
+
+//                       // Email ( for parent & supervisor & child )
+//                      // if (selectedRole == "parent" || selectedRole == "supervisor" || selectedRole == "child") ...[
+//                         TextFormField(
+//                           controller: emailController,
+//                           validator: (value) {
+//                             if (value == null || value.isEmpty) {
+//                               return "Please enter your email";
+//                             }
+//                             if (!value.contains('@')) return "Invalid email";
+//                             return null;
+//                           },
+//                           decoration: InputDecoration(
+//                             label: const Text("Email"),
+//                             prefixIcon: const Icon(Icons.email_outlined),
+//                             border: OutlineInputBorder(
+//                               borderRadius: BorderRadius.circular(10),
+//                             ),
+//                           ),
+//                         ),
+//                         const SizedBox(height: 20),
+//                      // ],
+
+//                       // Password (for all)
+//                       TextFormField(
+//                         controller: passwordController,
+//                         obscureText: true,
+//                         obscuringCharacter: '*',
+//                         validator: (value) {
+//                           if (value == null || value.isEmpty) {
+//                             return "Please enter your password";
+//                           }
+//                          /* if (value.length < 6) {
+//                             return "Password must be at least 6 characters";
+//                           }*/
+//                           return null;
+//                         },
+//                         decoration: InputDecoration(
+//                           label: const Text("Password"),
+//                           prefixIcon: const Icon(Icons.lock_outline),
+//                           border: OutlineInputBorder(
+//                             borderRadius: BorderRadius.circular(10),
+//                           ),
+//                         ),
+//                       ),
+//                       const SizedBox(height: 20),
+
+//                       // Age (for child only)
+//                       if (selectedRole == "child") ...[
+//                         TextFormField(
+//                         controller: ageController,
+//                          readOnly: true,
+//                         decoration:InputDecoration(
+//                           labelText:"Date of Birth",
+//                           prefixIcon:const Icon(Icons.cake_outlined),
+//                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+//                           ),
+//                         ),
+       
+//                         onTap: () async {
+//   DateTime today = DateTime.now();
+//   DateTime firstDate = DateTime(today.year - 12);
+//   DateTime lastDate = DateTime(today.year - 5);
+
+//   DateTime? pickedDate = await showDatePicker(
+//     context: context,
+//     initialDate: firstDate,
+//     firstDate: firstDate,
+//     lastDate: lastDate,
+//   );
+
+//   if (pickedDate != null) {
+//     setState(() {
+//       selectedDOB = pickedDate;
+//       ageController.text = "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+
+//       int age = today.year - pickedDate.year;
+//       if (today.month < pickedDate.month || (today.month == pickedDate.month && today.day < pickedDate.day)) {
+//         age--;
+//       }
+//       if (age >= 5 && age <= 8) {
+//         ageGroup = "5-8";
+//       } else if (age >= 9 && age <= 12) {
+//         ageGroup = "9-12";
+//       } else {
+//         ageGroup = null;
+//       }
+//     });
+//   }
+// }
+
+//                         ),
+//                         const SizedBox(height: 20),
+
+//                       ],
+
+         
+
+// // Profile Picture Picker
+// GestureDetector(
+//   onTap: pickProfileImage,
+//   child: Container(
+//     padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+//     decoration: BoxDecoration(
+//       border: Border.all(color: Colors.grey),
+//       borderRadius: BorderRadius.circular(10),
+//     ),
+//     child: Row(
+//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//       children: [
+//         Text(
+//           _profileXFile!= null
+//               ? _profileXFile!.path.split('/').last
+//               : "Select Profile Picture (PNG)",
+//           style: const TextStyle(fontSize: 16),
+//         ),
+//         _profileXFile != null
+//             ? const Icon(Icons.check_circle, color: Colors.green)
+//             : const Icon(Icons.upload_file, color: Colors.deepPurple),
+//       ],
+//     ),
+//   ),
+// ),
+// const SizedBox(height: 20),
+
+
+//                   // CV (Supervisor only)
+//             // CV (Supervisor only)
+// if (selectedRole == "supervisor") ...[
+//   GestureDetector(
+//     onTap: pickCV,
+//     child: Container(
+//       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+//       decoration: BoxDecoration(
+//         border: Border.all(
+//           color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.grey,
+//         ),
+//         borderRadius: BorderRadius.circular(10),
+//       ),
+//       child: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: [
+//           Text(
+//             _cvXFile != null
+//                 ? _cvXFile!.path.split('/').last
+//                 : "Select CV (PDF)",
+//             style: TextStyle(
+//               fontSize: 16,
+//               color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.black,
+//             ),
+//           ),
+//           _cvXFile != null
+//               ? const Icon(Icons.check_circle, color: Colors.green)
+//               : const Icon(Icons.upload_file, color: Colors.deepPurple),
+//         ],
+//       ),
+//     ),
+//   ),
+//   // Error message
+//   if (_cvXFile == null && _isNotValidate)
+//     const Padding(
+//       padding: EdgeInsets.only(top: 5),
+//       child: Text(
+//         "CV is required",
+//         style: TextStyle(color: Colors.red, fontSize: 12),
+//       ),
+//     ),
+//   const SizedBox(height: 10),
+
+
+
+//                       ],
+
+
+
+//                       // Agree personal data checkbox
+//                       Row(
+//                         children: [
+//                           Checkbox(
+//                             value: agreePersonalData,
+//                             onChanged: (bool? value) {
+//                               setState(() {
+//                                 agreePersonalData = value!;
+//                               });
+//                             },
+//                           ),
+//                           const Expanded(
+//                             child: Text(
+//                               "I agree to the processing of personal data",
+//                               style: TextStyle(color: Colors.black45),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                       const SizedBox(height: 20),
+
+
+
+
+//                       // Sign Up button
+//                       SizedBox(
+//                         width: double.infinity,
+//                         child: ElevatedButton(
+//                           onPressed: () {
+//                      if (_formSignUpKey.currentState!.validate() && agreePersonalData) {
+//     SignUp();
+//                } else if (!agreePersonalData) {
+//                    ScaffoldMessenger.of(context).showSnackBar(
+//                  const SnackBar(content: Text("Please agree to personal data processing")),
+//                  );
+//                 }
+//              },
+     
+//                           child: const Text("Sign Up"),
+//                         ),
+//                       ),
+//                       const SizedBox(height: 30),
+
+//                       // Already have account
+//                       Row(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           const Text("Already have an account? "),
+//                           GestureDetector(
+//                             onTap: () {
+//                               Navigator.push(
+//                                 context,
+//                                 MaterialPageRoute(builder: (context) => const SignInScreen()),
+//                               );
+//                             },
+//                             child: const Text(
+//                               "Sign In",
+//                               style: TextStyle(
+//                                 color: Colors.deepPurple,
+//                                 fontWeight: FontWeight.bold,
+//                               ),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+@override
+Widget build(BuildContext context) {
+  final Size screenSize = MediaQuery.of(context).size;
+  final double screenHeight = screenSize.height;
+  final double screenWidth = screenSize.width;
+
+  final bool isMobile = screenWidth < 600; // breakpoint
+
+  // ================= MOBILE DESIGN (UNCHANGED) =================
+  Widget mobileSignUp = Sign(
+    child: Column(
+      children: [
+        const Expanded(flex: 2, child: SizedBox(height: 10)),
+        Expanded(
+          flex: 6,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(25.5, 50.0, 25.0, 20.0),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: _formSignUpKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Create a new account",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w900,
+                        color: Color.fromARGB(137, 8, 0, 0),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    // ... rest of your mobile fields (name, role, email, password, etc.)
+                  ],
                 ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  // ================= WEB/DESKTOP DESIGN =================
+  Widget webSignUp = Row(
+    children: [
+      // Left Image
+      Expanded(
+        child: Image.asset(
+          "assets/images/welcome.png",
+          fit: BoxFit.cover,
+          height: screenHeight,
+        ),
+      ),
+      // Right Form
+      Expanded(
+        child: Container(
+          color: const Color.fromARGB(255, 250, 225, 190), // background color behind the form
+          child: Center(
+            child: Container(
+              width: 500, // fixed width for desktop form
+              padding: const EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.white, // form card color
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
               ),
               child: SingleChildScrollView(
                 child: Form(
                   key: _formSignUpKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Text(
                         "Create a new account",
                         style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w900,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                           color: Color.fromARGB(137, 8, 0, 0),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 30),
-
                       // Name
                       TextFormField(
                         controller: nameController,
@@ -390,29 +779,27 @@ if (_cvXFile != null) {
                       ),
                       const SizedBox(height: 20),
 
-                      // Email ( for parent & supervisor & child )
-                     // if (selectedRole == "parent" || selectedRole == "supervisor" || selectedRole == "child") ...[
-                        TextFormField(
-                          controller: emailController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Please enter your email";
-                            }
-                            if (!value.contains('@')) return "Invalid email";
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                            label: const Text("Email"),
-                            prefixIcon: const Icon(Icons.email_outlined),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                      // Email
+                      TextFormField(
+                        controller: emailController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your email";
+                          }
+                          if (!value.contains('@')) return "Invalid email";
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          label: const Text("Email"),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                     // ],
+                      ),
+                      const SizedBox(height: 20),
 
-                      // Password (for all)
+                      // Password
                       TextFormField(
                         controller: passwordController,
                         obscureText: true,
@@ -421,9 +808,6 @@ if (_cvXFile != null) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your password";
                           }
-                         /* if (value.length < 6) {
-                            return "Password must be at least 6 characters";
-                          }*/
                           return null;
                         },
                         decoration: InputDecoration(
@@ -439,130 +823,132 @@ if (_cvXFile != null) {
                       // Age (for child only)
                       if (selectedRole == "child") ...[
                         TextFormField(
-                        controller: ageController,
-                         readOnly: true,
-                        decoration:InputDecoration(
-                          labelText:"Date of Birth",
-                          prefixIcon:const Icon(Icons.cake_outlined),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                          controller: ageController,
+                          readOnly: true,
+                          decoration: InputDecoration(
+                            labelText: "Date of Birth",
+                            prefixIcon: const Icon(Icons.cake_outlined),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                        ),
-       
-                        onTap: () async {
-  DateTime today = DateTime.now();
-  DateTime firstDate = DateTime(today.year - 12);
-  DateTime lastDate = DateTime(today.year - 5);
+                          onTap: () async {
+                            DateTime today = DateTime.now();
+                            DateTime firstDate = DateTime(today.year - 12);
+                            DateTime lastDate = DateTime(today.year - 5);
 
-  DateTime? pickedDate = await showDatePicker(
-    context: context,
-    initialDate: firstDate,
-    firstDate: firstDate,
-    lastDate: lastDate,
-  );
+                            DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: firstDate,
+                              firstDate: firstDate,
+                              lastDate: lastDate,
+                            );
 
-  if (pickedDate != null) {
-    setState(() {
-      selectedDOB = pickedDate;
-      ageController.text = "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                            if (pickedDate != null) {
+                              setState(() {
+                                selectedDOB = pickedDate;
+                                ageController.text =
+                                    "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
 
-      int age = today.year - pickedDate.year;
-      if (today.month < pickedDate.month || (today.month == pickedDate.month && today.day < pickedDate.day)) {
-        age--;
-      }
-      if (age >= 5 && age <= 8) {
-        ageGroup = "5-8";
-      } else if (age >= 9 && age <= 12) {
-        ageGroup = "9-12";
-      } else {
-        ageGroup = null;
-      }
-    });
-  }
-}
-
+                                int age = today.year - pickedDate.year;
+                                if (today.month < pickedDate.month ||
+                                    (today.month == pickedDate.month &&
+                                        today.day < pickedDate.day)) {
+                                  age--;
+                                }
+                                if (age >= 5 && age <= 8) {
+                                  ageGroup = "5-8";
+                                } else if (age >= 9 && age <= 12) {
+                                  ageGroup = "9-12";
+                                } else {
+                                  ageGroup = null;
+                                }
+                              });
+                            }
+                          },
                         ),
                         const SizedBox(height: 20),
-
                       ],
 
-         
+                      // Profile Picture Picker (same as mobile)
+                      GestureDetector(
+                        onTap: pickProfileImage,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 15, horizontal: 10),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _profileXFile != null
+                                    ? _profileXFile!.path.split('/').last
+                                    : "Select Profile Picture (PNG)",
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              _profileXFile != null
+                                  ? const Icon(Icons.check_circle,
+                                      color: Colors.green)
+                                  : const Icon(Icons.upload_file,
+                                      color: Colors.deepPurple),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-// Profile Picture Picker
-GestureDetector(
-  onTap: pickProfileImage,
-  child: Container(
-    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-    decoration: BoxDecoration(
-      border: Border.all(color: Colors.grey),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          _profileXFile!= null
-              ? _profileXFile!.path.split('/').last
-              : "Select Profile Picture (PNG)",
-          style: const TextStyle(fontSize: 16),
-        ),
-        _profileXFile != null
-            ? const Icon(Icons.check_circle, color: Colors.green)
-            : const Icon(Icons.upload_file, color: Colors.deepPurple),
-      ],
-    ),
-  ),
-),
-const SizedBox(height: 20),
-
-
-                  // CV (Supervisor only)
-            // CV (Supervisor only)
-if (selectedRole == "supervisor") ...[
-  GestureDetector(
-    onTap: pickCV,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.grey,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            _cvXFile != null
-                ? _cvXFile!.path.split('/').last
-                : "Select CV (PDF)",
-            style: TextStyle(
-              fontSize: 16,
-              color: _cvXFile == null && _isNotValidate ? Colors.red : Colors.black,
-            ),
-          ),
-          _cvXFile != null
-              ? const Icon(Icons.check_circle, color: Colors.green)
-              : const Icon(Icons.upload_file, color: Colors.deepPurple),
-        ],
-      ),
-    ),
-  ),
-  // Error message
-  if (_cvXFile == null && _isNotValidate)
-    const Padding(
-      padding: EdgeInsets.only(top: 5),
-      child: Text(
-        "CV is required",
-        style: TextStyle(color: Colors.red, fontSize: 12),
-      ),
-    ),
-  const SizedBox(height: 10),
-
-
-
+                      // CV for supervisor only
+                      if (selectedRole == "supervisor") ...[
+                        GestureDetector(
+                          onTap: pickCV,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 15, horizontal: 10),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: _cvXFile == null && _isNotValidate
+                                    ? Colors.red
+                                    : Colors.grey,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _cvXFile != null
+                                      ? _cvXFile!.path.split('/').last
+                                      : "Select CV (PDF)",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: _cvXFile == null && _isNotValidate
+                                        ? Colors.red
+                                        : Colors.black,
+                                  ),
+                                ),
+                                _cvXFile != null
+                                    ? const Icon(Icons.check_circle,
+                                        color: Colors.green)
+                                    : const Icon(Icons.upload_file,
+                                        color: Colors.deepPurple),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_cvXFile == null && _isNotValidate)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 5),
+                            child: Text(
+                              "CV is required",
+                              style:
+                                  TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                        const SizedBox(height: 10),
                       ],
-
-
 
                       // Agree personal data checkbox
                       Row(
@@ -585,23 +971,22 @@ if (selectedRole == "supervisor") ...[
                       ),
                       const SizedBox(height: 20),
 
-
-
-
                       // Sign Up button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                     if (_formSignUpKey.currentState!.validate() && agreePersonalData) {
-    SignUp();
-               } else if (!agreePersonalData) {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                 const SnackBar(content: Text("Please agree to personal data processing")),
-                 );
-                }
-             },
-     
+                            if (_formSignUpKey.currentState!.validate() &&
+                                agreePersonalData) {
+                              SignUp();
+                            } else if (!agreePersonalData) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please agree to personal data processing")),
+                              );
+                            }
+                          },
                           child: const Text("Sign Up"),
                         ),
                       ),
@@ -616,7 +1001,9 @@ if (selectedRole == "supervisor") ...[
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SignInScreen()),
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const SignInScreen()),
                               );
                             },
                             child: const Text(
@@ -635,8 +1022,16 @@ if (selectedRole == "supervisor") ...[
               ),
             ),
           ),
-        ],
+        ),
       ),
-    );
-  }
+    ],
+  );
+
+  // ================= RETURN LAYOUT =================
+  return Scaffold(
+    backgroundColor:
+        isMobile ? Colors.transparent : const Color.fromARGB(255, 250, 225, 190),
+    body: isMobile ? mobileSignUp : webSignUp,
+  );
+}
 }

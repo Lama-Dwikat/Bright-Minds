@@ -3,6 +3,7 @@ import StoryView from "../models/storyView.model.js";
 import Badge from "../models/badge.model.js";
 import Story from "../models/story.model.js"; // ✅ ضروري لعدّ القصص
 import Game from "../models/game.model.js";
+import Videohistory from "../models/videoHistory.model.js";
 
 
 export const badgeService = {
@@ -81,13 +82,28 @@ async checkGameCompletionBadges(childId) {
     console.log(`🎮 User ${childId} has completed ${completedGamesCount} games`);
 
     if (completedGamesCount >= 2) {
-      await this.giveBadge(childId, "Champion Gamer"); // only saves if not exists
+      await this.giveBadge(childId, "Super Player"); // only saves if not exists
     }
 
   } catch (error) {
     console.error("❌ Game Completion Badge error:", error.message);
   }
-}
+},
+
+ // 🎬 Badge for watching videos
+async checkVideoWatchBadges(childId) {
+    try {
+      const watchedCount = await Videohistory.countDocuments({ userId: childId });
+      console.log(`🎬 User ${childId} has watched ${watchedCount} videos`);
+
+      if (watchedCount >= 6) {
+        await this.giveBadge(childId, "Video Hero");
+      }
+    } catch (error) {
+      console.error("❌ Video Watch Badge error:", error.message);
+    }
+  },
+
 
 };
 

@@ -195,7 +195,7 @@ class _HomeChildState extends State<HomeChild> {
                 _mainButton(
                   label: "Videos",
                   imagePath: "assets/images/video.png",
-                  color: const Color(0xFFE6C8D5),
+                  color: const Color.fromARGB(255, 254, 220, 168),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -206,7 +206,7 @@ class _HomeChildState extends State<HomeChild> {
                 _mainButton(
                   label: "Games",
                   imagePath: "assets/images/Games.png",
-                  color: const Color(0xFFEFD8D8),
+                  color: const Color.fromARGB(255, 244, 201, 152),
                   onTap: () {
                     Navigator.push(
                       context,
