@@ -47,12 +47,9 @@ bool _isNotValidate = false;
 String getBackendUrl() {
   if (kIsWeb) {
 
-<<<<<<< HEAD
-    //return "http://192.168.1.63:3000";
-     return "http://localhost:3000";
-=======
+
     return "http://192.168.1.74:3000";
->>>>>>> ae4dcdc (color changes)
+
 
   } else if (Platform.isAndroid) {
     // Android emulator
