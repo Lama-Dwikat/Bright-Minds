@@ -1,4 +1,415 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:bright_minds/theme/colors.dart';
+
+class MyDrawingActivitiesScreen extends StatefulWidget {
+  const MyDrawingActivitiesScreen({super.key});
+
+  @override
+  State<MyDrawingActivitiesScreen> createState() =>
+      _MyDrawingActivitiesScreenState();
+}
+
+class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
+  bool isLoading = true;
+  List activities = [];
+
+  // ✅ Web-safe backend url (بدون dart:io / Platform)
+  String getBackendUrl() {
+    if (kIsWeb)
+      return "http://localhost:3000";
+    return "http://10.0.2.2:3000"; // Android emulator
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchActivities();
+  }
+
+  // ================= FETCH ACTIVITIES =================
+  Future<void> fetchActivities() async {
+    if (mounted) setState(() => isLoading = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final url = Uri.parse("${getBackendUrl()}/api/supervisor/activities");
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        setState(() {
+          activities = decoded is List ? decoded : [];
+          isLoading = false;
+        });
+      } else {
+        debugPrint("Failed to load activities: ${response.statusCode}");
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      debugPrint("Fetch activities error: $e");
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  // ================= DEACTIVATE (TOGGLE UI) =================
+  Future<void> deactivateActivity(String activityId, bool currentlyActive) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final url = Uri.parse("${getBackendUrl()}/api/drawing/$activityId/deactivate");
+
+    final String actionText = currentlyActive ? "Deactivated" : "Activated";
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Activity $actionText ✅")),
+        );
+        fetchActivities();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed (${response.statusCode})")),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  // ================= DELETE ACTIVITY =================
+  Future<void> deleteActivity(String activityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    final url = Uri.parse("${getBackendUrl()}/api/drawing/$activityId");
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) "Authorization": "Bearer $token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Activity deleted 🗑️")),
+        );
+        fetchActivities();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to delete (${response.statusCode})")),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  Future<void> _confirmDelete(String activityId) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete Activity?"),
+        content: const Text("Are you sure you want to delete this activity?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) deleteActivity(activityId);
+  }
+
+  // ✅ web max width for nicer layout
+  double _maxWidth(double w) {
+    if (!kIsWeb) return w;
+    if (w >= 1400) return 1000;
+    if (w >= 1100) return 920;
+    if (w >= 900) return 860;
+    return w;
+  }
+
+  // ✅ responsive columns for grid (web)
+  int _cols(double w) {
+    if (!kIsWeb) return 1; // mobile list
+    if (w >= 1200) return 3;
+    if (w >= 850) return 2;
+    return 1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.creamYellow,
+      appBar: AppBar(
+        title: Text(
+          "My Drawing Activities",
+          style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: AppColors.warmHoneyYellow,
+        actions: [
+          IconButton(
+            tooltip: "Refresh",
+            onPressed: fetchActivities,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : activities.isEmpty
+              ? _buildEmpty()
+              : LayoutBuilder(
+                  builder: (context, c) {
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: _maxWidth(c.maxWidth)),
+                        child: RefreshIndicator(
+                          onRefresh: fetchActivities,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: kIsWeb
+                                ? _buildGrid(c.maxWidth)
+                                : _buildList(), // mobile stays list
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Text(
+        "No drawing activities yet",
+        style: GoogleFonts.robotoSlab(fontSize: 16),
+      ),
+    );
+  }
+
+  // ✅ Web grid
+  Widget _buildGrid(double width) {
+    final cols = _cols(width);
+    return GridView.builder(
+      itemCount: activities.length,
+      physics: const AlwaysScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: cols,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: cols == 1 ? 1.35 : 0.95,
+      ),
+      itemBuilder: (context, index) {
+        final activity = activities[index];
+        return _activityCard(activity, isGrid: true);
+      },
+    );
+  }
+
+  // ✅ Mobile list
+  Widget _buildList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: activities.length,
+      itemBuilder: (context, index) {
+        final activity = activities[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _activityCard(activity, isGrid: false),
+        );
+      },
+    );
+  }
+
+  Widget _activityCard(dynamic activity, {required bool isGrid}) {
+    final bool isActive = activity["isActive"] == true;
+    final String title = (activity["title"] ?? "").toString();
+    final String type = (activity["type"] ?? "").toString();
+    final String ageGroup = (activity["ageGroup"] ?? "").toString();
+    final String imageUrl = (activity["imageUrl"] ?? "").toString();
+    final String id = (activity["_id"] ?? "").toString();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // IMAGE
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: imageUrl.isEmpty
+                ? Container(
+                    height: isGrid ? 150 : 180,
+                    color: AppColors.pastelYellow.withOpacity(0.5),
+                    child: const Center(child: Icon(Icons.image_not_supported)),
+                  )
+                : Image.network(
+                    imageUrl,
+                    height: isGrid ? 150 : 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: isGrid ? 150 : 180,
+                      color: AppColors.pastelYellow.withOpacity(0.5),
+                      child: const Center(child: Icon(Icons.broken_image)),
+                    ),
+                  ),
+          ),
+
+          // INFO
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.robotoSlab(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text("Type: $type", style: GoogleFonts.robotoSlab(fontSize: 13)),
+                Text("Age Group: $ageGroup",
+                    style: GoogleFonts.robotoSlab(fontSize: 13)),
+                const SizedBox(height: 10),
+
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  runSpacing: 10,
+                  spacing: 10,
+                  children: [
+                    // STATUS
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? const Color(0xFF6A554F)
+                            : const Color(0xFF9A5A4A),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        isActive ? "Active" : "Inactive",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    // Toggle
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isActive ? Colors.redAccent : Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => deactivateActivity(id, isActive),
+                      icon: Icon(isActive ? Icons.block : Icons.check),
+                      label: Text(isActive ? "Deactivate" : "Activate"),
+                    ),
+
+                    // Delete
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                        side: const BorderSide(color: Colors.black26),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => _confirmDelete(id),
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Delete"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+/*import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
@@ -166,7 +577,7 @@ class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
           "My Drawing Activities",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         actions: [
           IconButton(
             tooltip: "Refresh",
@@ -204,7 +615,7 @@ class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppColors.bgWarmPinkLight,
+            color: AppColors.warmHoneyYellow,
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
@@ -261,7 +672,7 @@ class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isActive ? Color.fromARGB(255, 235, 178, 177) : Color(0xFFCCA6A5),
+                            color: isActive ? Color(0xFF6A554F) : Color(0xFF9A5A4A),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -309,3 +720,4 @@ class _MyDrawingActivitiesScreenState extends State<MyDrawingActivitiesScreen> {
     );
   }
 }
+*/

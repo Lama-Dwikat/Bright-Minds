@@ -26,7 +26,9 @@ class _ParentChooseKidChallengesScreenState
   List<Map<String, dynamic>> _kids = [];
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) 
+    //return "http://192.168.1.63:3000";
+    return "http://localhost:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -93,9 +95,9 @@ class _ParentChooseKidChallengesScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgSoftPinkLight,
+      backgroundColor: AppColors.creamYellow,
       appBar: AppBar(
-        backgroundColor: AppColors.peachPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         title: const Text("Choose a Child"),
         actions: [
           IconButton(
@@ -138,7 +140,7 @@ class _ParentChooseKidChallengesScreenState
                           children: [
                             CircleAvatar(
                               backgroundColor:
-                                  AppColors.peachPink.withOpacity(0.22),
+                                  AppColors.warmHoneyYellow.withOpacity(0.22),
                               child: const Icon(Icons.child_care),
                             ),
                             const SizedBox(width: 12),

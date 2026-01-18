@@ -190,7 +190,7 @@ class _ParentKidsDrawingsScreenState extends State<ParentKidsDrawingsScreen> {
           "Kids Drawings",
           style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
       ),
       body: Column(
         children: [
@@ -384,7 +384,7 @@ class _FullScreenParentDrawingView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: AppColors.warmHoneyYellow,
       ),
       body: Center(
         child: Column(

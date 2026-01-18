@@ -106,9 +106,9 @@ class _ParentStoryTimeReportScreenState extends State<ParentStoryTimeReportScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F5),
+      backgroundColor: const Color(0xFFFFF8E6),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFFE0E0),
+        backgroundColor: const Color(0xFFFFD98C),
         elevation: 0,
         title: const Text("Story Writing Report"),
         actions: [
@@ -203,7 +203,7 @@ class _ParentStoryTimeReportScreenState extends State<ParentStoryTimeReportScree
                                             width: 42,
                                             height: 42,
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFF7D6D6),
+                                              color: const Color(0xFFFFE7A3),
                                               borderRadius: BorderRadius.circular(14),
                                             ),
                                             child: const Icon(Icons.menu_book_rounded, color: Colors.black87),
@@ -295,7 +295,7 @@ class _RangeSelector extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.date_range_rounded, color: Color(0xFFD97B83)),
+          const Icon(Icons.date_range_rounded, color: Color(0xFFFFC95C)),
           const SizedBox(width: 10),
           const Expanded(
             child: Text(
@@ -448,7 +448,7 @@ class _ErrorView extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: const Text("Retry"),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD97B83),
+                backgroundColor: const Color(0xFFFFC95C),
                 foregroundColor: Colors.white,
               ),
             ),

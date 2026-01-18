@@ -341,10 +341,10 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: AppColors.peachPink.withOpacity(0.25),
+          backgroundColor: AppColors.warmHoneyYellow.withOpacity(0.25),
           child: Text(
             name.isNotEmpty ? name[0].toUpperCase() : "K",
-            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.bgBlushRoseDark),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.goldenYellow),
           ),
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -371,10 +371,10 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
     final parentEmail = (_parent?["email"] ?? "").toString();
 
     return Scaffold(
-      backgroundColor: AppColors.bgSoftPinkLight,
+      backgroundColor: AppColors.creamYellow,
       appBar: AppBar(
         title: const Text("Settings"),
-        backgroundColor: AppColors.peachPink,
+        backgroundColor: AppColors.warmHoneyYellow,
         actions: [
           IconButton(
             onPressed: () async {
@@ -392,7 +392,7 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 18),
               decoration: BoxDecoration(
-                color: AppColors.peachPink,
+                color: AppColors.warmHoneyYellow,
                 borderRadius: BorderRadius.circular(22),
               ),
               child: Column(
@@ -474,7 +474,7 @@ class _ParentSettingsScreenState extends State<ParentSettingsScreen> {
                     child: ElevatedButton(
                       onPressed: _linking ? null : _linkChildByEmail,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.bgWarmPink,
+                        backgroundColor: AppColors.warmHoneyYellow,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),

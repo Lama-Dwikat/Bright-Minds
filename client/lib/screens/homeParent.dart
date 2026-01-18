@@ -29,7 +29,9 @@ class _HomeParentState extends State<HomeParent> {
   DateTime? selectedDate; // <-- selected date for filtering
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) 
+    //return "http://192.168.1.63:3000";
+    return "http://localhost:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     if (Platform.isIOS) return "http://localhost:3000";
     return "http://localhost:3000";
@@ -207,11 +209,8 @@ _buildParentActionCard(
     );
   },
 ),
-    ],
-  ),
-),
-
-    _buildParentActionCard(
+ const SizedBox(height: 12),
+_buildParentActionCard(
       context,
       title: "Video Watching Report",
       subtitle: "View watch history & limits",
@@ -223,7 +222,13 @@ _buildParentActionCard(
             builder: (_) => const ParentVideoReportScreen(),
           ),
         );}
-    )
+    ),
+
+    ],
+  ),
+),
+
+    
 
 
         ],

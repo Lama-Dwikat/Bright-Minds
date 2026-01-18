@@ -132,7 +132,7 @@ class _ParentDrawingReportScreenState extends State<ParentDrawingReportScreen> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          color: Colors.pink.shade300,
+                          color: const Color(0xFFFFC95C),
                         ),
                       ),
                     ),
@@ -169,6 +169,7 @@ class _ParentDrawingReportScreenState extends State<ParentDrawingReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
+         backgroundColor: const Color(0xFFFFD98C),
         title: const Text("Drawing Report"),
         actions: [
           IconButton(
@@ -297,9 +298,9 @@ class _ParentDrawingReportScreenState extends State<ParentDrawingReportScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.pink.shade50,
+        color: Color(0xFFFFF8E6),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.pink.shade100),
+        border: Border.all(color:Color(0xFFFFD98C)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +350,10 @@ class _ParentDrawingFullScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFFD98C),
+        title: Text(title)
+      ),
       body: Column(
         children: [
           const SizedBox(height: 10),

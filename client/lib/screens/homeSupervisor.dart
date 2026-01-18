@@ -49,7 +49,8 @@ class _HomeSupervisorState extends State<HomeSupervisor> {
 
 String getBackendUrl() {
   if (kIsWeb) {
-    return "http://192.168.1.74:3000";
+  //  return "http://192.168.1.74:3000";
+    return "http://localhost:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
