@@ -4,18 +4,7 @@ import { quizService }  from "../services/quiz.service.js";
 
 export const quizController={
 
-    // async creatQuiz(req,res){
-    //     try{
-    //         const quiz=await quizService.createQuiz(req.body);
-    //         if(!quiz){
-    //             return res.status(400).json({message:'Quiz creation failed'});
-    //         }
-    //         res.status(201).json({message:"Quiz created successfully",quiz});
-    //     }
-    //     catch(error){
-    //         res.status(500).json({message:error.message})
-    //     }
-    // },
+ 
 async creatQuiz(req, res) {
   try {
     const quiz = await quizService.createQuiz(req.body);
@@ -40,7 +29,7 @@ async creatQuiz(req, res) {
         if (!quiz){
                 return res.status(404).json({message:error.message})
             }
-        return res.status(200).json(quize);
+        return res.status(200).json(quiz);
 
         }catch(error){
             res.status(500).json({message:error.message})
@@ -53,7 +42,7 @@ async creatQuiz(req, res) {
        if (!quiz){
                 return res.status(404).json({message:error.message})
             }
-                return res.status(200).json(quize);
+                return res.status(200).json(quiz);
 
         }catch(error){
             

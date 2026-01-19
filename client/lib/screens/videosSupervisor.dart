@@ -51,7 +51,7 @@ class _SupervisorVideosPageState extends State<SupervisorVideosPage> {
 
 String getBackendUrl() {
   if (kIsWeb) {
-    return "http://192.168.1.63:3000";
+    return "http://192.168.1.74:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -472,7 +472,7 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(8),
                                             ),
-                                            backgroundColor: const Color.fromARGB(255, 245, 199, 105),
+                                            backgroundColor: const Color.fromARGB(255, 221, 171, 72),
                                           ),
                                           onPressed: () {
                                             Navigator.push(
@@ -617,18 +617,7 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
                                 onPressed: () => publishVideo(video["_id"], !(video["isPublished"] == true)),
                                 tooltip: video["isPublished"] == true ? "Unpublish" : "Publish",
                               ),
-                              // IconButton(
-                              //   icon: const Icon(Icons.quiz, color: Colors.blue, size: 20),
-                              //   onPressed: () {
-                              //     Navigator.push(
-                              //       context,
-                              //       MaterialPageRoute(
-                              //         builder: (_) => AddQuizPage(videoId: video["_id"]),
-                              //       ),
-                              //     );
-                              //   },
-                              //   tooltip: "Create Quiz For Video",
-                              // ),
+                          
                               IconButton(
   icon: const Icon(Icons.quiz, color: Colors.blue, size: 20),
   onPressed: () async {
@@ -707,7 +696,6 @@ Future<void> toggleRecommendVideo(String videoId, bool currentState) async {
     );
   }
 }
-
 
 
 

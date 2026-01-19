@@ -44,7 +44,7 @@ class ChatMessage {
 
 class ChatSocketService {
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -107,7 +107,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -164,7 +164,8 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
         if (kidsResponse.statusCode == 200) {
           final kids = jsonDecode(kidsResponse.body) as List;
           for (var kid in kids) {
-            final supId = kid['supervisorId'];
+          final supId = kid['supervisorId'];
+
             if (supId != null) {
               final supResponse = await http.get(
                 Uri.parse("${getBackendUrl()}/api/users/getme/$supId"),
@@ -172,7 +173,7 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
               );
               if (supResponse.statusCode == 200) {
                 final sup = jsonDecode(supResponse.body);
-                //filteredUsers.add({"id": sup["_id"], "name": sup["name"]});
+                print("Supervisor fot the kids : $sup");
                 filteredUsers.add({
   "id": sup["_id"],
   "name": sup["name"],
@@ -183,7 +184,9 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
             }
           }
         }
-      } else if (role == "supervisor") {
+   
+      } 
+      else if (role == "supervisor") {
         // Get kids + parents + admins
         final kidsResponse = await http.get(
           Uri.parse("${getBackendUrl()}/api/users/kidsForSupervisor/$userId"),
@@ -207,7 +210,6 @@ class _ChatUsersScreenState extends State<ChatUsersScreen> {
               );
               if (parentResponse.statusCode == 200) {
                 final parent = jsonDecode(parentResponse.body);
-              //  filteredUsers.add({"id": parent["_id"], "name": parent["name"]});
               filteredUsers.add({
   "id": parent["_id"],
   "name": parent["name"],
@@ -412,7 +414,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Uri.parse("${_socketService.getBackendUrl()}/api/chat/conversation/${widget.otherUserId}"),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
+         // "Authorization": "Bearer $token",
         },
       );
 
@@ -440,7 +442,7 @@ class _ChatScreenState extends State<ChatScreen> {
       Uri.parse("${_socketService.getBackendUrl()}/api/chat/send"),
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
+        //"Authorization": "Bearer $token",
       },
       body: jsonEncode({
         "receiverId": widget.otherUserId,
@@ -463,7 +465,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
 Widget build(BuildContext context) {
-  return Scaffold(
+
+ if (!kIsWeb) {
+    return Scaffold (
     backgroundColor: const Color(0xFFFFF6E5),
     appBar: AppBar(
 title: const Text(
@@ -479,6 +483,105 @@ title: const Text(
       elevation: 0,
     ),
     body: Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(12),
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final msg = messages[index];
+              final isMe = msg.senderId == widget.currentUserId;
+
+              return Column(
+                crossAxisAlignment:
+                    isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  _ChatBubble(message: msg.message, isMe: isMe),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      DateFormat('hh:mm a').format(msg.createdAt),
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+
+        if (isTyping)
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: const [
+                Icon(Icons.more_horiz, color: Colors.grey),
+                SizedBox(width: 6),
+                Text(
+                  "Typing...",
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+
+        SafeArea(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              boxShadow: [
+                BoxShadow(color: Colors.black12, blurRadius: 6),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: "Type your message ✨",
+                      filled: true,
+                      fillColor: const Color(0xFFFFF1C1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    onChanged: (text) {
+                      _socketService.emitTyping(
+                        widget.currentUserId,
+                        widget.otherUserId,
+                        text.isNotEmpty,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: const Color(0xFFFFB703),
+                  child: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    onPressed: _sendMessage,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+} else
+   return HomePage (
+    title: 
+  "Chat Time 🧸",
+
+    child: Column(
       children: [
         Expanded(
           child: ListView.builder(

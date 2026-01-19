@@ -279,4 +279,17 @@ async saveUserScore (req, res) {
   }
 
 },
+
+
+async getTopPlayedGames(req, res) {
+  try {
+    const topGames = await gameService.getTopPlayedGames(4); // top 4
+    res.status(200).json(topGames);
+  } catch (err) {
+    console.error("Error fetching top played games:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+}
+
+
 };

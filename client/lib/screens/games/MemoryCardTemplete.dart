@@ -29,7 +29,7 @@ class _MemoryTemplateState extends State<MemoryTemplate> {
   String? userId;
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -150,82 +150,322 @@ class _MemoryTemplateState extends State<MemoryTemplate> {
   }
 
   // ================= BUILD =================
-  @override
-  Widget build(BuildContext context) {
- return Scaffold(
-  body: HomePage(
-    title: "Grid Words Games",
-    child: loading
-        ? const Center(child: CircularProgressIndicator())
-        : Stack(
-            children: [
-              _buildGrid(), // your grid view
+//   @override
+//   Widget build(BuildContext context) {
+//  return Scaffold(
+//   body: HomePage(
+//     title: "Grid Words Games",
+//     child: loading
+//         ? const Center(child: CircularProgressIndicator())
+//         : Stack(
+//             children: [
+//               _buildGrid(), // your grid view
 
-              // Add button slightly above bottom
-              Positioned(
-                bottom: 20, // distance from bottom
-                right: 16,  // distance from right
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.bgBlushRoseDark,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 6,
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 24),
-                      SizedBox(width: 6),
-                      Text("Create Game", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const MemoryGameSetupScreen()),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-  ),
-);
+//               // Add button slightly above bottom
+//               Positioned(
+//                 bottom: 20, // distance from bottom
+//                 right: 16,  // distance from right
+//                 child: ElevatedButton(
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: const Color.fromARGB(255, 223, 159, 30),
+//                     padding: const EdgeInsets.symmetric(
+//                         vertical: 14, horizontal: 20),
+//                     shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(16)),
+//                     elevation: 6,
+//                   ),
+//                   child: const Row(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       Icon(Icons.add, size: 24, color:Colors.white),
+//                       SizedBox(width: 6),
+//                       Text("Create Game", style: TextStyle(fontSize: 16 , color:Colors.white)),
+//                     ],
+//                   ),
+//                   onPressed: () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                           builder: (_) => const MemoryGameSetupScreen()),
+//                     );
+//                   },
+//                 ),
+//               ),
+//             ],
+//           ),
+//   ),
+// );
 
-  }
+//   }
 
-  // ================= GRID VIEW =================
-  Widget _buildGrid() {
-    if (games.isEmpty) {
-      return const Center(
-        child: Text(
-          "No Grid Games Yet",
-          style: TextStyle(fontSize: 18),
-        ),
-      );
-    }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.9,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: games.length,
-      itemBuilder: (context, i) {
-        final g = games[i];
-        final bool published = g['isPublished'] ?? false;
 
-        return _gameCard(g, published, i);
-      },
+@override
+Widget build(BuildContext context) {
+  bool isWebLayout = kIsWeb || MediaQuery.of(context).size.width > 800;
+
+  return Scaffold(
+    body: HomePage(
+      title: "Memory Cards Games",
+      child: loading
+          ? const Center(child: CircularProgressIndicator())
+          : isWebLayout
+              ? _buildWebBody() // Web layout
+              : _buildMobileGrid(), // ⚡ Exact same mobile design
+    ),
+  );
+}
+
+// ================= MOBILE LAYOUT =================
+// This stays exactly as your original mobile design
+Widget _buildMobileGrid() {
+  if (games.isEmpty) {
+    return const Center(
+      child: Text("No Memory Card Games Yet", style: TextStyle(fontSize: 18)),
     );
   }
+
+  return Stack(
+    children: [
+      // Grid of games
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: games.length,
+          itemBuilder: (context, i) {
+            final g = games[i];
+            final bool published = g['isPublished'] ?? false;
+            return _gameCard(g, published, i);
+          },
+        ),
+      ),
+
+      // Create Game button at bottom
+      Positioned(
+        bottom: 16,
+        right: 16,
+        child: _buildCreateGameButton(),
+      ),
+    ],
+  );
+}
+
+
+// ================= WEB LAYOUT =================
+Widget _buildWebBody() {
+  return Padding(
+    padding: const EdgeInsets.all(24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title + instructions
+        Text(
+          "Memory Cards Games",
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "Select a game to play or create a new one",
+          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+        ),
+        const SizedBox(height: 24),
+
+        // Create Game button on top right
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _buildCreateGameButton(),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Games grid
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              double totalWidth = constraints.maxWidth;
+              int columns = 4; // 2 games per row
+              double spacing = 24;
+              double itemWidth = (totalWidth - (columns - 1) * spacing) / columns;
+              double itemHeight = itemWidth * 0.8; // proportional for web
+
+              return GridView.builder(
+                padding: EdgeInsets.zero,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  mainAxisSpacing: spacing,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: itemWidth / itemHeight,
+                ),
+                itemCount: games.length,
+                itemBuilder: (context, i) {
+                  final g = games[i];
+                  final bool published = g['isPublished'] ?? false;
+
+                  return SizedBox(
+                    height: itemHeight,
+                    child: _gameCard(g, published, i),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ================= CREATE GAME BUTTON =================
+Widget _buildCreateGameButton() {
+  return ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color.fromARGB(255, 202, 139, 14),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 6,
+    ),
+    child: const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.add, size: 24, color: Colors.white),
+        SizedBox(width: 6),
+        Text("Create Game", style: TextStyle(fontSize: 16, color: Colors.white)),
+      ],
+    ),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MemoryGameSetupScreen()),
+      );
+    },
+  );
+}
+
+  // ================= GRID VIEW =================
+//   Widget _buildGrid() {
+//     if (games.isEmpty) {
+//       return const Center(
+//         child: Text(
+//           "No Memory Card Games Yet",
+//           style: TextStyle(fontSize: 18),
+//         ),
+//       );
+//     }
+
+//     return GridView.builder(
+//       padding: const EdgeInsets.all(16),
+//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//         crossAxisCount: 2,
+//         childAspectRatio: 0.9,
+//         crossAxisSpacing: 16,
+//         mainAxisSpacing: 16,
+//       ),
+//       itemCount: games.length,
+//       itemBuilder: (context, i) {
+//         final g = games[i];
+//         final bool published = g['isPublished'] ?? false;
+
+//         return _gameCard(g, published, i);
+//       },
+//     );
+//   }
+
+//   // ================= GAME CARD =================
+//   Widget _gameCard(Map<String, dynamic> g, bool published, int index) {
+//     return Container(
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         borderRadius: BorderRadius.circular(20),
+//         boxShadow: const [
+//           BoxShadow(
+//             color: Colors.black12,
+//             blurRadius: 8,
+//             offset: Offset(0, 4),
+//           ),
+//         ],
+//       ),
+//       padding: const EdgeInsets.all(14),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             g['name'] ?? "Grid Words",
+//             style: const TextStyle(
+//               fontWeight: FontWeight.bold,
+//               fontSize: 18,
+//             ),
+//           ),
+//           const SizedBox(height: 6),
+//           Text(
+//             "Theme: ${g['theme']}",
+//             style: TextStyle(color: Colors.grey[600]),
+//           ),
+//           const Spacer(),
+
+    
+
+//           const SizedBox(height: 8),
+
+//           // Publish switch + Delete button
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Row(
+//                 children: [
+//                   const Text("Published"),
+//                   Switch(
+//                     value: published,
+//                     activeColor: const Color.fromARGB(255, 199, 140, 21),
+//                     onChanged: (_) => togglePublish(index),
+//                   ),
+//                 ],
+//               ),
+//               IconButton(
+//                 icon: const Icon(Icons.delete, color: Color.fromARGB(255, 200, 140, 19)),
+//                 onPressed: () => deleteGame(index),
+//               ),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+  // ================= GRID VIEW =================
+  // Widget _buildGrid() {
+  //   if (games.isEmpty) {
+  //     return const Center(
+  //       child: Text(
+  //         "No Grid Games Yet",
+  //         style: TextStyle(fontSize: 18),
+  //       ),
+  //     );
+  //   }
+
+  //   return GridView.builder(
+  //     padding: const EdgeInsets.all(16),
+  //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+  //       crossAxisCount: 2,
+  //       childAspectRatio: 0.9,
+  //       crossAxisSpacing: 16,
+  //       mainAxisSpacing: 16,
+  //     ),
+  //     itemCount: games.length,
+  //     itemBuilder: (context, i) {
+  //       final g = games[i];
+  //       final bool published = g['isPublished'] ?? false;
+
+  //       return _gameCard(g, published, i);
+  //     },
+  //   );
+  // }
 
   // ================= GAME CARD =================
   Widget _gameCard(Map<String, dynamic> g, bool published, int index) {
@@ -246,7 +486,7 @@ class _MemoryTemplateState extends State<MemoryTemplate> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            g['name'] ?? "Grid Words",
+            g['name'] ?? "Meomory Cardss",
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -272,13 +512,13 @@ class _MemoryTemplateState extends State<MemoryTemplate> {
                   const Text("Published"),
                   Switch(
                     value: published,
-                    activeColor: AppColors.bgBlushRoseVeryDark,
+                    activeColor: const Color.fromARGB(255, 206, 149, 35),
                     onChanged: (_) => togglePublish(index),
                   ),
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: const Icon(Icons.delete, color: Color.fromARGB(255, 213, 149, 20)),
                 onPressed: () => deleteGame(index),
               ),
             ],
@@ -332,7 +572,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 32,
-                          color: AppColors.bgBlushRoseVeryDark,
+                          color: const Color.fromARGB(255, 197, 137, 16),
                         ),
                   ),
                   const SizedBox(height: 8),
@@ -363,7 +603,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.layers, color: AppColors.bgBlushRoseDark),
+                      prefixIcon: const Icon(Icons.layers, color: Color.fromARGB(255, 206, 151, 41)),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -384,7 +624,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.help_outline, color: AppColors.bgBlushRoseVeryDark),
+                      prefixIcon: const Icon(Icons.help_outline, color: Color.fromARGB(255, 216, 149, 16)),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -405,7 +645,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.star, color: AppColors.bgBlushRoseVeryDark),
+                      prefixIcon: const Icon(Icons.star, color: Color.fromARGB(255, 220, 153, 20)),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -426,7 +666,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
-                      prefixIcon: const Icon(Icons.timer, color: AppColors.bgBlushRoseVeryDark),
+                      prefixIcon: const Icon(Icons.timer, color: Color.fromARGB(255, 218, 149, 12)),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -434,7 +674,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                   // Next Button
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.bgBlushRoseDark,
+                      backgroundColor: const Color.fromARGB(255, 231, 167, 39),
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18),
@@ -682,7 +922,7 @@ class _MemoryCreatorScreenState extends State<MemoryCreatorScreen> {
 
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: currentLevel == widget.levels - 1 ? Colors.green : AppColors.bgBlushRoseVeryDark,
+                      backgroundColor: currentLevel == widget.levels - 1 ? const Color.fromARGB(255, 178, 125, 17) : const Color.fromARGB(255, 224, 162, 37),
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                       elevation: 6,

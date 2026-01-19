@@ -339,7 +339,7 @@ async linkChildToParent(req, res) {
     const kids = await User.find({
       parentId: parentId,
       role: "child",
-    }).select("_id name email age ageGroup parentId");
+    }).select("_id name email age ageGroup parentId supervisorId");
 
     return res.status(200).json(kids);
   } catch (error) {

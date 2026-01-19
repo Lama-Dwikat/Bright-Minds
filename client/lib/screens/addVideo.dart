@@ -34,7 +34,7 @@ class _AddVideoState extends State<AddVideoScreen> {
   if (kIsWeb) {
     // For web, use localhost or network IP
    // return "http://localhost:5000";
-    return "http://192.168.1.63:3000";
+    return "http://192.168.1.74:3000";
 
   } else if (Platform.isAndroid) {
     // Android emulator
@@ -552,208 +552,325 @@ final List<String> categories = [
 
 
 
-@override
-Widget build(BuildContext context) {
-  return HomePage(
-    title: "Add Video",
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Stack(
-        children: [
-          // ---------------- SCROLLABLE CONTENT ---------------- //
-          Column(
+
+ // ---------------- MOBILE DESIGN ---------------- //
+Widget _buildMobileVideoList() {
+  if (isLoading) return const Center(child: CircularProgressIndicator());
+  if (videos.isEmpty) return const Center(child: Text("No videos found."));
+
+  return Expanded(
+    child: ListView.builder(
+      padding: const EdgeInsets.all(10),
+      itemCount: videos.length,
+      itemBuilder: (context, index) {
+        final video = videos[index];
+        final videoId = video['id']['videoId'];
+        final title = video['snippet']['title'];
+        final channel = video['snippet']['channelTitle'];
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          elevation: 5,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // ---------------- SEARCH BAR ---------------- //
-                      Row(
-                        children: [
-                          Expanded(
-                                            flex:3,
-
-                            child: TextField(
-                              
-                              controller: _controller,
-                              decoration: const InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(vertical: 0.1),
-
-                                labelText: "Enter topic to fetch videos",
-                                border: OutlineInputBorder(),
-                              ),
-                              onSubmitted: (value) {
-                                topic = value;
-                                fetchVideos();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                        
-                          child:  SizedBox(
-                              height:50,
-
-        child: 
-        ElevatedButton(
-  onPressed: () {
-    topic = _controller.text;
-    fetchVideos();
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: const Color.fromARGB(255, 215, 152, 25),
-    foregroundColor: Colors.white,
-    //padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 26),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-
-  ),
-  child: const Text("Search", style:TextStyle(fontSize:16.5)),
-),
-                          )
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // ---------------- VIDEO LIST ---------------- //
-                      if (isLoading)
-                        const Center(child: CircularProgressIndicator())
-                      else if (videos.isEmpty)
-                        const Center(child: Text('No videos found.'))
-                      else
-                        Column(
-                          children: List.generate(videos.length, (index) {
-                            final video = videos[index];
-                            final videoId = video['id']['videoId'];
-                            final title = video['snippet']['title'];
-                            final channel = video['snippet']['channelTitle'];
-
-                            return Card(
-                              margin: const EdgeInsets.all(10),
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // ---------- VIDEO PLAYER ---------- //
-                                  Stack(
-                                    children: [
-                                      YoutubePlayer(
-                                        controller: YoutubePlayerController(
-                                          initialVideoId: videoId,
-                                          flags: const YoutubePlayerFlags(
-                                            autoPlay: false,
-                                            mute: false,
-                                          ),
-                                        ),
-                                        showVideoProgressIndicator: true,
-                                        progressIndicatorColor: Colors.redAccent,
-                                      ),
-                                      if (addedVideoIds.contains(videoId))
-                                        Positioned(
-                                          top: 8,
-                                          right: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 4),
-                                            width: 70,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.green.withOpacity(0.8),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: const Text(
-                                              "Added",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      title,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(left: 8.0, bottom: 8.0),
-                                    child: Text(
-                                      channel,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => showAddVideoDialog(video),
-                                      icon: const Icon(Icons.add),
-                                      label: const Text("Add"),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ),
-
-                      const SizedBox(height: 80), // space for floating button
-                    ],
+              YoutubePlayer(
+                controller: YoutubePlayerController(
+                  initialVideoId: videoId,
+                  flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+                ),
+                showVideoProgressIndicator: true,
+                progressIndicatorColor: Colors.redAccent,
+              ),
+              if (addedVideoIds.contains(videoId))
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  color: Colors.green.withOpacity(0.8),
+                  child: const Text(
+                    "Added",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                child: Text(channel, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: ElevatedButton.icon(
+                  onPressed: () => showAddVideoDialog(video),
+                  icon: const Icon(Icons.add),
+                  label: const Text("Add"),
                 ),
               ),
             ],
           ),
-
-          Positioned(
-            bottom: 25,
-            right: 1,
-            child: ElevatedButton.icon(
-              onPressed: showAddVideoByUrlDialog,
-              icon: const Icon(Icons.cloud_upload_outlined, size: 24),
-              label: const Text(
-                "Upload Video by URL",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 193, 136, 24),
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 26),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: 8,
-                shadowColor: const Color.fromARGB(255, 215, 151, 23),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     ),
   );
 }
+
+  // ---------------- WEB DESIGN ---------------- //
+Widget _buildWebVideoGrid() {
+  if (isLoading) return const Center(child: CircularProgressIndicator());
+  if (videos.isEmpty) return const Center(child: Text("No videos found."));
+
+  const int videosPerRow = 3; // 4 videos in each row
+  final int numRows = (videos.length / videosPerRow).ceil();
+
+  return Expanded(
+    child: ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: numRows,
+      itemBuilder: (context, rowIndex) {
+        // Calculate start and end index for this row
+        final int startIndex = rowIndex * videosPerRow;
+        final int endIndex =
+            ((rowIndex + 1) * videosPerRow).clamp(0, videos.length);
+
+        final List rowVideos = videos.sublist(startIndex, endIndex);
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: rowVideos.map<Widget>((video) {
+              final videoId = video['id']?['videoId'] ?? "";
+              final thumbnailUrl = video['thumbnailUrl'] ??
+                  "https://via.placeholder.com/320x180";
+              final title = video['snippet']?['title'] ?? "No title";
+
+              return Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Card(
+                    elevation: 3,
+                    clipBehavior: Clip.antiAlias,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Video / Thumbnail
+                        AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: videoId.isNotEmpty
+                              ? YoutubePlayer(
+                                  controller: YoutubePlayerController(
+                                    initialVideoId: videoId,
+                                    flags: const YoutubePlayerFlags(
+                                        autoPlay: false, mute: false),
+                                  ),
+                                )
+                              : Image.network(
+                                  thumbnailUrl,
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+
+                        // Title + Add Button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => showAddVideoDialog(video),
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text("Add",
+                                    style: TextStyle(fontSize: 12)),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    ),
+  );
 }
 
+
+// Widget _buildWebVideoGrid() {
+//   if (isLoading) return const Center(child: CircularProgressIndicator());
+//   if (videos.isEmpty) return const Center(child: Text("No videos found."));
+
+//   return SizedBox(
+//     height: 300, // set a fixed height for horizontal scrolling
+//     child: ListView.builder(
+//       scrollDirection: Axis.horizontal,
+//       itemCount: videos.length,
+//       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//       itemBuilder: (context, index) {
+//         final video = videos[index];
+
+//         // Safe null handling
+//         final videoId = video['id']?['videoId'] ?? "";
+//         final thumbnailUrl = video['thumbnailUrl'] ?? "https://via.placeholder.com/320x180";
+//          final title = video['snippet']['title'];
+
+//         return Container(
+//           width: 270, // width of each card
+//           margin: const EdgeInsets.symmetric(horizontal: 8),
+//           child: Card(
+//             elevation: 3,
+//             clipBehavior: Clip.antiAlias,
+//             shape: RoundedRectangleBorder(
+//               borderRadius: BorderRadius.circular(12),
+//             ),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // Video or thumbnail
+//                 SizedBox(
+//                   height: 160,
+//                   width: double.infinity,
+//                   child: videoId.isNotEmpty
+//                       ? YoutubePlayer(
+//                           controller: YoutubePlayerController(
+//                             initialVideoId: videoId,
+//                             flags: const YoutubePlayerFlags(
+//                               autoPlay: false,
+//                               mute: false,
+//                             ),
+//                           ),
+//                         )
+//                       : Image.network(
+//                           thumbnailUrl,
+//                           fit: BoxFit.cover,
+//                         ),
+//                 ),
+
+//                 const SizedBox(height: 4),
+
+//                 // Title + Add button
+//                 Padding(
+//                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+//                   child: Row(
+//                     children: [
+//                       Expanded(
+//                         child: Text(
+//                           title,
+//                           maxLines: 2,
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//                       ),
+//                       ElevatedButton.icon(
+//                         onPressed: () => showAddVideoDialog(video),
+//                         icon: const Icon(Icons.add, size: 16),
+//                         label: const Text("Add", style: TextStyle(fontSize: 12)),
+//                         style: ElevatedButton.styleFrom(
+//                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     ),
+//   );
+// }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return HomePage(
+      title: "Add Video",
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            // ---------------- SEARCH ---------------- //
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(labelText: "Enter topic to fetch videos", border: OutlineInputBorder()),
+                    onSubmitted: (value) {
+                      topic = value;
+                      fetchVideos();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      topic = _controller.text;
+                      fetchVideos();
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 215, 152, 25)),
+                    child: const Text("Search", style: TextStyle(fontSize: 16.5 ,color:Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // ---------------- VIDEO LIST ---------------- //
+            kIsWeb ? _buildWebVideoGrid() : _buildMobileVideoList(),
+
+            const SizedBox(height: 10),
+
+            // ---------------- UPLOAD BUTTON ---------------- //
+         Align(
+  alignment: Alignment.bottomRight,
+  child: ElevatedButton.icon(
+    onPressed: () {},
+    icon: const Icon(
+      Icons.cloud_upload_outlined,
+      color: Colors.white,
+    ),
+    label: const Text(
+      "Upload Video by URL",
+      style: TextStyle(color: Colors.white),
+    ),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color.fromARGB(255, 206, 142, 15),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      elevation: 6,
+    ),
+  ),
+),
+
+           // ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -38,7 +38,7 @@ List<bool> correctAnswers = [];
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     if (Platform.isIOS) return "http://localhost:3000";
     return "http://localhost:3000";
@@ -90,39 +90,115 @@ List<bool> correctAnswers = [];
     });
   }
 
-  Future<void> submitQuiz() async {
-    if (quizData == null) return;
+  // Future<void> submitQuiz() async {
+  //   if (quizData == null) return;
 
-    final payload = {
-      "quizId": quizData!["_id"],
-      "userId": userId,
-      "answers": answers.entries.map((e) => {
-        "questionIndex": e.key,
-        "answer": e.value,
-      }).toList(),
-    };
+  //   final payload = {
+  //     "quizId": quizData!["_id"],
+  //     "userId": userId,
+  //     "answers": answers.entries.map((e) => {
+  //       "questionIndex": e.key,
+  //       "answer": e.value,
+  //     }).toList(),
+  //   };
 
-    try {
-      final response = await http.post(
-        Uri.parse("${getBackendUrl()}/api/quiz/submitQuiz"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(payload),
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse("${getBackendUrl()}/api/quiz/submitQuiz"),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: jsonEncode(payload),
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Quiz submitted successfully!")),
+  //       );
+  //       Navigator.pop(context);
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text("Failed: ${response.body}")),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("Error submitting quiz: $e");
+  //   }
+  // }
+Future<void> submitQuiz() async {
+  if (quizData == null) return;
+
+  // submit to backend
+  final payload = {
+    "quizId": quizData!["_id"],
+    "userId": userId,
+    "answers": answers.entries.map((e) => {
+      "questionIndex": e.key,
+      "answer": e.value,
+    }).toList(),
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse("${getBackendUrl()}/api/quiz/submitQuiz"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      // calculate result locally
+      _calculateResult();
+
+      // show result screen
+      setState(() => showResult = true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Quiz submitted successfully!")),
       );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed: ${response.body}")),
+      );
+    }
+  } catch (e) {
+    print("Error submitting quiz: $e");
+  }
+}
 
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Quiz submitted successfully!")),
-        );
-        Navigator.pop(context);
+void _calculateResult() {
+  if (quizData == null) return;
+  final questions = quizData!["questions"] as List<dynamic>;
+
+  int tempScore = 0;
+  correctAnswers = [];
+
+  for (int i = 0; i < questions.length; i++) {
+    final q = questions[i];
+    final correct = q["correctAnswer"];
+    final answer = answers[i];
+
+    if (q["question_type"] == "voice-answer") {
+      double similarity = StringSimilarity.compareTwoStrings(
+        (answer ?? "").toString().toLowerCase().trim(),
+        (correct ?? "").toString().toLowerCase().trim()
+      );
+      if (similarity > 0.8) {
+        tempScore++;
+        correctAnswers.add(true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed: ${response.body}")),
-        );
+        correctAnswers.add(false);
       }
-    } catch (e) {
-      print("Error submitting quiz: $e");
+    } else {
+      if (answer == correct) {
+        tempScore++;
+        correctAnswers.add(true);
+      } else {
+        correctAnswers.add(false);
+      }
     }
   }
+
+  score = tempScore;
+}
+
 
   Future<void> speak(String text) async {
     if (text.isEmpty) return;
@@ -195,6 +271,7 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
     }
 
     final questions = quizData!["questions"] as List<dynamic>;
+   
 
     return Scaffold(
       appBar: AppBar(
@@ -210,8 +287,33 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
           ),
         ),
       ),
-      //extendBodyBehindAppBar: true,
-      body: Container(
+      body:  showResult ? _buildResultView(questions) : _buildQuizView(questions),
+      bottomNavigationBar: showResult ? null :
+        Padding(
+        padding: const EdgeInsets.all(12),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            backgroundColor: Colors.deepPurple,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
+          onPressed: submitQuiz,
+          child: const Text(
+            "🎉 Submit Quiz",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color:Colors.white),
+          ),
+        ),
+      ),
+      
+    );
+  }
+
+
+
+_buildQuizView(List<dynamic>questions){
+     return Container(
         decoration: quizBackground(),
         child: ListView.builder(
           padding: const EdgeInsets.all(12),
@@ -393,27 +495,78 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
           },
           
         ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.deepPurple,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(40),
-            ),
-          ),
-          onPressed: submitQuiz,
-          child: const Text(
-            "🎉 Submit Quiz",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color:Colors.white),
+      );
+}
+
+
+
+Widget _buildResultView(List<dynamic> questions) {
+  return Container(
+    decoration: quizBackground(),
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      children: [
+        Text(
+          "Your Score: $score / ${questions.length}",
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.orange),
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: ListView.builder(
+            itemCount: questions.length,
+            itemBuilder: (context, index) {
+              final q = questions[index];
+              final userAnswer = answers[index] ?? "No Answer";
+              final correct = q["correctAnswer"] ?? "";
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: quizCardDecoration(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Q${index + 1}: ${q["question_text"]}",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    Text("Your Answer: $userAnswer",
+                        style: TextStyle(
+                            color: correctAnswers[index] ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.bold)),
+                    Text("Correct Answer: $correct",
+                        style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              );
+            },
           ),
         ),
-      ),
-    );
-  }
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // go back to previous page
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.deepPurple,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          ),
+          child: const Text("Back", style: TextStyle(fontSize: 20, color: Colors.white)),
+        ),
+      ],
+    ),
+  );
 }
+
+
+
+}
+
+
+
+
+
 
 BoxDecoration quizBackground() {
   return const BoxDecoration(

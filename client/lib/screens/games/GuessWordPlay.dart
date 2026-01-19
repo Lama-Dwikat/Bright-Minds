@@ -85,7 +85,7 @@ class _GuessGameScreenState extends State<GuessGameScreen> with SingleTickerProv
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -432,8 +432,224 @@ class _GuessGameScreenState extends State<GuessGameScreen> with SingleTickerProv
 
 
 
+   if (kIsWeb) {
+//🌐 WEB DESIGN for GuessGameScreen
+ return Scaffold(
+  body: Container(
+    width: double.infinity,
+    height: double.infinity,
+    decoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage(design.bgImage),
+        fit: BoxFit.cover,
+      ),
+    ),
+    child: Stack(
+      children: [
+        // 🏠 HOME BUTTON
+        Positioned(
+          top: 24,
+          left: 24,
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.white.withOpacity(0.8),
+            child: IconButton(
+              icon: const Icon(Icons.home, color: Colors.green, size: 30),
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => gamesKidScreen()),
+                  (_) => false,
+                );
+              },
+            ),
+          ),
+        ),
 
-return Scaffold(
+        // ⭐ SCORE & ⏱ TIMER at top-center
+        Positioned(
+          top: 24,
+          left: 0,
+          right: 0,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "⭐ Score: $score",
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 5, 78, 7)),
+              ),
+              const SizedBox(width: 40),
+              Text(
+                "⏱ ${formatTime(remainingTime)}",
+                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 5, 78, 7)),
+              ),
+            ],
+          ),
+        ),
+
+        // ✅ MAIN GAME BOX
+        Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.6,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 28),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2), // transparent background
+              border: Border.all(
+                color: Colors.green.withOpacity(0.8),
+                width: 3,
+              ),
+              borderRadius: BorderRadius.circular(36),
+              boxShadow: const [
+                BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 6)),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 🔹 Header: What is ? + icon
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "What is ?",
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 27, 67, 8),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Icon(
+                        design.icon,
+                        color: Colors.brown,
+                        size: 30,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // 🔹 Clue box
+                  if (question['clue'] != null)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.green.withOpacity(0.5), width: 2),
+                      ),
+                      child: Text(
+                        question['clue'] ?? design.emoji,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green.shade900),
+                      ),
+                    ),
+
+                  const SizedBox(height: 12),
+
+                  // 🔹 Images row
+                  if (images.isNotEmpty)
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: images.take(3).map((img) => Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 10),
+                    //     child: imageBox(img),
+                    //   )).toList(),
+
+                      
+                    // ),
+if (images.isNotEmpty)
+  Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      // First image
+      imageBox(images[0]),
+
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: Text(
+          "+",
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.brown,
+          ),
+        ),
+      ),
+
+      // Second image if exists
+      if (images.length >= 2) imageBox(images[1]),
+
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: Text(
+          "  =",
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.brown,
+          ),
+        ),
+      ),
+
+      // Question mark image
+      Image.asset(
+        'assets/images/questionMark.png',
+        height: 250,
+        width: 250,
+      ),
+    ],
+  ),
+
+                  const SizedBox(height: 20),
+
+                  // ✏️ ANSWER FIELD
+                  TextField(
+                    controller: answerController,
+                    textAlign: TextAlign.left,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(design.icon, color: Colors.brown),
+                      hintText: "Your Answer",
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.7),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ✅ SUBMIT BUTTON
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: checkAnswer,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.withOpacity(0.9),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      ),
+                      child: const Text(
+                        "Submit",
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+  }
+else return Scaffold(
   body: Container(
     width: double.infinity,
     height: double.infinity,
@@ -483,7 +699,7 @@ Align(
         // 🌿 QUESTION BOX
 
    Container(
-  width: MediaQuery.of(context).size.width * 0.9,
+  width: MediaQuery.of(context).size.width * 0.7,
   decoration: BoxDecoration(
     color: const Color.fromARGB(255, 204, 241, 122).withOpacity(0.7),
     borderRadius: BorderRadius.circular(28),
@@ -519,7 +735,7 @@ Align(
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 1, 73, 4),
+                color: Color.fromARGB(255, 8, 59, 10),
               ),
             ),
 
@@ -686,10 +902,9 @@ SizedBox(
 
 );
 
-
+}
 
   }
-} 
 
 /* ===================== THEME ===================== */
 class ThemeDesign {
@@ -853,7 +1068,7 @@ Widget build(BuildContext context) {
                   const SizedBox(height: 30),
 
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.85,
+                    width: MediaQuery.of(context).size.width * 0.7,
                     child: ListView.builder(
                       shrinkWrap: true, // important to avoid infinite height
                       physics: const NeverScrollableScrollPhysics(),
@@ -869,6 +1084,7 @@ Widget build(BuildContext context) {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               height: 90,
+                              
                               decoration: BoxDecoration(
                                 color: unlocked
                                     ? const Color.fromARGB(255, 4, 156, 22)

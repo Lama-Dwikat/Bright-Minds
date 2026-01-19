@@ -8,7 +8,7 @@ playlistRouter.put('/playlists/addVideo/:id',playlistController.addVideoToPlayLi
 playlistRouter.put('/playlists/updatePlaylist/:id',playlistController.updatePlaylist);
 playlistRouter.put('/playlists/deleteVideo/:id',playlistController.deleteVideoFromPlayList);
 playlistRouter.get('/playlists/getPlaylist/:id',playlistController.getPlaylistById);
-playlistRouter.get('/playlists/getlAllPlaylists',playlistController.getAllPlaylists);
+playlistRouter.get('/playlists/getAllPlaylists',playlistController.getAllPlaylists);
 playlistRouter.get('/playlists/getPlaylistBySupervisor/:id',playlistController.getPlaylistbySupervisor);
 playlistRouter.delete('/playlists/deletePlaylist/:id',playlistController.deletePlayList);
 playlistRouter.delete('/playlists/deleteAllPlaylists/',playlistController.deleteAllPlaylists);

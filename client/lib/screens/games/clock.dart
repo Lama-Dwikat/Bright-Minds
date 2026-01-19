@@ -73,8 +73,7 @@ class _ClockGameScreenState extends State<ClockGameScreen> {
 
   String getBackendUrl() {
     if (kIsWeb)
-    // return "http://192.168.1.63:3000";
-    return "http://localhost:3000";
+     return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -346,65 +345,602 @@ void _checkAnswer() {
   }
 
 
-  @override
-  Widget build(BuildContext context) {
+//   @override
+//   Widget build(BuildContext context) {
 
 
-    if (!hasStarted) {
-      return Scaffold(
-          body: Stack(
-      children: [
-         Positioned.fill(
-          child: Image.asset(
-            'assets/images/clockGame.png', // replace with your image path
-            fit: BoxFit.cover,
-         opacity: const AlwaysStoppedAnimation(0.90),
+//     if (!hasStarted) {
+//       return Scaffold(
+//           body: Stack(
+//       children: [
+//          Positioned.fill(
+//           child: Image.asset(
+//             'assets/images/clockGame.png', // replace with your image path
+//             fit: BoxFit.cover,
+//          opacity: const AlwaysStoppedAnimation(0.90),
 
-          ),
-        ),
-        // Center(
-        Positioned(
-          top:300,
-          right:0,
-          left:0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Clock Game",
-                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              Text(
-                "You have ${gameData?['maxTrials'] ?? 3} trials",
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), // horizontal and vertical padding
-    textStyle: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16), // optional: rounded corners
-    ),
-  ),
-                onPressed: _startGame,
-                child: const Text("Play", style: TextStyle(fontSize: 28)),
-              ),
-            ],
-          ),
-        ),
-      ]
-          )
-      );
-    }
+//           ),
+//         ),
+//         // Center(
+//         Positioned(
+//           top:300,
+//           right:0,
+//           left:0,
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               const Text("Clock Game",
+//                   style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+//               const SizedBox(height: 20),
+//               Text(
+//                 "You have ${gameData?['maxTrials'] ?? 3} trials",
+//                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+//               ),
+//               const SizedBox(height: 20),
+//               ElevatedButton(
+//                   style: ElevatedButton.styleFrom(
+//     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), // horizontal and vertical padding
+//     textStyle: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+//     shape: RoundedRectangleBorder(
+//       borderRadius: BorderRadius.circular(16), // optional: rounded corners
+//     ),
+//   ),
+//                 onPressed: _startGame,
+//                 child: const Text("Play", style: TextStyle(fontSize: 28)),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ]
+//           )
+//       );
+//     }
 
 
-    if (isLoading || gameData == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+//     if (isLoading || gameData == null) {
+//       return const Scaffold(
+//         body: Center(child: CircularProgressIndicator()),
+//       );
+//     }
 
+//     return Scaffold(
+//         appBar: AppBar(
+//         backgroundColor: const Color.fromARGB(255, 249, 186, 91), // strong orange,
+//         leading: IconButton(
+//           icon: const Icon(Icons.home),
+//              iconSize: 36,
+//           onPressed: () {
+//             Navigator.pushAndRemoveUntil(
+//               context,
+//               MaterialPageRoute(builder: (_) => gamesKidScreen()),
+//               (_) => false,
+//             );
+//           },
+//         ),
+//          title: Text(
+//       "    Level $level",
+//       style: const TextStyle(
+//         fontSize: 28, // make it bigger
+//         fontWeight: FontWeight.bold, // optional for emphasis
+//       ),
+//     ),
+//     centerTitle: true,
+//   ),
+//      body: Container(
+// decoration: const BoxDecoration(
+//   gradient: LinearGradient(
+//     colors: [
+//      Color.fromARGB(255, 249, 195, 113), // strong orange
+//   Color.fromARGB(255, 245, 218, 137), // amber
+//   Color.fromARGB(255, 250, 238, 135),// soft yellow
+//     Color.fromARGB(255, 246, 241, 197),// soft yellow
+
+//     ],
+//     begin: Alignment.topCenter,
+//     end: Alignment.bottomCenter,
+//   ),
+// ),
+
+//     height:double.infinity,
+//    child: Stack(
+//     children: [
+//   const Positioned(top: 30, left: 20, child: Icon(Icons.access_time, size: 40, color: Colors.black)),
+//       const Positioned(top: 100, right: 10, child: Icon(Icons.access_time, size: 30, color: Colors.black)),
+//       const Positioned(bottom: 50, left: 50, child: Icon(Icons.access_time, size: 35, color: Colors.black)),
+//       const Positioned(bottom: 70, right: 30, child: Icon(Icons.access_time, size: 50, color: Colors.black)), SingleChildScrollView(
+//         child: Column(
+//           children: [
+                 
+//             const SizedBox(height: 10),
+//             Text("⭐ Stars: $stars ",
+//                 style: const TextStyle(fontSize: 27, fontWeight: FontWeight.bold)),
+//             Text("⏱ ${_formatTime(remainingTime)}",
+//                 style: const TextStyle(fontSize: 23)),
+//             const SizedBox(height: 10),
+
+// Column(
+//   children: [
+//     const SizedBox(height: 16),
+
+//     // House container for clock
+//     Stack(
+//       alignment: Alignment.center,
+//       children: [
+        
+//         // House shape
+//         ClipPath(
+//           clipper: HouseClipper(),
+//           child: Container(
+//             width: 280,
+//             height: 220,
+//             color: Colors.orangeAccent[200],
+//           ),
+//         ),
+//         // Analog clock inside the house
+//         SizedBox(
+//           width: 160,
+//           height: 160,
+//           child: CustomPaint(
+//             painter: KidsClockPainter(hour: hour, minute: minute),
+//           ),
+//         ),
+//       ],
+//     ),
+
+
+// Container(
+//   width: 280,
+//   height: 90,
+//   alignment: Alignment.center,
+//   decoration: BoxDecoration(
+//     color: Colors.orangeAccent.withOpacity(0.3), // semi-transparent orange
+//    // borderRadius: BorderRadius.circular(20),
+//   ),
+//   child: Row(
+//     mainAxisAlignment: MainAxisAlignment.center,
+//     children: [
+//       _dropZone("Hour", droppedHour, Colors.blue,
+//           (v) => setState(() => droppedHour = v)),
+//       const Padding(
+//         padding: EdgeInsets.symmetric(horizontal: 8),
+//         child: Text(":", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+//       ),
+//       level == 1
+//           ? _lockedMinute()
+//           : _dropZone("Minute", droppedMinute, Colors.green,
+//               (v) => setState(() => droppedMinute = v)),
+//     ],
+//   ),
+// ),
+
+//    const SizedBox(height: 20),
+
+
+// Padding(
+//   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+//   child: Row(
+//     mainAxisAlignment: MainAxisAlignment.center,
+//     crossAxisAlignment: CrossAxisAlignment.start,
+//     children: [
+//       // Hours column
+//       Column(
+//         children: [
+//           const Text("Hours",
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+//           const SizedBox(height: 8),
+//           Container(
+//             padding: const EdgeInsets.all(8),
+//             decoration: BoxDecoration(
+//               color: Colors.blue.withOpacity(0.2),
+//               borderRadius: BorderRadius.circular(16),
+//             ),
+//             child: Column(
+//               children: hourOptions.map((v) => Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 6),
+//                 child: Draggable<String>(
+//                   data: v,
+//                   feedback: _block(v, Colors.blue),
+//                   childWhenDragging: _block(v, Colors.blue.withOpacity(0.4)),
+//                   child: _block(v, Colors.blue),
+//                 ),
+//               )).toList(),
+//             ),
+//           ),
+//         ],
+//       ),
+
+//       const SizedBox(width: 20),
+
+//       // Minutes column
+//       if (level > 1)
+//         Column(
+//           children: [
+//             const Text("Minutes",
+//                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+//             const SizedBox(height: 8),
+//             Container(
+//               padding: const EdgeInsets.all(8),
+//               decoration: BoxDecoration(
+//                 color: Colors.green.withOpacity(0.2),
+//                 borderRadius: BorderRadius.circular(16),
+//               ),
+//               child: Column(
+//                 children: minuteOptions.map((v) => Padding(
+//                   padding: const EdgeInsets.symmetric(vertical: 6),
+//                   child: Draggable<String>(
+//                     data: v,
+//                     feedback: _block(v, Colors.green),
+//                     childWhenDragging: _block(v, Colors.green.withOpacity(0.4)),
+//                     child: _block(v, Colors.green),
+//                   ),
+//                 )).toList(),
+//               ),
+//             ),
+//           ],
+//         ),
+//     ],
+//   ),
+// ),
+
+
+//     const SizedBox(height: 30),
+//     ElevatedButton(
+
+//       onPressed: _checkAnswer,
+//       child: const Text("Check",
+//           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+//     ),
+//   ],
+// ),
+//         //    const SizedBox(height: 16),
+
+//   ],
+//             ),
+  
+//         ),
+//     ],
+//      ),
+//        ),
+//     );
+
+    
+//   }
+@override
+Widget build(BuildContext context) {
+  // ================= START SCREEN (MOBILE & WEB) =================
+  if (!hasStarted) {
     return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/clockGame.png',
+              fit: BoxFit.cover,
+              opacity: const AlwaysStoppedAnimation(0.9),
+            ),
+          ),
+          Positioned(
+            top: kIsWeb ? 170 : 300, // ✅ WEB higher, MOBILE unchanged
+            right: 0,
+            left: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Clock Game",
+                  style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "You have ${gameData?['maxTrials'] ?? 3} trials",
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                    textStyle: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                  ),
+                  onPressed: _startGame,
+                  child: const Text("Play", style: TextStyle(fontSize: 28)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= LOADING =================
+  if (isLoading || gameData == null) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  // ================= WEB DESIGN =================
+  if (kIsWeb && MediaQuery.of(context).size.width > 800) {
+// ===== WEB DESIGN FOR WIDE SCREENS =====
+  return Scaffold(
+    body: Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color.fromARGB(255, 249, 195, 113),
+            Color.fromARGB(255, 245, 218, 137),
+            Color.fromARGB(255, 250, 238, 135),
+            Color.fromARGB(255, 246, 241, 197),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // ================= TOP BAR =================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                children: [
+                  // HOME ICON
+                  Container(
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.home,
+                          color: Colors.blue, size: 30),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => gamesKidScreen()),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // LEVEL
+                  Text(
+                    "Level $level",
+                    style: const TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+
+                  const Spacer(),
+                ],
+              ),
+            ),
+
+            const Divider(thickness: 2 , color:Color.fromARGB(255, 215, 128, 5)),
+
+            // ================= SCORE + TIME =================
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "⭐ $stars",
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 30),
+                  Text(
+                    "⏱ ${_formatTime(remainingTime)}",
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+
+           // const Divider(thickness: 2 , color:Color.fromARGB(255, 215, 128, 5)),
+
+            // ================= MAIN CONTENT =================
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ===== LEFT: CLOCK =====
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            ClipPath(
+                              clipper: HouseClipper(),
+                              child: Container(
+                                width: 340,
+                                height: 260,
+                                color: Colors.orangeAccent[200],
+                              ),
+                            ),
+                            SizedBox(
+                              width: 190,
+                              height: 190,
+                              child: CustomPaint(
+                                painter: KidsClockPainter(
+                                  hour: hour,
+                                  minute: minute,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+
+                        // Hour : Minute (closer to clock)
+                        Container(
+                          width: 340,
+                          height: 80,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.orangeAccent.withOpacity(0.3),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _dropZone("Hour", droppedHour, Colors.blue,
+                                  (v) => setState(() => droppedHour = v)),
+                              const Padding(
+                                padding:
+                                    EdgeInsets.symmetric(horizontal: 6),
+                                child: Text(":",
+                                    style: TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              level == 1
+                                  ? _lockedMinute()
+                                  : _dropZone(
+                                      "Minute",
+                                      droppedMinute,
+                                      Colors.green,
+                                      (v) => setState(
+                                          () => droppedMinute = v),
+                                    ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // CHECK BUTTON under clock
+                        ElevatedButton(
+                          onPressed: _checkAnswer,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 14),
+                            textStyle: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold),
+                            backgroundColor: Colors.orangeAccent,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: const Text("Check"),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ===== RIGHT: OPTIONS =====
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // HOURS
+                        Column(
+                          children: [
+                            const Text("Hours",
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                children: hourOptions
+                                    .map((v) => Padding(
+                                          padding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 5),
+                                          child: Draggable<String>(
+                                            data: v,
+                                            feedback:
+                                                _block(v, Colors.blue),
+                                            childWhenDragging: _block(
+                                                v,
+                                                Colors.blue
+                                                    .withOpacity(0.4)),
+                                            child:
+                                                _block(v, Colors.blue),
+                                          ),
+                                        ))
+                                    .toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // MINUTES
+                        if (level > 1)
+                          Column(
+                            children: [
+                              const Text("Minutes",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Colors.green.withOpacity(0.2),
+                                  borderRadius:
+                                      BorderRadius.circular(20),
+                                ),
+                                child: Column(
+                                  children: minuteOptions
+                                      .map((v) => Padding(
+                                            padding:
+                                                const EdgeInsets
+                                                    .symmetric(
+                                                    vertical: 5),
+                                            child: Draggable<String>(
+                                              data: v,
+                                              feedback:
+                                                  _block(v, Colors.green),
+                                              childWhenDragging: _block(
+                                                  v,
+                                                  Colors.green
+                                                      .withOpacity(0.4)),
+                                              child: _block(
+                                                  v, Colors.green),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+
+  // ===== MOBILE DESIGN =====
+      return Scaffold(
         appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 249, 186, 91), // strong orange,
         leading: IconButton(
@@ -606,7 +1142,6 @@ Padding(
 
     
   }
-
 
   Widget _lockedMinute() => Container(
         width: 80,

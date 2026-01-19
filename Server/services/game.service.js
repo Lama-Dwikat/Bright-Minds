@@ -260,7 +260,27 @@ async saveScoreService(gameId, userId, score, isComplete = false) {
   }
 
   return game;
+},
+
+// Get top played games
+async getTopPlayedGames(limit = 4) {
+  const games = await Game.find();
+
+  const gamesWithPlayCount = games.map(game => ({
+    _id: game._id,
+    name: game.name,
+    ageGroup: game.ageGroup,
+    type: game.type,
+    playCount: game.playedBy.length // number of times the game was played
+  }));
+
+  // Sort descending by play count
+  gamesWithPlayCount.sort((a, b) => b.playCount - a.playCount);
+
+  // Return top `limit`
+  return gamesWithPlayCount.slice(0, limit);
 }
+
 
 
 };

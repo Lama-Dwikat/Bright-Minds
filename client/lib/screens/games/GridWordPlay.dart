@@ -64,7 +64,7 @@ class _GridGameScreenState extends State<GridGameScreen>
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -531,14 +531,335 @@ void _lockCurrentWord() {
 
 
 // ---------------- Build Method ----------------
+// @override
+// Widget build(BuildContext context) {
+//   if (isLoading) return const Center(child: CircularProgressIndicator());
+
+//   _assignWordColors(); // Assign colors for this level
+
+
+//   if (!hasStarted) {
+// return Scaffold(
+//   body: Stack(
+//     children: [
+
+//       Positioned.fill(
+//         child: Image.asset(
+//           'assets/images/test10.png',
+//           fit: BoxFit.cover,
+//         ),
+//       ),
+
+
+//       // 2️⃣ Friendly icons scattered
+
+//       // 3️⃣ Centered content with semi-transparent box
+//       Center(
+
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               const Text(
+//                 "Grid Word Game",
+//                 style: TextStyle(
+//                   fontWeight: FontWeight.bold,
+//                   fontSize: 36,
+//                   color: Color.fromARGB(255, 4, 1, 8),
+//                   shadows: [Shadow(color: Colors.black45, blurRadius: 4)],
+//                 ),
+//                 textAlign: TextAlign.center,
+//               ),
+//               const SizedBox(height: 20),
+//               Text(
+//                 "You have ${gameData?['maxTrials'] ?? 3} trials",
+//                 style: const TextStyle(
+//                   fontSize: 22,
+//                   fontWeight: FontWeight.bold,
+//                   color: Colors.black87,
+//                   shadows: [Shadow(color: Colors.black26, blurRadius: 2)],
+//                 ),
+//               ),
+//               const SizedBox(height: 20),
+//               const Text(
+//                 "Are You Ready To Start?",
+//                 style: TextStyle(
+//                   fontSize: 24,
+//                   fontWeight: FontWeight.bold,
+//                   color: Colors.black87,
+//                   shadows: [Shadow(color: Colors.black26, blurRadius: 2)],
+//                 ),
+//                 textAlign: TextAlign.center,
+//               ),
+//               const SizedBox(height: 40),
+//                ElevatedButton(
+//   style: ElevatedButton.styleFrom(
+//     padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+//     backgroundColor: Colors.green.withOpacity(0.8),
+//     shape: RoundedRectangleBorder(
+//       borderRadius: BorderRadius.circular(24),
+//     ),
+//   ),
+//   onPressed: () {
+//     setState(() {
+//       hasStarted = true;
+
+//       // ✅ Start the game properly
+//       currentLevel = levels.isNotEmpty ? levels.first : 1;
+//       currentLevelWords = levelWords[currentLevel] ?? [];
+
+//       // Clear all previous selections
+//       foundWordSet.clear();
+//       selectedCells.clear();
+//       lockedCells.clear();
+//       currentWord = "";
+
+//       // Generate the grid for the first level
+//       _generateGrid();
+
+//       // Assign colors to words
+//       _assignWordColors();
+
+//       // Start the timer
+//       _startTimer();
+//     });
+//   },
+//   child: const Text(
+//     "Play",
+//     style: TextStyle(
+//       fontSize: 28,
+//       fontWeight: FontWeight.bold,
+//       color: Colors.white,
+//     ),
+//   ),
+// ),
+
+//             ],
+//           ),
+//         ),
+//     //  ),
+//     ],
+//   ),
+// );
+
+// }
+
+
+
+
+//   return Scaffold(
+//     backgroundColor: Colors.lightBlue.shade50,
+//     body: SafeArea(
+//       child: Column(
+//         children: [
+//           // ---------- Top Bar ----------
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 IconButton(
+//                   icon: const Icon(Icons.home, color: Colors.blue, size: 30),
+//                   onPressed: () {
+//                     Navigator.pushReplacement(
+//                       context,
+//                       MaterialPageRoute(builder: (_) => gamesKidScreen()),
+//                     );
+//                   },
+//                 ),
+//                 const Text(
+//                   "🌟 Grid Words",
+//                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+//                 ),
+//                 const SizedBox(width: 40),
+//               ],
+//             ),
+//           ),
+//           const SizedBox(height: 8),
+
+//           // ---------- Header Info ----------
+//           Container(
+//             margin: const EdgeInsets.symmetric(horizontal: 16),
+//             padding: const EdgeInsets.all(12),
+//             decoration: BoxDecoration(
+//               gradient: LinearGradient(
+//                 colors: [Colors.purple.shade200, Colors.pink.shade200],
+//                 begin: Alignment.topLeft,
+//                 end: Alignment.bottomRight,
+//               ),
+//               borderRadius: BorderRadius.circular(20),
+//               boxShadow: const [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+//               ],
+//             ),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceAround,
+//               children: [
+//                 _infoCard("⭐ Score", "$score", Colors.yellow),
+//                 _infoCard("⏱ Time", "${formatTime(remainingTime)}", Colors.orange),
+//                 _infoCard("🧩 Level", "$currentLevel", Colors.greenAccent),
+//                 _infoCard("🎯 Trials",
+//                     "$totalTrialsUsed/${gameData?['maxTrials'] ?? 3}", Colors.redAccent),
+//               ],
+//             ),
+//           ),
+//           const SizedBox(height: 12),
+
+
+// // ---------- Word Grid ----------
+// LayoutBuilder(
+//   builder: (context, constraints) {
+//     final double gridSizePx = constraints.maxWidth - 32;
+
+//     return Center(
+//       child: Container(
+//         width: gridSizePx,
+//         height: gridSizePx,
+//         margin: const EdgeInsets.symmetric(horizontal: 16),
+//         padding: const EdgeInsets.all(6),
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(16),
+//           boxShadow: const [
+//             BoxShadow(
+//               color: Colors.black12,
+//               blurRadius: 4,
+//               offset: Offset(2, 2),
+//             )
+//           ],
+//         ),
+//         child: GridView.builder(
+//           physics: const NeverScrollableScrollPhysics(), // IMPORTANT
+//           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+//             crossAxisCount: gridSize,
+//             mainAxisSpacing: 4,
+//             crossAxisSpacing: 4,
+//             childAspectRatio: 1, // 🔥 square cells
+//           ),
+//           itemCount: gridSize * gridSize,
+//           itemBuilder: (_, index) {
+//             final row = index ~/ gridSize;
+//             final col = index % gridSize;
+
+//             return GestureDetector(
+//               onTap: () => _onCellTap(row, col),
+//               onDoubleTap: _lockCurrentWord,
+//               child: AnimatedContainer(
+//                 duration: const Duration(milliseconds: 150),
+//                 decoration: BoxDecoration(
+//                   color: getCellColor(row, col),
+//                   borderRadius: BorderRadius.circular(12),
+//                 ),
+//                 child: SizedBox.expand(
+//                   child: FittedBox(
+//                     fit: BoxFit.scaleDown,
+//                     child: Text(
+//                       grid[row][col],
+//                       style: const TextStyle(
+//                         fontWeight: FontWeight.bold,
+//                         height: 1,
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//             );
+//           },
+//         ),
+//       ),
+//     );
+//   },
+// ),
+
+
+//           const SizedBox(height: 12),
+
+//           // ---------- Current Word ----------
+//           Container(
+//             margin: const EdgeInsets.symmetric(horizontal: 16),
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//             decoration: BoxDecoration(
+//               gradient: LinearGradient(
+//                 colors: [Colors.orange.shade200, Colors.orange.shade400],
+//                 begin: Alignment.topLeft,
+//                 end: Alignment.bottomRight,
+//               ),
+//               borderRadius: BorderRadius.circular(24),
+//               boxShadow: const [
+//                 BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+//               ],
+//             ),
+//             child: Text(
+//               "💬 Current Word: $currentWord",
+//               style: const TextStyle(
+//                   fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+//             ),
+//           ),
+//           const SizedBox(height: 12),
+
+//           // ---------- Word Chips ----------
+//           Wrap(
+//             spacing: 8,
+//             runSpacing: 8,
+//             children: currentLevelWords.map((word) {
+//               final found = foundWordSet.contains(word.toUpperCase());
+//               return Chip(
+//                 label: Text(
+//                   word,
+//                   style: TextStyle(
+//                     fontWeight: FontWeight.bold,
+//                     decoration: found ? TextDecoration.lineThrough : TextDecoration.none,
+//                   ),
+//                 ),
+//                 backgroundColor: found ? getColorForWord(word) : Colors.pink.shade100,
+//                 avatar: found
+//                     ? const Icon(Icons.check_circle, size: 16, color: Colors.white)
+//                     : null,
+//               );
+//             }).toList(),
+//           ),
+
+//           const SizedBox(height: 12),
+
+//           // ---------- Cancel Selection ----------
+//           ElevatedButton.icon(
+//             onPressed: _onCancelSelection,
+//             icon: const Icon(Icons.cancel),
+//             label: const Text("Cancel Selection"),
+//          style: ElevatedButton.styleFrom(
+//   backgroundColor: Colors.redAccent,
+//   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+//   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+//   textStyle: const TextStyle(
+//     fontSize: 16,
+//     fontWeight: FontWeight.bold,
+//     color: Colors.white, // ✅ text color
+//   ),
+//   foregroundColor: Colors.white, // ✅ icon + text color
+// ),
+
+//           ),
+//           const SizedBox(height: 16),
+//         ],
+//       ),
+//     ),
+//   );
+// }
+
 @override
 Widget build(BuildContext context) {
   if (isLoading) return const Center(child: CircularProgressIndicator());
 
-  _assignWordColors(); // Assign colors for this level
-
+  _assignWordColors();
 
   if (!hasStarted) {
+    return kIsWeb ? _buildWebStart() : _buildMobileStart();
+  }
+
+  return kIsWeb ? _buildWebGame(context) : _buildMobileGame(context);
+}
+
+
+Widget _buildMobileStart() {
 return Scaffold(
   body: Stack(
     children: [
@@ -645,8 +966,92 @@ return Scaffold(
 
 
 
-
+Widget _buildWebStart() {
   return Scaffold(
+    body: Stack(
+      children: [
+
+        // ✅ Background Image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/test10.png',
+            fit: BoxFit.cover, // fills the entire page
+          ),
+        ),
+
+        // ✅ Semi-transparent overlay for content
+        Center(
+          child: Container(
+        width: 600,
+        padding: const EdgeInsets.all(40),
+        
+        decoration: 
+        BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: const [
+            BoxShadow(color: Colors.black26, blurRadius: 10),
+          ],
+        ),
+        // image: DecorationImage(
+        //   image: AssetImage("assets/images/test10.png"), // same as mobile
+        //   fit: BoxFit.fill,
+        // ),
+      //  ),
+       child: 
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Grid Word Game",
+              style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Trials: ${gameData?['maxTrials'] ?? 3}",
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(height: 30),
+           ElevatedButton(
+  onPressed: () {
+    setState(() {
+      hasStarted = true;
+
+      currentLevel = levels.isNotEmpty ? levels.first : 1;
+      currentLevelWords = levelWords[currentLevel] ?? [];
+
+      foundWordSet.clear();
+      selectedCells.clear();
+      lockedCells.clear();
+      currentWord = "";
+
+      _generateGrid();
+      _assignWordColors();
+      _startTimer();
+    });
+  },
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 20),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+    ),
+  ),
+  child: const Text("Play", style: TextStyle(fontSize: 26)),
+),
+
+          ],
+        ),
+      ),
+    ),
+      ],
+  ),
+  );
+}
+
+
+
+Widget _buildMobileGame(BuildContext context) {
+   return Scaffold(
     backgroundColor: Colors.lightBlue.shade50,
     body: SafeArea(
       child: Column(
@@ -694,11 +1099,11 @@ return Scaffold(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _infoCard("⭐ Score", "$score", Colors.yellow),
-                _infoCard("⏱ Time", "${formatTime(remainingTime)}", Colors.orange),
-                _infoCard("🧩 Level", "$currentLevel", Colors.greenAccent),
+                _infoCard("⭐ Score", "$score", Colors.yellow,context),
+                _infoCard("⏱ Time", "${formatTime(remainingTime)}", Colors.orange , context),
+                _infoCard("🧩 Level", "$currentLevel", Colors.greenAccent,context,),
                 _infoCard("🎯 Trials",
-                    "$totalTrialsUsed/${gameData?['maxTrials'] ?? 3}", Colors.redAccent),
+                    "$totalTrialsUsed/${gameData?['maxTrials'] ?? 3}", Colors.redAccent,context),
               ],
             ),
           ),
@@ -845,9 +1250,390 @@ LayoutBuilder(
   );
 }
 
-// ---------------- Info Card ----------------
-Widget _infoCard(String title, String value, Color color) {
+
+
+// Widget _buildWebGame(BuildContext context) {
+//   return Scaffold(
+//     backgroundColor: Colors.grey.shade100,
+//     body: SafeArea(
+//             child: Column(
+//         children: [
+
+//           // ---------- Top Bar ----------
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.start,
+//               children: [
+//                 IconButton(
+//                   icon: const Icon(Icons.home, color: Colors.blue, size: 30),
+//                   onPressed: () {
+//                     Navigator.pushReplacement(
+//                       context,
+//                       MaterialPageRoute(builder: (_) => gamesKidScreen()),
+//                     );
+//                   },
+//                 ),
+//                 const SizedBox(width: 12),
+//                 const Text(
+//                   "🌟 Grid Words",
+//                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+//                 ),
+//               ],
+//             ),
+//           ),
+
+//           const SizedBox(height: 1),
+
+//           // ---------- Main Content ----------
+//           Expanded(
+     
+//       child: LayoutBuilder(
+//         builder: (context, constraints) {
+
+//           return Center(
+//             child: Container(
+//               width: constraints.maxWidth * 0.95,
+//               constraints: const BoxConstraints(maxWidth: 1400),
+//               padding: const EdgeInsets.all(20),
+//               child: Row(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+
+//                   // 🟦 LEFT — GRID
+//                   Expanded(
+//                     flex: 4,
+//                     child: Column(
+//                       children: [
+//                         _buildGridWeb(),
+//                       ],
+//                     ),
+//                   ),
+
+//                   const SizedBox(width: 24),
+
+//                   // 🟨 RIGHT — INFO PANEL
+//                 Expanded(
+//   flex: 3,
+//   child: SingleChildScrollView(
+//     child: Column(
+//       children: [
+//         Align(
+//           alignment: Alignment.center,
+//           child: _infoCardWeb("⭐ Score", "$score", Colors.amber),
+//         ),
+//         const SizedBox(height: 14),
+//         Align(
+//           alignment: Alignment.center,
+//           child: _infoCardWeb("⏱ Time", formatTime(remainingTime), Colors.orange),
+//         ),
+//         const SizedBox(height: 14),
+//         Align(
+//           alignment: Alignment.center,
+//           child: _infoCardWeb("🧩 Level", "$currentLevel", Colors.green),
+//         ),
+//         const SizedBox(height: 14),
+//         Align(
+//           alignment: Alignment.center,
+//           child: _infoCardWeb(
+//             "🎯 Trials",
+//             "$totalTrialsUsed / ${gameData?['maxTrials'] ?? 3}",
+//             Colors.red,
+//           ),
+//         ),
+
+
+//                           const SizedBox(height: 24),
+
+//                           // 🔵 Current Word
+//                           Container(
+//                             padding: const EdgeInsets.all(30),
+//                             decoration: BoxDecoration(
+//                               color: Colors.blue.shade50,
+//                               borderRadius: BorderRadius.circular(20),
+//                               boxShadow: const [
+//                                 BoxShadow(
+//                                   color: Colors.black12,
+//                                   blurRadius: 6,
+//                                 ),
+//                               ],
+//                             ),
+//                             child: Column(
+//                               crossAxisAlignment: CrossAxisAlignment.start,
+//                               children: [
+//                                 const Text(
+//                                   "Current Word",
+//                                   style: TextStyle(
+//                                     fontSize: 16,
+//                                     fontWeight: FontWeight.bold,
+//                                   ),
+//                                 ),
+//                                 const SizedBox(height: 8),
+//                                 Text(
+//                                   currentWord.isEmpty ? "—" : currentWord,
+//                                   style: const TextStyle(
+//                                     fontSize: 20,
+//                                     fontWeight: FontWeight.bold,
+//                                     letterSpacing: 2,
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+
+//                           const SizedBox(height: 16),
+
+//                           // 🔴 Cancel Button (UNDER current word)
+//                           ElevatedButton.icon(
+//                             onPressed: _onCancelSelection,
+//                             icon: const Icon(Icons.cancel),
+//                             label: const Text("Cancel Selection"),
+//                             style: ElevatedButton.styleFrom(
+//                               backgroundColor: Colors.redAccent,
+//                               foregroundColor: Colors.white,
+//                               padding: const EdgeInsets.symmetric(
+//                                 vertical: 20,
+//                               horizontal: 20,
+
+//                               ),
+//                               textStyle: const TextStyle(
+//                                 fontSize: 18,
+//                                 fontWeight: FontWeight.bold,
+//                               ),
+//                               shape: RoundedRectangleBorder(
+//                                 borderRadius: BorderRadius.circular(20),
+//                               ),
+//                             ),
+//                           ),
+
+//                           const SizedBox(height: 24),
+
+//                           // 🟣 Words List
+//                           Wrap(
+//                             spacing: 10,
+//                             runSpacing: 10,
+//                              alignment: WrapAlignment.center, // centers each row horizontally
+//                              runAlignment: WrapAlignment.center, // centers rows vertically if multiple rows
+//                             children: currentLevelWords.map((word) {
+//                               final found =
+//                                   foundWordSet.contains(word.toUpperCase());
+//                               return Chip(
+//                                 padding: const EdgeInsets.symmetric(
+//                                     horizontal: 12, vertical: 8),
+//                                 label: Text(
+//                                   word,
+//                                   style: const TextStyle(
+//                                     fontSize: 18,
+//                                     fontWeight: FontWeight.bold,
+//                                   ),
+//                                 ),
+//                                 backgroundColor: found
+//                                     ? getColorForWord(word)
+//                                     : Colors.grey.shade300,
+//                               );
+//                             }).toList(),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           );
+//         },
+//       ),
+//     )
+//         ],
+//     ),
+//     ),
+//   );
+// }
+Widget _buildWebGame(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey.shade100,
+    body: SafeArea(
+
+       
+  
+
+
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double maxWidth = min(constraints.maxWidth * 0.95, 1400);
+
+          return Center(
+            child: Container(
+              width: maxWidth,
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  // 🟦 LEFT — GRID
+                  Expanded(
+                    flex: 7,
+                    child: LayoutBuilder(
+                      builder: (context, gridConstraints) {
+                        return _buildGridWeb();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(width: 24),
+ 
+                  // 🟨 RIGHT — INFO PANEL
+                  Expanded(
+                    flex: 4,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                           const SizedBox(width: 20),
+    Text(
+      "🌟 Level $currentLevel",
+      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+    ),
+                              const SizedBox(height: 14),
+
+                          _infoCardWeb("⭐ Score", "$score", Colors.amber),
+                          const SizedBox(height: 14),
+                          _infoCardWeb("⏱ Time", formatTime(remainingTime), Colors.orange),
+                          const SizedBox(height: 14),
+                          _infoCardWeb("🧩 Level", "$currentLevel", Colors.green),
+                          const SizedBox(height: 14),
+                          _infoCardWeb("🎯 Trials",
+                              "$totalTrialsUsed / ${gameData?['maxTrials'] ?? 3}", Colors.red),
+                          const SizedBox(height: 24),
+                          // Current Word
+                          Container(
+                            padding: const EdgeInsets.all(30),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Current Word",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  currentWord.isEmpty ? "—" : currentWord,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _onCancelSelection,
+                            icon: const Icon(Icons.cancel),
+                            label: const Text("Cancel Selection"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 20, horizontal: 20),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Words List
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            alignment: WrapAlignment.center,
+                            runAlignment: WrapAlignment.center,
+                            children: currentLevelWords.map((word) {
+                              final found = foundWordSet.contains(word.toUpperCase());
+                              return Chip(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                label: Text(
+                                  word,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                backgroundColor: found
+                                    ? getColorForWord(word)
+                                    : Colors.grey.shade300,
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+           Container(
+  width: 60,
+  height: 60,
+  decoration: const BoxDecoration(
+    color: Colors.white, // white circle
+    shape: BoxShape.circle,
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black26,
+        blurRadius: 4,
+        offset: Offset(2, 2),
+      ),
+    ],
+  ),
+  child: IconButton(
+    icon: const Icon(Icons.home, color: Colors.blue, size: 30),
+    onPressed: () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => gamesKidScreen()),
+      );
+    },
+  ),
+)
+
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    
+  ),
+   
+    );
+}
+
+
+
+
+Widget _infoCard(String title, String value, Color color, BuildContext context) {
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+
   return Container(
+    width: width * 0.17,   // responsive width
+    height: height * 0.07, // responsive height
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
       color: color.withOpacity(0.3),
@@ -857,12 +1643,116 @@ Widget _infoCard(String title, String value, Color color) {
       ],
     ),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center, // centers text horizontally
       children: [
-        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ],
     ),
   );
 }
+
+Widget _buildGridWeb() {
+ // final double gridWidth = min(600, MediaQuery.of(context).size.width * 0.9);
+ // final double gridHeight = maxHeight ?? gridWidth;
+  final double cellPadding = 3;
+
+  return Container(
+   color:Colors.white,
+   child:Expanded(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: gridSize,
+        mainAxisSpacing: cellPadding,
+        crossAxisSpacing: cellPadding,
+        childAspectRatio: 1,
+      ),
+      itemCount: gridSize * gridSize,
+      itemBuilder: (_, index) {
+        final row = index ~/ gridSize;
+        final col = index % gridSize;
+        return GestureDetector(
+          onTap: () => _onCellTap(row, col),
+          onDoubleTap: _lockCurrentWord,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              color: getCellColor(row, col),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                grid[row][col],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  ),
+   ),
+  );
+}
+
+
+
+
+
+
+Widget _infoCardWeb(String title, String value, Color color) {
+  return Container(
+    width: 300, // fixed width for web
+    height: 80, // fixed height for web
+    alignment: Alignment.center, // centers the Column inside container
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.3),
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: const [
+        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))
+      ],
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center, // vertical centering
+      crossAxisAlignment: CrossAxisAlignment.center, // horizontal centering
+      children: [
+        Text(
+          title,
+          textAlign: TextAlign.center, // center text
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          textAlign: TextAlign.center, // center text
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+
+
+
+
     }

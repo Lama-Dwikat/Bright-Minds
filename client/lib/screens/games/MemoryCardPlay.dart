@@ -56,7 +56,7 @@ class _MemoryPlayScreenState extends State<MemoryPlayScreen> {
 }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -416,6 +416,10 @@ Widget build(BuildContext context) {
 );
 
     }
+
+
+    if (!kIsWeb) {
+
   return Scaffold(
     body: Stack(
       children: [
@@ -594,8 +598,204 @@ Container(
       ],
     ),
   );
+    }
+
+  else {
+
+ return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/memoryBg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Header with home, score, time
+          _webHeader(context),
+
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.6,
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 28),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0),
+              //  borderRadius: BorderRadius.circular(36),
+               // border: Border.all(
+               //   color: Colors.blueAccent.withOpacity(0.8),
+                //  width: 3,
+             //   ),
+              //  boxShadow: const [
+               //   BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 6)),
+               // ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Clouds row: Score, Trials, Time
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      CloudWidget(icon: Icons.star, label: "SCORE", value: score.toString()),
+                      CloudWidget(icon: Icons.favorite, label: "TRIALS", value: trialsLeft.toString()),
+                      CloudWidget(icon: Icons.timer, label: "TIME", value: _formatTime(timeLeft)),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Memory card grid
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final crossAxisCount = min(4, colorsToMatch.length);
+                      final spacing = 12.0;
+                      final itemWidth = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+                      final rowCount = (colorsToMatch.length / crossAxisCount).ceil();
+                      final itemHeight = itemWidth;
+                      final gridHeight = rowCount * itemHeight + (rowCount - 1) * spacing;
+
+                      final shouldScroll = gridHeight > constraints.maxHeight;
+
+                      Widget grid = GridView.builder(
+                        physics: shouldScroll
+                            ? const AlwaysScrollableScrollPhysics()
+                            : const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: colorsToMatch.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          mainAxisSpacing: spacing,
+                          crossAxisSpacing: spacing,
+                          childAspectRatio: 1,
+                        ),
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () => _cardTapped(index),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                color: revealed[index] || matched[index]
+                                    ? _getColor(colorsToMatch[index])
+                                    : const Color(0xFF9AD0EC),
+                                gradient: revealed[index] || matched[index]
+                                    ? null
+                                    : const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color(0xFF9AD0EC),
+                                          Color(0xFFB4E4FF),
+                                        ],
+                                      ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: revealed[index] || matched[index]
+                                    ? Container(
+                                        width: 55,
+                                        height: 55,
+                                        decoration: BoxDecoration(
+                                          color: _getColor(colorsToMatch[index]),
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Colors.black26,
+                                              blurRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : const Text(
+                                        "?",
+                                        style: TextStyle(
+                                          fontSize: 38,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          shadows: [
+                                            Shadow(color: Colors.black45, blurRadius: 4),
+                                          ],
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
+                      return shouldScroll ? SingleChildScrollView(child: grid) : Center(child: grid);
+                    },
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Home button
+                  _roundButton(
+                    icon: Icons.home,
+                    label: "HOME",
+                    color: Colors.blueAccent,
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => gamesKidScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+  }
 }
 
+
+
+Widget _webHeader(BuildContext context) {
+  return Container(
+    height: 70,
+    padding: const EdgeInsets.symmetric(horizontal: 40),
+    color: Colors.blue.withOpacity(0.6),
+    child: Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.home, color: Colors.white, size: 28),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => gamesKidScreen()),
+            );
+          },
+        ),
+
+        Expanded(
+          child: Center(
+            child: Text(
+              "Level ${currentLevel + 1}",
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+
+     
+      ],
+    ),
+  );
+}
 }
 
 Widget _roundButton({

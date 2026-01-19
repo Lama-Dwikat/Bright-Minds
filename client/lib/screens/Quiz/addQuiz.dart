@@ -32,7 +32,7 @@ class _AddQuizPageState extends State<AddQuizPage> {
   String ageGroup = "5-8";
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -142,6 +142,7 @@ class _AddQuizPageState extends State<AddQuizPage> {
 
  @override
 Widget build(BuildContext context) {
+ // if (!kIsWeb) 
   return Scaffold(
     backgroundColor: const Color(0xFFFFF3E0), // soft playful background
     appBar: AppBar(
@@ -293,20 +294,7 @@ Widget build(BuildContext context) {
                   ),
                   const SizedBox(height: 12),
 
-                  /// Question Text
-                  // TextField(
-                  //   decoration: InputDecoration(
-                  //     labelText: "Question Text",
-                  //     filled: true,
-                  //     fillColor: Colors.white,
-                  //     border: OutlineInputBorder(
-                  //       borderRadius: BorderRadius.circular(18),
-                  //       borderSide: BorderSide.none,
-                  //     ),
-                  //   ),
-                  //   onChanged: (v) => q["question_text"] = v,
-                  // ),
-                  /// Question Text
+                
 TextField(
   decoration: InputDecoration(
     labelText: "Question Text",
@@ -411,46 +399,7 @@ TextField(
                   /// Options for multiple-choice or true-false
                    if (q["options"].isNotEmpty && q["question_type"] != "voice-answer")
 
-                    // Column(
-                    //   children: q["options"].asMap().entries.map<Widget>((optEntry) {
-                    //     int optIndex = optEntry.key;
-                    //     var opt = optEntry.value;
-
-                    //     return Container(
-                    //       margin: const EdgeInsets.only(bottom: 10),
-                    //       padding: const EdgeInsets.symmetric(horizontal: 8),
-                    //       decoration: BoxDecoration(
-                    //         color: Colors.white,
-                    //         borderRadius: BorderRadius.circular(18),
-                    //       ),
-                    //       child: Row(
-                    //         children: [
-                    //           Expanded(
-                    //             child: TextField(
-                    //               decoration: InputDecoration(
-                    //                 labelText: "Option ${optIndex + 1}",
-                    //                 border: InputBorder.none,
-                    //               ),
-                    //               onChanged: (v) => opt["optionText"] = v,
-                    //             ),
-                    //           ),
-                    //           Checkbox(
-                    //             value: opt["isCorrect"],
-                    //             activeColor: Colors.deepPurple,
-                    //             onChanged: (v) {
-                    //               setState(() {
-                    //                 for (var o in q["options"]) o["isCorrect"] = false;
-                    //                 opt["isCorrect"] = true;
-                    //                 q["correctAnswer"] = opt["optionText"];
-                    //               });
-                    //             },
-                    //           ),
-                    //         ],
-                    //       ),
-                    //     );
-                    //   }).toList(),
-                    // ),
-                    /// Options for multiple-choice or true-false
+                 
 if (q["options"].isNotEmpty && q["question_type"] != "voice-answer")
   Column(
     children: q["options"].asMap().entries.map<Widget>((optEntry) {

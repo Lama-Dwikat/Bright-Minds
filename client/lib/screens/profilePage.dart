@@ -1,4 +1,5 @@
 
+
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,6 @@ class _ProfilePageState extends State<ProfilePage> {
   bool isLoading = true;
 
   // Collapsible flags
-  bool showVideos = false;
   bool showQuizzes = false;
 
   @override
@@ -127,6 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
       debugPrint("Error fetching history: $err");
     }
   }
+  
 
   Future<void> _getChildQuizzes(String childId) async {
     try {
@@ -149,15 +150,16 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+
+
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     if (Platform.isIOS) return "http://localhost:3000";
     return "http://localhost:3000";
   }
 
-  // Edit field dialog
-  /*Future<void> _editField(String field) async {
+  Future<void> _editField(String field) async {
     final controller = TextEditingController(text: user?[field] ?? "");
 
     final updated = await showDialog<String>(
@@ -182,9 +184,15 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (updated != null && updated.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("token");
+
       final response = await http.put(
         Uri.parse('${getBackendUrl()}/api/users/updateprofile/$userId'),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          if (token != null) "Authorization": "Bearer $token",
+        },
         body: jsonEncode({field: updated}),
       );
 
@@ -193,57 +201,10 @@ class _ProfilePageState extends State<ProfilePage> {
           user?[field] = updated;
         });
       } else {
-        debugPrint("Failed to update $field");
+        debugPrint("Failed to update $field: ${response.body}");
       }
     }
-  }*/
-  Future<void> _editField(String field) async {
-  final controller = TextEditingController(text: user?[field] ?? "");
-
-  final updated = await showDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text("Edit ${field[0].toUpperCase()}${field.substring(1)}"),
-      content: TextField(
-        controller: controller,
-        decoration: InputDecoration(hintText: "Enter new $field"),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.pop(context, controller.text.trim()),
-          child: const Text("Save"),
-        ),
-      ],
-    ),
-  );
-
-  if (updated != null && updated.isNotEmpty) {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token");
-
-    final response = await http.put(
-      Uri.parse('${getBackendUrl()}/api/users/updateprofile/$userId'),
-      headers: {
-        "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({field: updated}),
-    );
-
-    if (response.statusCode == 200) {
-      setState(() {
-        user?[field] = updated;
-      });
-    } else {
-      debugPrint("Failed to update $field: ${response.body}");
-    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -362,57 +323,70 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const Divider(thickness: 1.2),
                                 const SizedBox(height: 10),
 
-                                // Video History Dropdown
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => showVideos = !showVideos),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text("Video History",
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                      Icon(showVideos
-                                          ? Icons.expand_less
-                                          : Icons.expand_more),
-                                    ],
+                                // VIDEO HISTORY as horizontal scrollable cards (from Code 2)
+                                ExpansionTile(
+                                  title: const Text(
+                                    "Videos History",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                                if (showVideos)
-                                  kidHistory.isNotEmpty
-                                      ? Column(
-                                          children: List.generate(
-                                              kidHistory.length, (index) {
-                                            final video = kidHistory[index];
-                                            final watchedAt =
-                                                video["watchedAt"] != null
-                                                    ? DateFormat('yyyy-MM-dd')
-                                                        .format(DateTime.parse(
-                                                            video["watchedAt"]))
-                                                    : "N/A";
-                                            final duration =
-                                                video["durationWatched"] ?? 0;
-                                            return ListTile(
-                                              leading: const Icon(
-                                                  Icons.play_circle_fill,
-                                                  color:
-                                                      AppColors.textAccent),
-                                              title: Text(
-                                                  "Video ID: ${video["videoId"]?["_id"] ?? "N/A"}"),
-                                              subtitle: Text(
-                                                  "Watched at: $watchedAt, Duration: $duration mins"),
+                                  children: [
+                                    SizedBox(
+                                      height: 150,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children: kidHistory.map((historyItem) {
+                                            final video = historyItem['videoId'];
+                                            return Container(
+                                              width: 120,
+                                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  (video != null && video['thumbnailUrl'] != null)
+                                                      ? Image.network(
+                                                          video['thumbnailUrl'],
+                                                          width: 120,
+                                                          height: 80,
+                                                          fit: BoxFit.cover,
+                                                        )
+                                                      : const Icon(Icons.video_library, size: 80),
+                                                  const SizedBox(height: 5),
+                                                  Text(
+                                                    video?['title'] ?? "Unknown",
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  Text(
+                                                    "${(historyItem['durationWatched'] ?? 0).toStringAsFixed(2)} min",
+                                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                                  ),
+                                                  Text(
+                                                    historyItem['watchedAt'] != null
+                                                        ? DateFormat('yyyy-MM-dd').format(
+                                                            DateTime.parse(historyItem['watchedAt']).toLocal())
+                                                        : "Unknown",
+                                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                                  ),
+                                                ],
+                                              ),
                                             );
-                                          }),
-                                        )
-                                      : const Text("No video history available."),
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
 
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 12),
 
                                 // Quiz Dropdown
                                 GestureDetector(
-                                  onTap: () =>
-                                      setState(() => showQuizzes = !showQuizzes),
+                                  onTap: () => setState(() => showQuizzes = !showQuizzes),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -426,24 +400,58 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ],
                                   ),
                                 ),
+                                // if (showQuizzes)
+                                //   kidQuizzes.isNotEmpty
+                                //       ? Column(
+                                //           children: List.generate(
+                                //               kidQuizzes.length, (index) {
+                                //             final quiz = kidQuizzes[index];
+                                //             return ListTile(
+                                //               leading: const Icon(Icons.quiz,
+                                //                   color: AppColors.textAccent),
+                                //               title: Text(quiz["quizTitle"] ?? "N/A"),
+                                //               subtitle: Text(
+                                //                   "Total Mark: ${quiz["totalMark"] ?? 0} | Attempt: ${quiz["attemptNumber"] ?? 0}"),
+                                //             );
+                                //           }
+                                //           ),
+                                //         )
+                                //       : const Text("No quizzes solved yet."),
                                 if (showQuizzes)
-                                  kidQuizzes.isNotEmpty
-                                      ? Column(
-                                          children: List.generate(
-                                              kidQuizzes.length, (index) {
-                                            final quiz = kidQuizzes[index];
-                                            return ListTile(
-                                              leading: const Icon(Icons.quiz,
-                                                  color:
-                                                      AppColors.textAccent),
-                                              title:
-                                                  Text(quiz["quizTitle"] ?? "N/A"),
-                                              subtitle: Text(
-                                                  "Total Mark: ${quiz["totalMark"] ?? 0} / ${quiz["totalPossibleMark"] ?? 0} | Attempt: ${quiz["attemptNumber"] ?? 0}"),
-                                            );
-                                          }),
-                                        )
-                                      : const Text("No quizzes solved yet."),
+  kidQuizzes.isNotEmpty
+      ? Column(
+          children: List.generate(kidQuizzes.length, (index) {
+            final quiz = kidQuizzes[index];
+
+            // ✅ Calculate total mark locally from quiz questions
+            int totalMark = 0;
+       
+            if (quiz["questions"] != null) {
+              final questions = quiz["questions"] as List<dynamic>;
+              for (var q in questions) {
+                totalMark += (q["mark"] != null && q["mark"] > 0) ? q["mark"] as int : 1;
+                print("this is mark :${q["mark"]}");
+              }
+            }
+
+            // User's score (from backend)
+int userScore = 0;
+if (quiz["submissions"] != null && (quiz["submissions"] as List).isNotEmpty) {
+  final latestSubmission = (quiz["submissions"] as List).last; // or pick any index
+  userScore = latestSubmission["totalMark"] ?? 0;
+}
+
+            return ListTile(
+              leading: const Icon(Icons.quiz, color: AppColors.textAccent),
+              title: Text(quiz["quizTitle"] ?? "N/A"),
+              subtitle: Text(
+                "Score: $userScore / $totalMark ||   Attempt: ${quiz["attemptNumber"] ?? 0}",
+              ),
+            );
+          }),
+        )
+      : const Text("No quizzes solved yet."),
+
                               ],
                             ),
                           ),
@@ -458,131 +466,95 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                     )
-:Center(
-  child: SingleChildScrollView(
-    child: Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      children: [
-        // Card
-        Container(
-          width: MediaQuery.of(context).size.width * 0.85, // wider card
-          margin: const EdgeInsets.only(top: 80),
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.35),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              )
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 80), // space for avatar
-
-              // Name (bigger)
-              // Text(
-              //   user?["name"] ?? "N/A",
-              //   textAlign: TextAlign.center,
-              //   style: GoogleFonts.robotoSlab(
-              //     fontSize: 30,
-              //     fontWeight: FontWeight.bold,
-              //   ),
-              // ),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Text(
-      user?["name"] ?? "N/A",
-      style: GoogleFonts.robotoSlab(
-        fontSize: 30,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    const SizedBox(width: 8),
-    IconButton(
-      icon: const Icon(Icons.edit, size: 22, color: Colors.blue),
-      onPressed: () => _editField("name"),
-      tooltip: "Edit name",
-    ),
-  ],
-),
-
-              const SizedBox(height: 16),
-
-              // Email (bigger)
-              // Text(
-              //   user?["email"] ?? "N/A",
-              //   textAlign: TextAlign.center,
-              //   style: const TextStyle(
-              //     fontSize: 20,
-              //     color: Colors.black87,
-              //   ),
-              // ),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Text(
-      user?["email"] ?? "N/A",
-      style: const TextStyle(
-        fontSize: 20,
-        color: Colors.black87,
-      ),
-    ),
-    const SizedBox(width: 6),
-    IconButton(
-      icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
-      onPressed: () => _editField("email"),
-      tooltip: "Edit email",
-    ),
-  ],
-),
-
-              const SizedBox(height: 24),
-
-              // Role badge (larger)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.textAccent.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  user?["role"]?.toUpperCase() ?? "N/A",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textAccent,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30), // extra height
-            ],
-          ),
-        ),
-
-        // Floating profile picture
-        Positioned(
-          top: 0,
-          child: profilePicture,
-        ),
-      ],
-    ),
-  ),
-),
-
-
-     
-
+                  : Center(
+                      child: SingleChildScrollView(
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          alignment: Alignment.topCenter,
+                          children: [
+                            // Card
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.85,
+                              margin: const EdgeInsets.only(top: 80),
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(25),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.35),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 8),
+                                  )
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(height: 80),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        user?["name"] ?? "N/A",
+                                        style: GoogleFonts.robotoSlab(
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, size: 22, color: Colors.blue),
+                                        onPressed: () => _editField("name"),
+                                        tooltip: "Edit name",
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        user?["email"] ?? "N/A",
+                                        style: const TextStyle(fontSize: 20, color: Colors.black87),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
+                                        onPressed: () => _editField("email"),
+                                        tooltip: "Edit email",
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.textAccent.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Text(
+                                      user?["role"]?.toUpperCase() ?? "N/A",
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textAccent,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 30),
+                                ],
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              child: profilePicture,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
     );
   }
 }
-

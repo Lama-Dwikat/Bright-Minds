@@ -74,7 +74,7 @@ Future<void> _initGame() async {
 
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -341,222 +341,303 @@ void checkAnswer() {
   }
 
 
- @override
+//  @override
+// Widget build(BuildContext context) {
+
+
+
+//       if (!hasStarted) {
+
+
+//   return Scaffold(
+//   body: Container(
+//     decoration: const BoxDecoration(
+//       gradient: KidColors.bgGradient,
+//     ),
+//     child: Stack(
+//       children: [
+//         Positioned.fill(
+//           child: Image.asset(
+//             'assets/images/rulerGame.png',
+//             fit: BoxFit.cover,
+//             opacity: const AlwaysStoppedAnimation(0.90),
+//           ),
+//         ),
+
+//         Center(
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               const Text(
+//                 "📏 Ruler Game",
+//                 style: TextStyle(
+//                   fontSize: 42,
+//                   fontWeight: FontWeight.bold,
+//                   color: KidColors.purple,
+//                 ),
+//               ),
+
+//               const SizedBox(height: 20),
+
+//               Container(
+//                 padding: const EdgeInsets.all(16),
+//                 decoration: BoxDecoration(
+//                   color: Colors.white,
+//                   borderRadius: BorderRadius.circular(30),
+//                   boxShadow: const [
+//                     BoxShadow(color: Colors.black26, blurRadius: 8),
+//                   ],
+//                 ),
+//                 child: Text(
+//                   "🎯 You have ${gameData?['maxTrials'] ?? 3} tries",
+//                   style: const TextStyle(
+//                     fontSize: 22,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ),
+
+//               const SizedBox(height: 40),
+
+//               ElevatedButton(
+//                 onPressed: _startGame,
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: KidColors.purple,
+//                   padding: const EdgeInsets.symmetric(
+//                       horizontal: 40, vertical: 13),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(40),
+//                   ),
+//                   elevation: 10,
+//                 ),
+//                 child: const Text(
+//                   "▶ PLAY",
+//                   style: TextStyle(
+//                     fontSize: 25,
+//                     fontWeight: FontWeight.bold,
+//                     color: Colors.white,
+//                   ),
+//                 ),
+//               )
+//             ],
+//           ),
+//         ),
+//       ],
+//     ),
+//   ),
+// );
+
+//     }
+  
+//   return Scaffold(
+//   appBar: AppBar(
+//     backgroundColor: KidColors.purple,
+//     elevation: 0,
+//     leading: IconButton(
+//       icon: const Icon(Icons.home, size: 34),
+//       onPressed: () {
+//         Navigator.pushAndRemoveUntil(
+//           context,
+//           MaterialPageRoute(builder: (_) => gamesKidScreen()),
+//           (_) => false,
+//         );
+//       },
+//     ),
+//     title: Text(
+//       "🌟 Level $level",
+//       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+//     ),
+//     centerTitle: true,
+//   ),
+
+//   body: Container(
+//     decoration: const BoxDecoration(
+//       gradient: KidColors.bgGradient,
+//     ),
+//     child: SafeArea(
+//       child: Column(
+//         children: [
+
+//           // ⭐ TIME + SCORE
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//             child: Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//               children: [
+//                 _infoBubble(Icons.timer, formatTime(remainingTime), Colors.blue),
+//                 _infoBubble(Icons.star, score.toStringAsFixed(0), Colors.pink),
+//               ],
+//             ),
+//           ),
+
+//           const SizedBox(height: 10),
+
+//           // 🐸 QUESTION
+//           Container(
+//             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+//             decoration: BoxDecoration(
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(30),
+//               boxShadow: const [
+//                 BoxShadow(color: Colors.black12, blurRadius: 6),
+//               ],
+//             ),
+//             child: const Text(
+//               "🐸 How long is it?",
+//               style: TextStyle(
+//                 fontSize: 26,
+//                 fontWeight: FontWeight.bold,
+//                 color: KidColors.purple,
+//               ),
+//             ),
+//           ),
+
+//           const SizedBox(height: 15),
+
+//           // 📏 RULER
+//           rulerWidget(correctValue),
+
+//           const SizedBox(height: 20),
+
+//           // 🎯 DROP ZONE
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: [
+//               dropZone(),
+//               const SizedBox(width: 8),
+//               const Text(
+//                 "cm",
+//                 style: TextStyle(
+//                   fontSize: 26,
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//               ),
+//             ],
+//           ),
+
+//           const SizedBox(height: 25),
+
+//           // 🧱 OPTIONS
+//           Wrap(
+//             alignment: WrapAlignment.center,
+//             children: options.map((v) => draggableBlock(v)).toList(),
+//           ),
+
+//           const Spacer(),
+
+//           // ✅ CHECK BUTTON
+//           ElevatedButton(
+//             onPressed: checkAnswer,
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: KidColors.yellow,
+//               padding:
+//                   const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(20),
+//               ),
+//               elevation: 8,
+//             ),
+//             child: const Text(
+//               "CHECK ✅",
+//               style: TextStyle(
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.black,
+//               ),
+//             ),
+//           ),
+
+//           const SizedBox(height: 20),
+//         ],
+//       ),
+//     ),
+//   ),
+// );
+
+// }
+
+
+@override
 Widget build(BuildContext context) {
-
-
-
-      if (!hasStarted) {
-
-
-  return Scaffold(
-  body: Container(
-    decoration: const BoxDecoration(
-      gradient: KidColors.bgGradient,
-    ),
-    child: Stack(
-      children: [
-        Positioned.fill(
-          child: Image.asset(
-            'assets/images/rulerGame.png',
-            fit: BoxFit.cover,
-            opacity: const AlwaysStoppedAnimation(0.90),
-          ),
-        ),
-
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "📏 Ruler Game",
-                style: TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: KidColors.purple,
-                ),
+  // If game hasn't started, show the start screen (same for both mobile & web)
+  if (!hasStarted) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: KidColors.bgGradient),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/rulerGame.png',
+                fit: BoxFit.cover,
+                opacity: const AlwaysStoppedAnimation(0.90),
               ),
-
-              const SizedBox(height: 20),
-
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black26, blurRadius: 8),
-                  ],
-                ),
-                child: Text(
-                  "🎯 You have ${gameData?['maxTrials'] ?? 3} tries",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "📏 Ruler Game",
+                    style: TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                      color: KidColors.purple,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 8),
+                      ],
+                    ),
+                    child: Text(
+                      "🎯 You have ${gameData?['maxTrials'] ?? 3} tries",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: _startGame,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: KidColors.purple,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 40, vertical: 13),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      elevation: 10,
+                    ),
+                    child: const Text(
+                      "▶ PLAY",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 40),
-
-              ElevatedButton(
-                onPressed: _startGame,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: KidColors.purple,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 40, vertical: 13),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                  elevation: 10,
-                ),
-                child: const Text(
-                  "▶ PLAY",
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              )
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
-    ),
-  ),
-);
+      ),
+    );
+  }
 
-    }
-  // return Scaffold(
-  //   backgroundColor: const Color.fromARGB(255, 240, 212, 236),
-  //       appBar: AppBar(
-  //       backgroundColor: const Color.fromARGB(255, 83, 64, 255),
-  //       leading: IconButton(
-  //         icon: const Icon(Icons.home),
-  //            iconSize: 36,
-  //            color:Colors.white,
-  //         onPressed: () {
-  //           Navigator.pushAndRemoveUntil(
-  //             context,
-  //             MaterialPageRoute(builder: (_) => gamesKidScreen()),
-  //             (_) => false,
-  //           );
-  //         },
-  //       ),
-  //        title: Text(
-  //     "Level $level",
-  //     style: const TextStyle(
-  //       color:Colors.white,
-  //       fontSize: 28, // make it bigger
-  //       fontWeight: FontWeight.bold, // optional for emphasis
-  //     ),
-  //   ),
-  //   centerTitle: true,
-  // ),
-  //   body: SafeArea(
-  //     child: Column(
-  //       children: [
-  //         const SizedBox(height: 10),
-
-  //         // 🕒 Time and ⭐ Score Display
-  //         Padding(
-  //           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-  //           child: Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               // Time
-  //               Row(
-  //                 children: [
-  //                   const Icon(Icons.timer, color: Color.fromARGB(255, 152, 3, 182), size: 28),
-  //                   const SizedBox(width: 5),
-  //                   Text(
-  //                     formatTime(remainingTime),
-  //                     style: const TextStyle(
-  //                       fontSize: 24,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Color.fromARGB(255, 27, 3, 164),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-
-  //               // Score
-  //               Row(
-  //                 children: [
-  //                   const Icon(Icons.star, color: Color.fromARGB(255, 104, 15, 69), size: 28),
-  //                   const SizedBox(width: 5),
-  //                   Text(
-  //                     score.toStringAsFixed(0),
-  //                     style: const TextStyle(
-  //                       fontSize: 24,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Color.fromARGB(255, 153, 7, 117),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-
-  //         const SizedBox(height: 10),
-
-  //         Text(
-  //           "🐸 How long is it?",
-  //           style: const TextStyle(
-  //             fontSize: 26,
-  //             fontWeight: FontWeight.bold,
-  //           ),
-  //         ),
-
-  //         rulerWidget(correctValue),
-
-  //         const SizedBox(height: 20),
-
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: [
-  //             dropZone(),
-  //             const SizedBox(width: 10),
-  //             const Text("cm",
-  //                 style:
-  //                     TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-  //           ],
-  //         ),
-
-  //         const SizedBox(height: 30),
-
-  //         Wrap(
-  //           alignment: WrapAlignment.center,
-  //           children: options.map((v) => draggableBlock(v)).toList(),
-  //         ),
-
-  //         const Spacer(),
-
-  //         ElevatedButton(
-  //           onPressed: checkAnswer,
-  //           style: ElevatedButton.styleFrom(
-  //             backgroundColor: const Color.fromARGB(255, 170, 217, 255),
-  //             padding:
-  //                 const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-  //             shape: RoundedRectangleBorder(
-  //               borderRadius: BorderRadius.circular(30),
-  //             ),
-  //           ),
-  //           child: const Text(
-  //             "CHECK",
-  //             style: TextStyle(fontSize: 22, color:Color.fromARGB(255, 20, 2, 156)),
-  //           ),
-  //         ),
-
-  //         const SizedBox(height: 20),
-  //       ],
-  //     ),
-  //   ),
-  // );
-
-  return Scaffold(
+  // Check if web or mobile
+  if (kIsWeb && MediaQuery.of(context).size.width > 800) {
+    // ===== WEB LAYOUT =====
+// ===== WEB LAYOUT =====
+return Scaffold(
   appBar: AppBar(
     backgroundColor: KidColors.purple,
     elevation: 0,
@@ -576,111 +657,238 @@ Widget build(BuildContext context) {
     ),
     centerTitle: true,
   ),
-
   body: Container(
-    decoration: const BoxDecoration(
-      gradient: KidColors.bgGradient,
-    ),
+    decoration: const BoxDecoration(gradient: KidColors.bgGradient),
+     height: double.infinity,
     child: SafeArea(
-      child: Column(
-        children: [
-
-          // ⭐ TIME + SCORE
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _infoBubble(Icons.timer, formatTime(remainingTime), Colors.blue),
-                _infoBubble(Icons.star, score.toStringAsFixed(0), Colors.pink),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // 🐸 QUESTION
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 6),
-              ],
-            ),
-            child: const Text(
-              "🐸 How long is it?",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: KidColors.purple,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          // 📏 RULER
-          rulerWidget(correctValue),
-
-          const SizedBox(height: 20),
-
-          // 🎯 DROP ZONE
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView( // <-- Added scroll
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              dropZone(),
-              const SizedBox(width: 8),
-              const Text(
-                "cm",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+              // ⭐ SCORE & TIME
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _infoBubble(Icons.star, score.toStringAsFixed(0), Colors.pink), // Score left
+                    _infoBubble(Icons.timer, formatTime(remainingTime), Colors.blue), // Time right
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 🐸 QUESTION (CENTERED)
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 6),
+                    ],
+                  ),
+                  child: const Text(
+                    "🐸 How long is it?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: KidColors.purple,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 📏 RULER
+              rulerWidget(correctValue),
+              const SizedBox(height: 20),
+
+              // 🎯 DROP ZONE (CENTERED)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  dropZone(),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "cm",
+                    style: TextStyle(
+                        fontSize: 26, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+
+              // 🧱 OPTIONS (UNDER RULER)
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: options.map((v) => draggableBlock(v)).toList(),
+              ),
+              const SizedBox(height: 40),
+
+              // ✅ CHECK BUTTON
+              Center(
+                child: ElevatedButton(
+                  onPressed: checkAnswer,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: KidColors.yellow,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    elevation: 8,
+                  ),
+                  child: const Text(
+                    "CHECK ✅",
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 25),
-
-          // 🧱 OPTIONS
-          Wrap(
-            alignment: WrapAlignment.center,
-            children: options.map((v) => draggableBlock(v)).toList(),
-          ),
-
-          const Spacer(),
-
-          // ✅ CHECK BUTTON
-          ElevatedButton(
-            onPressed: checkAnswer,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: KidColors.yellow,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 8,
-            ),
-            child: const Text(
-              "CHECK ✅",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
     ),
   ),
 );
+  }
 
+  // ===== MOBILE LAYOUT (original) =====
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: KidColors.purple,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.home, size: 34),
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => gamesKidScreen()),
+            (_) => false,
+          );
+        },
+      ),
+      title: Text(
+        "🌟 Level $level",
+        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+      ),
+      centerTitle: true,
+    ),
+    body: Container(
+      decoration: const BoxDecoration(
+        gradient: KidColors.bgGradient,
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // ⭐ TIME + SCORE
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _infoBubble(Icons.timer, formatTime(remainingTime), Colors.blue),
+                  _infoBubble(Icons.star, score.toStringAsFixed(0), Colors.pink),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🐸 QUESTION
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 6),
+                ],
+              ),
+              child: const Text(
+                "🐸 How long is it?",
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: KidColors.purple,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // 📏 RULER
+            rulerWidget(correctValue),
+
+            const SizedBox(height: 20),
+
+            // 🎯 DROP ZONE
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                dropZone(),
+                const SizedBox(width: 8),
+                const Text(
+                  "cm",
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 25),
+
+            // 🧱 OPTIONS
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: options.map((v) => draggableBlock(v)).toList(),
+            ),
+
+            const Spacer(),
+
+            // ✅ CHECK BUTTON
+            ElevatedButton(
+              onPressed: checkAnswer,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: KidColors.yellow,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+              ),
+              child: const Text(
+                "CHECK ✅",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 Widget dropZone() {

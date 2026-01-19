@@ -189,469 +189,554 @@ void updateTaskStatus(String taskId, bool isDone) async {
   }
 }
 
+
+
+
+
+
+
+  // ---------------- MOBILE BODY (exactly same as original) ----------------
+  Widget _buildMobileBody(DateTime today, String formattedDate) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 20),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 400,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final screenWidth = constraints.maxWidth;
+                final imageWidth = 100.0;
+
+                return Stack(
+                  children: [
+                    // TASK LIST
+                    Positioned(
+                      left: imageWidth - 55,
+                      right: 0,
+                      top: 60,
+                      bottom: 0,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // DATE HEADER
+                            Container(
+                              height: 50,
+                              padding: const EdgeInsets.only(left: 5, right: 10, bottom: 10),
+                              decoration: BoxDecoration(
+                                color: AppColors.badgesButton,
+                                border: const Border(
+                                  top: BorderSide(color: Color.fromARGB(255, 243, 182, 59), width: 2),
+                                  left: BorderSide(color: Color.fromARGB(255, 222, 174, 77), width: 2),
+                                  right: BorderSide(color: Color.fromARGB(255, 232, 175, 62), width: 2),
+                                  bottom: BorderSide(color: Colors.transparent, width: 0),
+                                ),
+                              ),
+                              child: Text(
+                                formattedDate,
+                                style: GoogleFonts.robotoSlab(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                              ),
+                            ),
+                            // TASK BOX
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 248, 217, 154),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color.fromARGB(255, 213, 160, 55), width: 1),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // WEEKDAYS
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                                    color: Colors.white,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: weekdays.map((entry) {
+                                          final day = entry['day']!;
+                                          final dayNum = entry['key']!;
+                                          final isToday = today.weekday == dayNum;
+                                          return Container(
+                                            padding: const EdgeInsets.all(6),
+                                            margin: const EdgeInsets.only(right: 6),
+                                            decoration: BoxDecoration(
+                                              color: isToday ? const Color.fromARGB(255, 199, 153, 61) : Colors.transparent,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Text(
+                                              day,
+                                              style: GoogleFonts.robotoSlab(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isToday ? Colors.white : Colors.black,
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // TASKS HEADER
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Today's Tasks",
+                                          style: GoogleFonts.robotoSlab(fontSize: 20, fontWeight: FontWeight.bold)),
+                                      IconButton(
+                                        icon: const Icon(Icons.add_circle, color: Color(0xFF6E4A4A), size: 28),
+                                        onPressed: _showAddTaskDialog,
+                                      )
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // SCROLLABLE TASK LIST
+                                  SizedBox(
+                                    height: 160,
+                                    child: ListView.builder(
+                                      itemCount: tasks.length,
+                                      itemBuilder: (context, index) {
+                                        final task = tasks[index];
+                                        return Container(
+                                          margin: const EdgeInsets.only(bottom: 6),
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(12),
+                                            border: Border.all(color: Colors.black12),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Checkbox(
+                                                value: task['done'] == true,
+                                                onChanged: (_) {
+                                                  setState(() {
+                                                    task['done'] = !task['done'];
+                                                  });
+                                                  updateTaskStatus(task['_id'], task['done']);
+                                                },
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  task['description'] ?? '',
+                                                  style: GoogleFonts.robotoSlab(
+                                                    fontSize: 16,
+                                                    decoration: task['done'] ? TextDecoration.lineThrough : TextDecoration.none,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // IMAGE
+                    Positioned(
+                      left: -7,
+                      top: -12,
+                      child: Image.asset(
+                        "assets/images/tasks3.png",
+                        width: imageWidth,
+                        height: 150,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          // GRID BUTTONS
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 18,
+            mainAxisSpacing: 18,
+            children: [
+              _mainButton(
+                label: "Stories",
+                imagePath: "assets/images/story2.png",
+                color: const Color(0xFFFFD9C0),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupervisorStoriesScreen())),
+              ),
+              _mainButton(
+                label: "Videos",
+                imagePath: "assets/images/video.png",
+                color: const Color.fromARGB(255, 254, 220, 168),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosPage())),
+              ),
+              _mainButton(
+                label: "Games",
+                imagePath: "assets/images/Games.png",
+                color: const Color.fromARGB(255, 244, 201, 152),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GamesHomePage())),
+              ),
+              _mainButton(
+                label: "Drawing",
+                imagePath: "assets/images/Drawing.png",
+                color: const Color(0xFFF9E2CE),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupervisorDrawingHome())),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildFullWidthButton(
+            label: "Kids",
+            imagePath: "assets/images/kids.png",
+            color: const Color(0xFFFFE7C8),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorKidsScreen())),
+          ),
+          const SizedBox(height: 36),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- WEB BODY ----------------
+Widget _buildWebBody(DateTime today, String formattedDate) {
+  return Padding(
+    padding: const EdgeInsets.all(24),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // LEFT: TASKS (original, unchanged)
+        Expanded(
+          flex: 2,
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: 600, // taller for web
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final imageWidth = 120.0; // bigger image for web
+                  return Stack(
+                    children: [
+                      // ORIGINAL TASK LIST BOX
+                      Positioned(
+                        left: imageWidth - 55,
+                        right: 0,
+                        top: 60,
+                        bottom: 0,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // DATE HEADER
+                              Container(
+                                height: 50,
+                                padding: const EdgeInsets.only(left: 5, right: 10, bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.badgesButton,
+                                  border: const Border(
+                                    top: BorderSide(color: Color.fromARGB(255, 243, 182, 59), width: 2),
+                                    left: BorderSide(color: Color.fromARGB(255, 222, 174, 77), width: 2),
+                                    right: BorderSide(color: Color.fromARGB(255, 232, 175, 62), width: 2),
+                                    bottom: BorderSide(color: Colors.transparent, width: 0),
+                                  ),
+                                ),
+                                child: Text(
+                                  formattedDate,
+                                  style: GoogleFonts.robotoSlab(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                              ),
+
+                            //  const SizedBox(height: 12),
+
+                              // 🔥 ORIGINAL TASK LIST BOX (exactly as mobile)
+                              SizedBox(
+                                height: 500,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // WEEKDAYS
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                                      color: Colors.white,
+                                      height:75,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          children: weekdays.map((entry) {
+                                            final day = entry['day']!;
+                                            final dayNum = entry['key']!;
+                                            final isToday = today.weekday == dayNum;
+                                            return Container(
+                                              padding: const EdgeInsets.all(6),
+                                              margin: const EdgeInsets.only(right: 6),
+                                              decoration: BoxDecoration(
+                                                color: isToday ? const Color.fromARGB(255, 199, 153, 61) : Colors.transparent,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Text(
+                                                day,
+                                                style: GoogleFonts.robotoSlab(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isToday ? Colors.white : Colors.black,
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+
+Container(
+ // padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+  decoration: BoxDecoration(
+    color: const Color.fromARGB(255, 248, 217, 154), // same as your task list background
+  ),
+                                    // Today's Tasks Header + Add button
+                                 child:   Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Today's Tasks",
+                                          style: GoogleFonts.robotoSlab(fontSize: 20, fontWeight: FontWeight.bold),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.add_circle, color: Color(0xFF6E4A4A), size: 28),
+                                          onPressed: _showAddTaskDialog,
+                                        ),
+                                      ],
+                                    ),
+),
+                                   // const SizedBox(height: 12),
+
+                                    // Task List (original)
+                                    Expanded(
+  child: Container(
+    padding: const EdgeInsets.only(right:8 ,left:8), // optional padding
+    decoration: BoxDecoration(
+      color: const Color.fromARGB(255, 248, 217, 154), // <-- your background color
+    ),
+                                      child: ListView.builder(
+                                        itemCount: tasks.length,
+                                        itemBuilder: (context, index) {
+                                          final task = tasks[index];
+                                          return Container(
+                                            margin: const EdgeInsets.only(bottom: 6),
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.black12),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: task['done'] == true,
+                                                  onChanged: (_) {
+                                                    setState(() {
+                                                      task['done'] = !task['done'];
+                                                    });
+                                                    updateTaskStatus(task['_id'], task['done']);
+                                                  },
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    task['description'] ?? '',
+                                                    style: GoogleFonts.robotoSlab(
+                                                      fontSize: 16,
+                                                      decoration: task['done'] ? TextDecoration.lineThrough : TextDecoration.none,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // LEFT IMAGE
+                      Positioned(
+                        left: 3,
+                        top: -29,
+                        child: Image.asset("assets/images/tasks3.png", width: imageWidth, height: 180),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 32),
+
+        // RIGHT: FULL-WIDTH BUTTONS UNDER EACH OTHER
+        Expanded(
+          flex: 2,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                _mainButtonFullWidth(
+                  label: "Stories",
+                  imagePath: "assets/images/story2.png",
+                  color: const Color(0xFFFFD9C0),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupervisorStoriesScreen())),
+                ),
+                const SizedBox(height: 20),
+                _mainButtonFullWidth(
+                  label: "Videos",
+                  imagePath: "assets/images/video.png",
+                  color: const Color.fromARGB(255, 254, 220, 168),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosPage())),
+                ),
+                const SizedBox(height: 20),
+                _mainButtonFullWidth(
+                  label: "Games",
+                  imagePath: "assets/images/Games.png",
+                  color: const Color.fromARGB(255, 244, 201, 152),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => GamesHomePage())),
+                ),
+                const SizedBox(height: 20),
+                _mainButtonFullWidth(
+                  label: "Drawing",
+                  imagePath: "assets/images/Drawing.png",
+                  color: const Color(0xFFF9E2CE),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SupervisorDrawingHome())),
+                ),
+                const SizedBox(height: 20),
+                _mainButtonFullWidth(
+                  label: "Kids",
+                  imagePath: "assets/images/kids.png",
+                  color: const Color(0xFFFFE7C8),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorKidsScreen())),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// Full width button helper
+Widget _mainButtonFullWidth({
+  required String label,
+  required String imagePath,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return SizedBox(
+    width: double.infinity,
+    height: 80,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      onPressed: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(imagePath, width: 55, height: 55, fit: BoxFit.contain),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: GoogleFonts.robotoSlab(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
     final formattedDate = DateFormat("d MMM yyyy").format(today);
 
     return HomePage(
-      child: SingleChildScrollView(
-      //  padding: const EdgeInsets.all(20),
-      padding: const EdgeInsets.only(left: 10, right: 10, bottom: 20),
-
-      //  child: Center(
-          child: Column(
-            children: [
-SizedBox(
-  height: 400,
-  child: LayoutBuilder(
-    builder: (context, constraints) {
-      final screenWidth = constraints.maxWidth;
-      final imageWidth = 100.0;
-
-      return Stack(
-        children: [
-
-
-          // ------------------- TASK LIST -------------------
-          Positioned(
-            left: imageWidth-55 , // space for image
-            right: 0,              // take all remaining screen width
-            top: 60,
-            bottom: 0,
-            
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // DATE HEADER
-                  Container(
-                    height: 50,
-                   // padding: const EdgeInsets.all(10),
-                   padding: const EdgeInsets.only(left: 5, right: 10, bottom: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.badgesButton,
-                    border: const Border(
-                  top: BorderSide(color: Color.fromARGB(255, 243, 182, 59), width: 2),
-                   left: BorderSide(color: Color.fromARGB(255, 222, 174, 77), width: 2),
-                   right: BorderSide(color: Color.fromARGB(255, 232, 175, 62), width: 2),
-                  bottom: BorderSide(color: Colors.transparent, width: 0), // NO BOTTOM BORDER
-                    ),     
-                                   ),
-                    child: Text(
-                      formattedDate,
-                      style: GoogleFonts.robotoSlab(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-
-                
-// 🔥 MAIN BORDER BOX
-Container(
- padding: const EdgeInsets.all(12),
-  decoration: BoxDecoration(
-    color: const Color.fromARGB(255, 248, 217, 154),
-    borderRadius: BorderRadius.circular(10),
-    border: Border.all(color: const Color.fromARGB(255, 213, 160, 55), width: 1),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // WEEKDAYS
-      Container(
-  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-  decoration: BoxDecoration(
-    color: Colors.white, // <-- YOUR BACKGROUND COLOR HERE
-
-   // borderRadius: BorderRadius.circular(12),
-  ),
-     child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: weekdays.map((entry) {
-            final day = entry['day']!;
-            final dayNum = entry['key']!;
-            final isToday = today.weekday == dayNum;
-            return Container(
-              padding: const EdgeInsets.all(6),
-              margin: const EdgeInsets.only(right: 6),
-              decoration: BoxDecoration(
-                color: isToday
-                    ? const Color.fromARGB(255, 199, 153, 61)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                day,
-                style: GoogleFonts.robotoSlab(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isToday ? Colors.white : Colors.black,
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-      ),
-    //  const SizedBox(height: 12),
-
-      // Today's Tasks Header
-   Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text(
-      "Today's Tasks",
-      style: GoogleFonts.robotoSlab(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-    IconButton(
-      icon: const Icon(Icons.add_circle, color: Color(0xFF6E4A4A), size: 28),
-      onPressed: () {
-        _showAddTaskDialog();
-      },
-    ),
-  ],
-),
-
-
-      const SizedBox(height: 12),
-
-      // SCROLLABLE TASK LIST
-      SizedBox(
-        height: 160,
-        child: ListView.builder(
-          itemCount: tasks.length,
-          itemBuilder: (context, index) {
-            final task = tasks[index];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 6),
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
-              ),
-              child: Row(
-                children: [
-                  Checkbox(
-                    value: tasks[index]['done'] == true,
-                    onChanged: (_) {
-                      setState(() {
-                        tasks[index]['done'] = !tasks[index]['done'];
-                      });
-                      updateTaskStatus(task['_id'], tasks[index]['done']);
-                    },
-                  ),
-                  Expanded(
-                    child: Text(
-                      task['description'] ?? '',
-                      style: GoogleFonts.robotoSlab(
-                        fontSize: 16,
-                        decoration: tasks[index]['done'] == true
-                            ? TextDecoration.lineThrough
-                            : TextDecoration.none,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-            );
-          },
-        ),
-      ),
-    ],
-  ),
-),
-
-                  const SizedBox(height: 12),
-
-                  // Today's Tasks Header
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      "Today's Tasks",
-                      style: GoogleFonts.robotoSlab(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // SCROLLABLE TASK LIST
-                  Container(
-                    height: 160,
-                    child: ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = tasks[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.black12),
-                          ),
-                          child: Row(
-                            children: [
-                              Checkbox(
-                                value: tasks[index]['done'] == true,
-                                onChanged: (_) {
-                                  setState(() {
-                                    tasks[index]['done'] =
-                                        !tasks[index]['done'];
-                                  });
-                                  updateTaskStatus(
-                                      task['_id'], tasks[index]['done']);
-                                },
-                              ),
-                              Expanded(
-                                child: Text(
-                                  task['description'] ?? '',
-                                  style: GoogleFonts.robotoSlab(
-                                    fontSize: 16,
-                                    decoration: tasks[index]['done'] == true
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ------------------- IMAGE -------------------
-          Positioned(
-            left: -7,
-            top: -12,
-            child: Image.asset(
-              "assets/images/tasks3.png",
-              width: imageWidth,
-              height: 150,
-            ),
-          ),
-        ],
-      );
-    },
-  ),
-),
-
-
-
-              
-          //     const SizedBox(height: 16),
-          //  _buildFullWidthButton(
-          //    label: "Kids",
-          //  imagePath: "assets/images/kids.png", // <-- your kids image
-          //     color: AppColors.peachPinkLight,
-          //     onPressed: () {
-          //      Navigator.push(
-          //    context,
-          //       MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
-          //    );
-          // },
-          //      ),
-
-
-             const SizedBox(height: 16),
-            
-
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 18,
-              mainAxisSpacing: 18,
-              children: [
-                _mainButton(
-                  label: "Stories",
-                  //icon: Icons.menu_book_rounded,
-                  imagePath: "assets/images/story2.png",
-                    color: const Color(0xFFFFD9C0),
-                    onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const SupervisorStoriesScreen(),
-      // builder: (context) => SupervisorStoryScreen(),
-      ),
+      child: kIsWeb ? _buildWebBody(today, formattedDate) : _buildMobileBody(today, formattedDate),
     );
-  },
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => supervo()));},
+  }
 
-                ),
-                _mainButton(
-                  label: "Videos",
-                 imagePath: "assets/images/video.png",
-                  color: const Color.fromARGB(255, 254, 220, 168),
-                   onTap: () {  Navigator.push(context, MaterialPageRoute(builder: (context) => SupervisorVideosPage()));},
-
-                ),
-                _mainButton(
-                  label: "Games",
-                 // icon: Icons.videogame_asset_rounded,
-                 imagePath: "assets/images/Games.png",
-                  color: const Color.fromARGB(255, 244, 201, 152),
-                 onTap: () { 
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => GamesHomePage()));},
-  
-                ),
-                _mainButton(
-                  label: "Drawing",
-                 // icon: Icons.brush_rounded,
-                 imagePath: "assets/images/Drawing.png",
-                  color: const Color(0xFFF9E2CE),
-                 onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => const SupervisorDrawingHome(),
-    ),
-  );
-},
-
-                ),
-                
-              ],
+  // ---------------- BUTTONS ----------------
+  Widget _mainButton({
+    required String label,
+    IconData? icon,
+    String? imagePath,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: Colors.black12, blurRadius: 6, offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (imagePath != null)
+              Image.asset(imagePath, height: 60, width: 60, fit: BoxFit.contain)
+            else if (icon != null)
+              Icon(icon, size: 40, color: Colors.indigo[900]),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: GoogleFonts.poppins(fontSize: 30, fontWeight: FontWeight.w600, color: Colors.black),
             ),
-         const SizedBox(height: 16),
-       _buildFullWidthButton(
-  label: "Kids",
-  imagePath: "assets/images/kids.png",
-  color: const Color(0xFFFFE7C8),
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SupervisorKidsScreen()),
-    );
-  },
-),
-
-
-            const SizedBox(height: 36),
-            ],
-          ),
-       // ),
+          ],
+        ),
       ),
     );
   }
 
-Widget _mainButton({
-  required String label,
-  IconData? icon,        
-  String? imagePath,      
-  required Color color,
-  required VoidCallback onTap,
-}) {
-  return InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(24),
-    child: Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (imagePath != null)
-            Image.asset(
-              imagePath,
-              height: 60,
-              width: 60,
-              fit: BoxFit.contain,
-            )
-          else if (icon != null)
-            Icon(icon, size: 40, color: Colors.indigo[900]),
-
-          const SizedBox(height: 10),
-
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 30,
-              fontWeight: FontWeight.w600,
-              //color: const Color.fromARGB(255, 255, 251, 251),
-               color: Colors.black,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-
-
   Widget _buildFullWidthButton({
-  required String label,
-  required String imagePath,
-  required Color color,
-  required VoidCallback onPressed,
-}) {
-  return SizedBox(
-    //width: 2 * 200 + 16, // Two buttons width + spacing
-    width:double.infinity,
-    height: 80, // adjust height as needed
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+    required String label,
+    required String imagePath,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 80,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+        onPressed: onPressed,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(imagePath, width: 55, height: 55, fit: BoxFit.contain),
+            const SizedBox(width: 12),
+            Text(label, style: GoogleFonts.robotoSlab(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+          ],
         ),
       ),
-      onPressed: onPressed,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center, // center horizontally
-        crossAxisAlignment: CrossAxisAlignment.center, // center vertically
-        children: [
-          Image.asset(
-            imagePath,
-            width: 55, // same as icon
-            height: 55, // same as icon
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 12), // space between image and text
-          Text(
-            label,
-            style: GoogleFonts.robotoSlab(
-              fontSize: 25, // adjust font size
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+    );
+  }
 }
-}
-

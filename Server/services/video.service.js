@@ -19,7 +19,7 @@ export const videoService={
         q:topic,
         key: process.env.YOUTUBE_API_KEY,
         part: "snippet",
-        maxResults: 50,}
+        maxResults: 20,}
       // pageToken:nextPageToken|| undefined },
        });
 

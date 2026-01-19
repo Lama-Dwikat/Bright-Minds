@@ -110,7 +110,7 @@ void initState() {
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -716,7 +716,210 @@ return Scaffold(
 
 }
 
+  // Keep mobile design exactly as it is
+  if (!kIsWeb) {
+    return _buildMobileLayout();
+  }
+// 🌐 WEB DESIGN (cleaned for your request)
+return Scaffold(
+  body: Stack(
+    children: [
+      // 1️⃣ Full background image
+      Container(
+        width: double.infinity,
+        height: double.infinity,
+        child: Image.asset(
+          "assets/images/missLetters6.png",
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          fit: BoxFit.cover,
+        ),
+      ),
 
+      // 2️⃣ Friendly icons scattered
+      ..._buildFriendlyBackgroundIcons(),
+
+      // 3️⃣ Home button top-left
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.white.withOpacity(0.85),
+            child: IconButton(
+              icon: const Icon(Icons.home, color: Colors.lightBlueAccent),
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => gamesKidScreen()),
+                  (_) => false,
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+
+      // 4️⃣ Score + Timer (plain, no box)
+      Positioned(
+        top: 40,
+        left: 0,
+        right: 0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "⭐ $score",
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 50),
+            Text(
+              "⏱ ${formatTime(remainingTime)}",
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // 5️⃣ Central box: What’s missing + letter slots
+      Center(
+        // child: Container(
+        //   width: MediaQuery.of(context).size.width * 0.4,
+        //   padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        //   decoration: BoxDecoration(
+        //     color: const Color.fromARGB(255, 240, 239, 205).withOpacity(0),
+        //     borderRadius: BorderRadius.circular(60),
+    
+        //     boxShadow: const [
+        //       BoxShadow(
+        //         color: Colors.black26,
+        //         blurRadius: 12,
+        //         offset: Offset(0, 6),
+        //       ),
+        //     ],
+        //   ),
+          child: 
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 💬 "What’s missing?" bubble
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.yellow.shade200.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black26, blurRadius: 6),
+                      ],
+                    ),
+                    child: const Text(
+                      "What’s missing?",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 1, 3, 118),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -15,
+                    left: 30,
+                    child: CustomPaint(
+                      size: const Size(25, 18),
+                      painter: TailPainter(color: Colors.yellow.shade200.withOpacity(0.9)),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 40),
+
+              // 🫧 Letter slots (top)
+              buildWordSlots(),
+            ],
+          ),
+        ),
+     // ),
+
+      // 6️⃣ Letter choices at bottom, no box
+      Positioned(
+        bottom: 60,
+        left: 0,
+        right: 0,
+        child: SingleChildScrollView(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 18,
+            runSpacing: 18,
+            children: lettersClue.map((letter) {
+              return Draggable<String>(
+                data: letter,
+                feedback: Material(
+                  color: Colors.transparent,
+                  child: Container(
+                    width: 60,
+                    height: 65,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade400,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                    ),
+                    child: Text(
+                      letter.toUpperCase(),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                childWhenDragging: Container(
+                  width: 60,
+                  height: 65,
+                  alignment: Alignment.center,
+                  decoration: bubbleDecoration(borderColor: Colors.grey),
+                ),
+                child: Container(
+                  width: 60,
+                  height: 65,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.lightBlue.shade100,
+                    shape: BoxShape.circle,
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                  ),
+                  child: Text(
+                    letter.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    ],
+  ),
+);
+
+}
+  
+
+
+Widget _buildMobileLayout() {
 
     // ✅ NEW GAME SCREEN (IMAGE-BASED DESIGN)
 return Scaffold(
@@ -845,9 +1048,9 @@ Positioned(
     ],
   ),
 );
-
-  }
 }
+  }
+
 
 /* ===================== THEME ===================== */
 class ThemeDesign {

@@ -46,7 +46,7 @@ getKidDrawings(widget.kid['_id']);
 
   String getBackendUrl() {
     if (kIsWeb) {
-    return "http://192.168.1.63:3000";
+    return "http://192.168.1.74:3000";
     } else if (Platform.isAndroid) {
       return "http://10.0.2.2:3000";
     } else if (Platform.isIOS) {
@@ -614,9 +614,9 @@ final img = d['drawingUrl'];
                             : Container(
                                 width: double.infinity,
                                 height: 90,
-                                color: const Color(0xFFFFE0E0),
+                                color: AppColors.goldenYellow,
                                 child: const Icon(Icons.brush_rounded,
-                                    size: 32, color: Color(0xFFD97B83)),
+                                    size: 32, color: AppColors.goldenYellow),
                               ),
                       ),
                       const SizedBox(height: 6),

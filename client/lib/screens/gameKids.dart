@@ -39,7 +39,7 @@ class _gamesKidState extends State<gamesKidScreen> {
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     if (Platform.isIOS) return "http://localhost:3000";
     return "http://localhost:3000";
@@ -155,181 +155,462 @@ Future<void> _openGame(Widget Function() gameScreenBuilder) async {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return HomePage(
-      title: "Games",
-       child: Container(
-      color: const Color.fromARGB(255, 249, 226, 250), 
-      child: loading
-          ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: allGames.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                childAspectRatio: 3 / 4,
-              ),
-              itemBuilder: (context, index) {
-                final game = allGames[index];
+//   @override
+//   Widget build(BuildContext context) {
+//     return HomePage(
+//       title: "Games",
+//       child: 
+//       Center(
+//         child:Container(
+//         color: const Color(0xFFFFF0F5),
+//         child: Stack(
+//           children: [
+//             // 🎈 Playful background
+//             Positioned(
+//               top: -50,
+//               left: -30,
+//               child: _backgroundCircle(80, Colors.yellow.withOpacity(0.3)),
+//             ),
+//             Positioned(
+//               bottom: 100,
+//               right: -30,
+//               child: _backgroundCircle(120, const Color.fromARGB(255, 231, 190, 66).withOpacity(0.2)),
+//             ),
+//             Positioned(
+//               top: 150,
+//               right: -20,
+//               child: _backgroundCircle(60, const Color.fromARGB(255, 240, 232, 113).withOpacity(0.2)),
+//             ),
+//             // 🕹️ Grid of games
+//              Positioned(
+//               top: 150,
+//               right: -20,
+//               child: _backgroundCircle(60, const Color.fromARGB(255, 235, 128, 7).withOpacity(0.2)),
+//             ),
+//               Positioned(
+//               bottom: 150,
+//               left: -20,
+//               child: _backgroundCircle(60, const Color.fromARGB(255, 123, 83, 38).withOpacity(0.2)),
+//             ),
+//                Positioned(
+//               bottom: -30,
+//               left: 130,
+//               child: _backgroundCircle(120, const Color.fromARGB(255, 225, 129, 20).withOpacity(0.2)),
+//             ),
+//             loading
+//                 ? const Center(child: CircularProgressIndicator())
+//                 : GridView.builder(
+//                     padding: const EdgeInsets.all(16),
+//                     itemCount: allGames.length,
+//                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//                       crossAxisCount: 2,
+//                       mainAxisSpacing: 20,
+//                       crossAxisSpacing: 20,
+//                       childAspectRatio: 3 / 4,
+//                     ),
+//                     itemBuilder: (context, index) {
+//                       final game = allGames[index];
 
-                // -------------------------
-                // Game Image
-                // -------------------------
-                String imagePath;
-                switch (game['type']) {
-                  case 'Guessing':
-                    imagePath = "assets/images/guessWord.png";
-                    break;
-                  case 'Grid':
-                    imagePath = "assets/images/grid.png";
-                    break;
-                  case 'MissLetters':
-                    imagePath = "assets/images/missLetter.png";
-                    break;
-                  case 'Snake':
-                    imagePath = "assets/images/snake.png";
-                    break;
-                  case 'Clock':
-                   imagePath="assets/images/clock.png";
-                  case 'Ruler':
-                   imagePath="assets/images/ruler.png";
-                  case 'Memory':
-                   imagePath="assets/images/memory.png";
-                  default:
-                    imagePath = "assets/images/Games2.png";
-                }
+//                       // Determine game image
+//                       String imagePath;
+//                       switch (game['type']) {
+//                         case 'Guessing':
+//                           imagePath = "assets/images/guessWord.png";
+//                           break;
+//                         case 'Grid':
+//                           imagePath = "assets/images/grid.png";
+//                           break;
+//                         case 'MissLetters':
+//                           imagePath = "assets/images/missLetter.png";
+//                           break;
+//                         case 'Snake':
+//                           imagePath = "assets/images/snake.png";
+//                           break;
+//                         case 'Clock':
+//                           imagePath = "assets/images/clock.png";
+//                           break;
+//                         case 'Ruler':
+//                           imagePath = "assets/images/ruler.png";
+//                           break;
+//                         case 'Memory':
+//                           imagePath = "assets/images/memory.png";
+//                           break;
+//                         default:
+//                           imagePath = "assets/images/Games2.png";
+//                       }
 
-                final rotation = index.isEven ? -0.04 : 0.04;
+//                       return _gameCard(
+//                         title: game['name'] ?? "Game",
+//                         imagePath: imagePath,
+//                         onTap: () {
+//                           switch (game['type']) {
+//                             case 'Guessing':
+//                               _openGame(() => GuessGameScreen());
+//                               break;
+//                             case 'Snake':
+//                               _openGame(() => const SnakeGameScreen());
+//                               break;
+//                             case 'Grid':
+//                               _openGame(() => GridGameScreen());
+//                               break;
+//                             case 'MissLetters':
+//                               _openGame(() => MissLetterScreen());
+//                               break;
+//                             case 'Clock':
+//                               _openGame(() => ClockGameScreen());
+//                               break;
+//                             case 'Ruler':
+//                               _openGame(() => RulerGameScreen());
+//                               break;
+//                             case 'Memory':
+//                               _openGame(() => MemoryPlayScreen());
+//                               break;
+//                             default:
+//                               ScaffoldMessenger.of(context).showSnackBar(
+//                                 const SnackBar(content: Text("Game not available yet")),
+//                               );
+//                           }
+//                         },
+//                       );
+//                     },
+//                   ),
+//           ],
+//         ),
+//       ),
+//       ),
+//     );
+//   }
 
-                return Transform.rotate(
-                  angle: rotation,
-                  child: Material(
-                    elevation: 10,
-                    borderRadius: BorderRadius.circular(28),
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(28),
-           
+//   // 🔹 Game card widget
+//   Widget _gameCard({
+//     required String title,
+//     required String imagePath,
+//     required VoidCallback onTap,
+//   }) {
+//     return InkWell(
+//       borderRadius: BorderRadius.circular(26),
+//       onTap: onTap,
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(26),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.black.withOpacity(0.06),
+//               blurRadius: 14,
+//               offset: const Offset(0, 10),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           children: [
+//             Expanded(
+//               child: Padding(
+//                 padding: const EdgeInsets.all(14),
+//                 child: Image.asset(
+//                   imagePath,
+//                   fit: BoxFit.contain,
+//                 ),
+//               ),
+//             ),
+//             Container(
+//               width: double.infinity,
+//               padding: const EdgeInsets.symmetric(vertical: 12),
+//               decoration: BoxDecoration(
+//                 color: const Color.fromARGB(255, 246, 231, 215),
+//                 borderRadius: const BorderRadius.vertical(
+//                   bottom: Radius.circular(26),
+//                 ),
+//               ),
+//               child: Text(
+//                 title,
+//                 textAlign: TextAlign.center,
+//                 style: const TextStyle(
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.w700,
+//                   color: Colors.brown,
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
-                      onTap: () {
-  switch (game['type']) {
-    case 'Guessing':
-      _openGame(() => GuessGameScreen());
-      break;
-    case 'Snake':
-      _openGame(() => const SnakeGameScreen());
-      break;
-    case 'Grid':
-      _openGame(() => GridGameScreen());
-      break;
-    case 'MissLetters':
-      _openGame(() => MissLetterScreen());
-      break;
-    case 'Clock':
-      _openGame(() => ClockGameScreen());
-      break;
-    case 'Ruler':
-      _openGame(() => RulerGameScreen());
-      break;
-    case 'Memory':
-      _openGame(() => MemoryPlayScreen());
-      break;
-    default:
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Game not available yet")),
-      );
-  }
-},
+//   // 🔹 Playful background circle
+//   Widget _backgroundCircle(double size, Color color) {
+//     return Container(
+//       width: size,
+//       height: size,
+//       decoration: BoxDecoration(
+//         color: color,
+//         shape: BoxShape.circle,
+//       ),
+//     );
+//   }
+// }
 
-                      child: Stack(
-                        children: [
-                          ClipPath(
-                            clipper: WavyClipper(),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.primaries[
-                                            index %
-                                                Colors.primaries.length]
-                                        .shade400,
-                                    Colors.primaries[
-                                            (index + 3) %
-                                                Colors.primaries.length]
-                                        .shade200,
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                              ),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Image.asset(
-                                      imagePath,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    game['name'] ?? "No Title",
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black45,
-                                          blurRadius: 4,
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-       
-                        ],
-                      ),
+ // -------------------- MOBILE BODY --------------------
+  Widget _buildMobileBody() {
+    return Center(
+      child: Container(
+        color: const Color(0xFFFFF0F5),
+        child: Stack(
+          children: [
+            // 🎈 Background Circles
+            Positioned(top: -50, left: -30, child: _backgroundCircle(80, Colors.yellow.withOpacity(0.3))),
+            Positioned(bottom: 100, right: -30, child: _backgroundCircle(120, const Color.fromARGB(255, 231, 190, 66).withOpacity(0.2))),
+            Positioned(top: 150, right: -20, child: _backgroundCircle(60, const Color.fromARGB(255, 240, 232, 113).withOpacity(0.2))),
+            Positioned(top: 150, right: -20, child: _backgroundCircle(60, const Color.fromARGB(255, 235, 128, 7).withOpacity(0.2))),
+            Positioned(bottom: 150, left: -20, child: _backgroundCircle(60, const Color.fromARGB(255, 123, 83, 38).withOpacity(0.2))),
+            Positioned(bottom: -30, left: 130, child: _backgroundCircle(120, const Color.fromARGB(255, 225, 129, 20).withOpacity(0.2))),
+            // Grid of games
+            loading
+                ? const Center(child: CircularProgressIndicator())
+                : GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: allGames.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 20,
+                      crossAxisSpacing: 20,
+                      childAspectRatio: 3 / 4,
                     ),
+                    itemBuilder: (context, index) {
+                      final game = allGames[index];
+                      String imagePath;
+                      switch (game['type']) {
+                        case 'Guessing':
+                          imagePath = "assets/images/guessWord.png";
+                          break;
+                        case 'Grid':
+                          imagePath = "assets/images/grid.png";
+                          break;
+                        case 'MissLetters':
+                          imagePath = "assets/images/missLetter.png";
+                          break;
+                        case 'Snake':
+                          imagePath = "assets/images/snake.png";
+                          break;
+                        case 'Clock':
+                          imagePath = "assets/images/clock.png";
+                          break;
+                        case 'Ruler':
+                          imagePath = "assets/images/ruler.png";
+                          break;
+                        case 'Memory':
+                          imagePath = "assets/images/memory.png";
+                          break;
+                        default:
+                          imagePath = "assets/images/Games2.png";
+                      }
+                      return _gameCard(
+                        title: game['name'] ?? "Game",
+                        imagePath: imagePath,
+                        onTap: () {
+                          switch (game['type']) {
+                            case 'Guessing':
+                              _openGame(() => GuessGameScreen());
+                              break;
+                            case 'Snake':
+                              _openGame(() => const SnakeGameScreen());
+                              break;
+                            case 'Grid':
+                              _openGame(() => GridGameScreen());
+                              break;
+                            case 'MissLetters':
+                              _openGame(() => MissLetterScreen());
+                              break;
+                            case 'Clock':
+                              _openGame(() => ClockGameScreen());
+                              break;
+                            case 'Ruler':
+                              _openGame(() => RulerGameScreen());
+                              break;
+                            case 'Memory':
+                              _openGame(() => MemoryPlayScreen());
+                              break;
+                            default:
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Game not available yet")),
+                              );
+                          }
+                        },
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-       ),
+          ],
+        ),
+      ),
     );
   }
-}
 
-// -------------------------
-// Wavy Card Shape
-// -------------------------
-class WavyClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    final w = size.width;
-    final h = size.height;
+  // -------------------- WEB BODY --------------------
+  Widget _buildWebBody() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left panel for info
+        Expanded(
+          flex: 2,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF0F5), borderRadius: BorderRadius.circular(16)),
+                  child: const Text(
+                    "Welcome to the Games Section. Are you Ready To Start New Adventure?",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF0F5), borderRadius: BorderRadius.circular(16)),
+                  child: const Text("Select a game from the right panel", style: TextStyle(fontSize: 16)),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Right panel for games
+   Expanded(
+  flex: 5,
+  child: Container(
+    color: const Color(0xFFFFF0F5),
+    padding: const EdgeInsets.all(24),
+    child: loading
+        ? const Center(child: CircularProgressIndicator())
+        : LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate item height for better fit
+              double itemWidth = (constraints.maxWidth - 40) / 2; // 2 items per row, 20px spacing
+              double itemHeight = itemWidth * 0.8; // Adjust ratio to 1.2 for compactness
 
-    path.moveTo(0, h * 0.1);
-    path.quadraticBezierTo(w * 0.2, 0, w * 0.5, h * 0.05);
-    path.quadraticBezierTo(w * 0.8, h * 0.1, w, 0);
-    path.lineTo(w, h);
-    path.quadraticBezierTo(w * 0.8, h * 0.95, w * 0.5, h);
-    path.quadraticBezierTo(w * 0.2, h * 0.95, 0, h);
-    path.close();
+              return GridView.builder(
+                itemCount: allGames.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 20,
+                  crossAxisSpacing: 20,
+                  childAspectRatio: itemWidth / itemHeight,
+                ),
+                itemBuilder: (context, index) {
+                  final game = allGames[index];
+                  String imagePath;
+                  switch (game['type']) {
+                    case 'Guessing':
+                      imagePath = "assets/images/guessWord.png";
+                      break;
+                    case 'Grid':
+                      imagePath = "assets/images/grid.png";
+                      break;
+                    case 'MissLetters':
+                      imagePath = "assets/images/missLetter.png";
+                      break;
+                    case 'Snake':
+                      imagePath = "assets/images/snake.png";
+                      break;
+                    case 'Clock':
+                      imagePath = "assets/images/clock.png";
+                      break;
+                    case 'Ruler':
+                      imagePath = "assets/images/ruler.png";
+                      break;
+                    case 'Memory':
+                      imagePath = "assets/images/memory.png";
+                      break;
+                    default:
+                      imagePath = "assets/images/Games2.png";
+                  }
+                  return _gameCard(
+                    title: game['name'] ?? "Game",
+                    imagePath: imagePath,
+                    onTap: () {
+                      switch (game['type']) {
+                        case 'Guessing':
+                          _openGame(() => GuessGameScreen());
+                          break;
+                        case 'Snake':
+                          _openGame(() => const SnakeGameScreen());
+                          break;
+                        case 'Grid':
+                          _openGame(() => GridGameScreen());
+                          break;
+                        case 'MissLetters':
+                          _openGame(() => MissLetterScreen());
+                          break;
+                        case 'Clock':
+                          _openGame(() => ClockGameScreen());
+                          break;
+                        case 'Ruler':
+                          _openGame(() => RulerGameScreen());
+                          break;
+                        case 'Memory':
+                          _openGame(() => MemoryPlayScreen());
+                          break;
+                        default:
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Game not available yet")),
+                          );
+                      }
+                    },
+                  );
+                },
+              );
+            },
+          ),
+  ),
+),
 
-    return path;
+      ],
+    );
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  Widget build(BuildContext context) {
+    bool isWebLayout = kIsWeb || MediaQuery.of(context).size.width > 800;
+    return HomePage(title: "Games", child: isWebLayout ? _buildWebBody() : _buildMobileBody());
+  }
+
+  Widget _gameCard({required String title, required String imagePath, required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(26),
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 14, offset: const Offset(0, 10))],
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Image.asset(imagePath, fit: BoxFit.contain),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 246, 231, 215),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+              ),
+              child: Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.brown)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _backgroundCircle(double size, Color color) {
+    return Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  }
 }
-        

@@ -59,7 +59,7 @@ class _VideosKidState extends State<VideosKidScreen> {
   }
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) return "http://192.168.1.74:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     if (Platform.isIOS) return "http://localhost:3000";
     return "http://localhost:3000";
@@ -409,6 +409,7 @@ void dispose() {
 Widget build(BuildContext context) {
 
 if (currentVideo != null) {
+   if ( !kIsWeb) {
   return HomePage(
     title: currentVideo['title'] ?? "Playing Video",
     child: Column(
@@ -535,7 +536,188 @@ currentVideo != null && ytController != null
     ),
   );
 }
+else {
+  // WEB DESIGN
+  return HomePage(
+    title :"Video",
+    child: Column(
+      children: [
+        // Fixed height video player (instead of Expanded)
+        if (currentVideo != null && ytController != null)
+          Container(
+            height: 400, // fixed height for web
+            padding: const EdgeInsets.all(16),
+            child: YoutubePlayerBuilder(
+              player: YoutubePlayer(
+                key: ValueKey(ytController!.initialVideoId),
+                controller: ytController!,
+                showVideoProgressIndicator: true,
+                onReady: () {
+                  ytController!.addListener(videoListener);
+                },
+                onEnded: (metaData) {
+                  saveFinalDuration();
+                },
+              ),
+              builder: (context, player) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: player),
+                    const SizedBox(height: 12),
+                    Text(
+                      currentVideo?['title'] ?? "Playing Video",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
 
+        const SizedBox(height: 16),
+
+        // Recommended Videos Header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Recommended for you",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Recommended Videos Grid in Flexible
+        Flexible(
+          child: loadingRecommended
+              ? const Center(child: CircularProgressIndicator())
+            
+
+                    : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: recommendedVideos.length,
+                  itemBuilder: (_, index) {
+                    final video = recommendedVideos[index];
+                    final isFav = favoriteIds.contains(video['_id']);
+                  return GestureDetector(
+                 onTap: () => playVideo(video),
+                     child: Container(
+    width: 270,
+    height:800,
+    margin: const EdgeInsets.symmetric(horizontal: 8),
+    child: Card(
+      elevation: 3,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          // Thumbnail
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+            child: Image.network(
+              video["thumbnailUrl"] ?? "",
+              width: double.infinity,
+              height: 140,
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Text Info
+          Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                
+                // Title
+                Text(
+                  video["title"] ?? "",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                // Description
+                Text(
+                  video["description"] ?? "",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+         
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      // Created Date
+      Text(
+        video["createdAt"] != null
+            ? "Created: ${DateTime.parse(video["createdAt"]).toLocal().toString().split(' ')[0]}"
+            : "",
+        style: const TextStyle(
+          fontSize: 11,
+          color: Colors.grey,
+        ),
+      ),
+
+      Row(
+        children: [
+          // Favorite
+          IconButton(
+            icon: Icon(
+              isFav ? Icons.favorite : Icons.favorite_border,
+              color: Colors.red,
+            ),
+            onPressed: () => toggleFavorite(video),
+          ),
+
+         
+        ],
+      ),
+    ],
+  ),
+),
+
+        ],
+      ),
+    ),
+  ),
+);
+
+                  },
+                    ),
+        ),
+      ]
+    ),
+                );
+                
+}
+
+
+
+}
   // Otherwise, show the normal tabs UI
   final categorized = groupByCategory(filteredVideos);
   final favoriteVideos =
@@ -652,35 +834,7 @@ loading
             ),
           ),
 
-          // // 👉 Date + Favorite **same row**
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: [
-          //       // Created Date
-          //       Text(
-          //         video["createdAt"] != null
-          //             ? "Created: ${DateTime.parse(video["createdAt"]).toLocal().toString().split(' ')[0]}"
-          //             : "",
-          //         style: const TextStyle(
-          //           fontSize: 11,
-          //           color: Colors.grey,
-          //         ),
-          //       ),
-
-          //       // Favorite
-          //       IconButton(
-          //         icon: Icon(
-          //           isFav ? Icons.favorite : Icons.favorite_border,
-          //           color: Colors.red,
-          //         ),
-          //         onPressed: () => toggleFavorite(video),
-          //       ),
-          //     ],
-          //   ),
-          // ),
-          // 👉 Date + Favorite + Quiz Icon **same row**
+         
 Padding(
   padding: const EdgeInsets.symmetric(horizontal: 8.0),
   child: Row(
