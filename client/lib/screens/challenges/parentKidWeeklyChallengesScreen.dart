@@ -37,7 +37,9 @@ class _ParentKidWeeklyChallengesScreenState
   List<Map<String, dynamic>> _progress = [];
 
   String getBackendUrl() {
-    if (kIsWeb) return "http://192.168.1.63:3000";
+    if (kIsWeb) 
+    //return "http://192.168.1.63:3000";
+    return "http://localhost:3000";
     if (Platform.isAndroid) return "http://10.0.2.2:3000";
     return "http://localhost:3000";
   }
@@ -178,7 +180,7 @@ print("PARENT WEEK BODY: ${resp.body}");
   Color _catChipBg(String cat) {
     switch (cat) {
       case "religious":
-        return AppColors.bgWarmPink.withOpacity(0.18);
+        return AppColors.textSecondary.withOpacity(0.18);
       case "reading":
         return AppColors.peachPink.withOpacity(0.18);
       case "health":
@@ -236,8 +238,8 @@ print("PARENT WEEK BODY: ${resp.body}");
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.peachPink.withOpacity(0.22),
-                child: const Icon(Icons.child_care, color: AppColors.bgBlushRoseDark),
+                backgroundColor: AppColors.warmHoneyYellow.withOpacity(0.22),
+                child: const Icon(Icons.child_care, color: AppColors.warmHoneyYellow),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -261,7 +263,7 @@ print("PARENT WEEK BODY: ${resp.body}");
               value: percent,
               minHeight: 12,
               backgroundColor: Colors.black.withOpacity(0.06),
-              color: AppColors.bgWarmPink,
+              color: AppColors.warmHoneyYellow,
             ),
           ),
         ],
@@ -285,10 +287,10 @@ print("PARENT WEEK BODY: ${resp.body}");
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: done ? AppColors.bgSoftPinkLight : Colors.white,
+        color: done ? AppColors.creamYellow : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: done ? AppColors.bgWarmPink : Colors.black12,
+          color: done ? AppColors.softSunYellow : Colors.black12,
           width: done ? 2 : 1,
         ),
         boxShadow: [
@@ -307,7 +309,7 @@ print("PARENT WEEK BODY: ${resp.body}");
             height: 46,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.peachPink.withOpacity(0.22),
+              color: AppColors.softSunYellow.withOpacity(0.22),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(sticker, style: const TextStyle(fontSize: 24)),
@@ -342,14 +344,14 @@ print("PARENT WEEK BODY: ${resp.body}");
                   children: [
                     Icon(
                       done ? Icons.check_circle : Icons.radio_button_unchecked,
-                      color: done ? AppColors.bgWarmPinkDark : Colors.black38,
+                      color: done ? AppColors.warmHoneyYellow : Colors.black38,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       done ? "Done ✅" : "Not done yet",
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
-                        color: done ? AppColors.bgWarmPinkDark : Colors.black54,
+                        color: done ? AppColors.warmHoneyYellow : Colors.black54,
                       ),
                     ),
                   ],
@@ -386,9 +388,9 @@ print("PARENT WEEK BODY: ${resp.body}");
         "Week: ${DateFormat("yyyy-MM-dd").format(_weekStart)} → ${DateFormat("yyyy-MM-dd").format(_weekStart.add(const Duration(days: 6)))}";
 
     return Scaffold(
-      backgroundColor: AppColors.bgSoftPinkLight,
+      backgroundColor: AppColors.creamYellow,
       appBar: AppBar(
-        backgroundColor: AppColors.peachPink,
+        backgroundColor: AppColors.softSunYellow,
         title: Text("${widget.kidName} • Progress"),
         actions: [
           IconButton(
@@ -431,7 +433,7 @@ print("PARENT WEEK BODY: ${resp.body}");
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const Icon(Icons.star, color: AppColors.bgWarmPink),
+                        const Icon(Icons.star, color: AppColors.warmHoneyYellow),
                       ],
                     ),
                   ),
@@ -452,7 +454,7 @@ print("PARENT WEEK BODY: ${resp.body}");
                                   width: 72,
                                   height: 72,
                                   decoration: BoxDecoration(
-                                    color: AppColors.peachPink.withOpacity(0.22),
+                                    color: AppColors.softSunYellow.withOpacity(0.22),
                                     borderRadius: BorderRadius.circular(22),
                                   ),
                                   child: const Icon(Icons.inbox_outlined, size: 38),
@@ -471,7 +473,7 @@ print("PARENT WEEK BODY: ${resp.body}");
                                 const SizedBox(height: 12),
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.bgWarmPink,
+                                    backgroundColor: AppColors.warmHoneyYellow,
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   ),

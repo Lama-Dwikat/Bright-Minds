@@ -19,6 +19,440 @@ class _ReadOnlyStoryPageState extends State<ReadOnlyStoryPage> {
   Map<String, dynamic>? story;
   bool isLoading = true;
   int currentPage = 0;
+
+  Map<String, dynamic>? latestReview;
+  bool isReviewLoading = true;
+
+  String getBackendUrl() {
+    if (kIsWeb) {
+      return "http://localhost:3000";
+    } else if (Platform.isAndroid) {
+      return "http://10.0.2.2:3000";
+    } else {
+      return "http://localhost:3000";
+    }
+  }
+
+  // ===================== WEB RESPONSIVE HELPERS (UI ONLY) =====================
+  double _maxContentWidth(double w) {
+    if (w >= 900) return 1100; // وسّط المحتوى بالويب
+    return w;
+  }
+
+  // ✅ Portrait canvas: width أصغر
+  double _canvasWidthFor(double w) {
+    // موبايل
+    if (w < 600) return w * 0.75;
+
+    // ويب/تابلت: صفحة كتاب ثابتة
+    if (w < 900) return 420;
+    if (w < 1200) return 480;
+    return 520;
+  }
+
+  // ✅ حد أعلى للارتفاع حسب الشاشة
+  double _canvasMaxHeightFor(double h) {
+    if (h < 700) return h * 0.78;
+    if (kIsWeb) return h * 0.82;
+    return h * 0.80;
+  }
+  // ===========================================================================
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStory().then((_) => trackRead());
+    _loadLatestReview();
+  }
+
+  Future<void> trackRead() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      await http.post(
+        Uri.parse("${getBackendUrl()}/api/story/${widget.storyId}/read"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("📌 Read tracked successfully!");
+    } catch (e) {
+      print("❌ Error tracking read: $e");
+    }
+  }
+
+  Future<void> _loadStory() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      final response = await http.get(
+        Uri.parse('${getBackendUrl()}/api/story/${widget.storyId}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final decoded = json.decode(response.body);
+          story = decoded is Map && decoded.containsKey("data")
+              ? decoded["data"]
+              : decoded;
+          isLoading = false;
+        });
+      } else {
+        print(" Error fetching story: ${response.body}");
+      }
+    } catch (e) {
+      print(" Error: $e");
+    }
+  }
+
+  Future<void> _loadLatestReview() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+
+      final response = await http.get(
+        Uri.parse(
+            '${getBackendUrl()}/api/reviewStory/story/${widget.storyId}?latestOnly=true'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print("🟣 REVIEW RESPONSE: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final list = data['data'];
+
+        setState(() {
+          if (list is List && list.isNotEmpty) {
+            latestReview = list[0];
+          } else {
+            latestReview = null;
+          }
+          isReviewLoading = false;
+        });
+      } else {
+        setState(() => isReviewLoading = false);
+        print("❌ Error fetching review: ${response.body}");
+      }
+    } catch (e) {
+      print("⚠️ Review error: $e");
+      setState(() => isReviewLoading = false);
+    }
+  }
+
+  Widget _buildPageContent(Map<String, dynamic> page) {
+    return Stack(
+      children: page["elements"].map<Widget>((el) {
+        final double x = (el["x"] ?? 0).toDouble();
+        final double y = (el["y"] ?? 0).toDouble();
+        final double width =
+            el["width"] != null ? (el["width"] as num).toDouble() : 150;
+        final double height =
+            el["height"] != null ? (el["height"] as num).toDouble() : 150;
+
+        // ------ TEXT ------
+        if (el["type"] == "text") {
+          return Positioned(
+            left: x,
+            top: y,
+            child: Text(
+              el["content"] ?? "",
+              style: TextStyle(
+                fontSize: (el["fontSize"] ?? 20).toDouble(),
+                color: Colors.black,
+              ),
+            ),
+          );
+        }
+
+        // ------ IMAGE ------
+        if (el["type"] == "image" && el["media"]?["url"] != null) {
+          final String url = el["media"]["url"];
+
+          return Positioned(
+            left: x,
+            top: y,
+            child: url.startsWith("assets/")
+                ? Image.asset(
+                    url,
+                    width: width,
+                    height: height,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: width,
+                        height: height,
+                        alignment: Alignment.center,
+                        color: const Color(0xFFFFF8E6),
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Color(0xFFFFD98C),
+                        ),
+                      );
+                    },
+                  )
+                : Image.network(
+                    url,
+                    width: width,
+                    height: height,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: width,
+                        height: height,
+                        alignment: Alignment.center,
+                        color: const Color(0xFFFFF8E6),
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          color: Color(0xFFFFD98C),
+                        ),
+                      );
+                    },
+                  ),
+          );
+        }
+
+        return const SizedBox();
+      }).toList(),
+    );
+  }
+
+  void _nextPage() {
+    if (currentPage < story!["pages"].length - 1) {
+      setState(() {
+        currentPage++;
+      });
+    }
+  }
+
+  void _prevPage() {
+    if (currentPage > 0) {
+      setState(() {
+        currentPage--;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading || story == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final pages = story!["pages"];
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFFFD98C),
+        elevation: 0,
+        title: Text(
+          story!["title"] ?? "Story",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: const Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
+
+          final contentMaxW = _maxContentWidth(w);
+
+          // ✅ Portrait sizing
+          final canvasW = _canvasWidthFor(w);
+
+          // نسبة طولية: height = width * 1.45 (صفحة كتاب)
+          double canvasH = canvasW * 1.45;
+
+          // بس ما نخليه يطلع برا الشاشة
+          final maxH = _canvasMaxHeightFor(h);
+          if (canvasH > maxH) canvasH = maxH;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: contentMaxW),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        // ------- Canvas -------
+                        Center(
+                          child: Container(
+                            width: canvasW,
+                            height: canvasH,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFFFD98C),
+                                width: 2,
+                              ),
+                            ),
+                            child: _buildPageContent(pages[currentPage]),
+                          ),
+                        ),
+
+                        // ------- Arrows (متمركزة على نص الكانفا) -------
+                        Positioned(
+                          left: 10,
+                          top: (canvasH / 2) - 20,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios,
+                              size: 32,
+                              color: Color(0xFFFFD98C),
+                            ),
+                            onPressed: _prevPage,
+                          ),
+                        ),
+                        Positioned(
+                          right: 10,
+                          top: (canvasH / 2) - 20,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 32,
+                              color: Color(0xFFFFD98C),
+                            ),
+                            onPressed: _nextPage,
+                          ),
+                        ),
+
+                        // ------- Page indicator -------
+                        Positioned(
+                          bottom: 30,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD98C),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                "Page ${currentPage + 1} / ${pages.length}",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ------- Review box -------
+                  if (isReviewLoading)
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(),
+                    )
+                  else if (latestReview != null)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFD98C)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Supervisor Comment",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFFFD98C),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          if (latestReview!['rating'] != null)
+                            Row(
+                              children: List.generate(
+                                (latestReview!['rating'] as num).toInt(),
+                                (index) => const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            latestReview!['comment'] ?? "No comment",
+                            style: GoogleFonts.poppins(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+/*import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+class ReadOnlyStoryPage extends StatefulWidget {
+  final String storyId;
+
+  const ReadOnlyStoryPage({super.key, required this.storyId});
+
+  @override
+  State<ReadOnlyStoryPage> createState() => _ReadOnlyStoryPageState();
+}
+
+class _ReadOnlyStoryPageState extends State<ReadOnlyStoryPage> {
+  Map<String, dynamic>? story;
+  bool isLoading = true;
+  int currentPage = 0;
   Map<String, dynamic>? latestReview;
 bool isReviewLoading = true;
 
@@ -220,7 +654,7 @@ Future<void> _loadLatestReview() async {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 185, 185),
+        backgroundColor: const Color(0xFFFFD98C),
         elevation: 0,
         title: Text(
           story!["title"] ?? "Story",
@@ -244,7 +678,7 @@ Future<void> _loadLatestReview() async {
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 255, 255, 255),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.pink.shade100, width: 2),
+                border: Border.all(color: Color(0xFFFFD98C), width: 2),
               ),
               child: _buildPageContent(pages[currentPage]),
             ),
@@ -255,7 +689,7 @@ Future<void> _loadLatestReview() async {
             top: MediaQuery.of(context).size.height * 0.40,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios,
-                  size: 32, color: Color(0xFFEBA1AB)),
+                  size: 32, color: Color(0xFFFFD98C)),
               onPressed: _prevPage,
             ),
           ),
@@ -264,7 +698,7 @@ Future<void> _loadLatestReview() async {
             top: MediaQuery.of(context).size.height * 0.40,
             child: IconButton(
               icon: const Icon(Icons.arrow_forward_ios,
-                  size: 32, color: Color(0xFFEBA1AB)),
+                  size: 32, color: Color(0xFFFFD98C)),
               onPressed: _nextPage,
             ),
           ),
@@ -277,7 +711,7 @@ Future<void> _loadLatestReview() async {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBA1AB),
+                  color: const Color(0xFFFFD98C),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -307,9 +741,9 @@ Future<void> _loadLatestReview() async {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF0F3),
+          color: const Color(0xFFFFF8E6),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFEBA1AB)),
+          border: Border.all(color: const Color(0xFFFFD98C)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +753,7 @@ Future<void> _loadLatestReview() async {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFFE26A8B),
+                color: const Color(0xFFFFD98C),
               ),
             ),
             const SizedBox(height: 6),
@@ -347,3 +781,4 @@ Future<void> _loadLatestReview() async {
     );
   }
 }
+*/
