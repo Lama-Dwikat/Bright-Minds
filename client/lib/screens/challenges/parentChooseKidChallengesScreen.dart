@@ -1,4 +1,206 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:bright_minds/theme/colors.dart';
+import 'package:bright_minds/screens/challenges/parentKidWeeklyChallengesScreen.dart';
+
+class ParentChooseKidChallengesScreen extends StatefulWidget {
+  const ParentChooseKidChallengesScreen({super.key});
+
+  @override
+  State<ParentChooseKidChallengesScreen> createState() =>
+      _ParentChooseKidChallengesScreenState();
+}
+
+class _ParentChooseKidChallengesScreenState
+    extends State<ParentChooseKidChallengesScreen> {
+  bool _loading = true;
+  String? _token;
+
+  List<Map<String, dynamic>> _kids = [];
+
+  String getBackendUrl() {
+    // ✅ WEB
+    if (kIsWeb) return "http://localhost:3000";
+
+    // ✅ Android emulator
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return "http://10.0.2.2:3000";
+    }
+
+    // ✅ iOS / Desktop
+    return "http://localhost:3000";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString("token");
+
+    if (_token == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+
+    await _fetchKids();
+  }
+
+  Future<void> _fetchKids() async {
+    if (_token == null) return;
+
+    if (mounted) setState(() => _loading = true);
+
+    try {
+      final resp = await http.get(
+        Uri.parse("${getBackendUrl()}/api/users/my-kids"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $_token",
+        },
+      );
+
+      if (!mounted) return;
+
+      if (resp.statusCode == 200) {
+        final List list = jsonDecode(resp.body);
+        setState(() {
+          _kids = list.map((e) => Map<String, dynamic>.from(e)).toList();
+        });
+      } else {
+        setState(() => _kids = []);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _kids = []);
+    } finally {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  void _openKid(Map<String, dynamic> kid) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ParentKidWeeklyChallengesScreen(
+          kidId: kid["_id"].toString(),
+          kidName: kid["name"]?.toString() ?? "Kid",
+        ),
+      ),
+    );
+  }
+
+  // ✅ Web wrapper: نفس UI بس ما بيمددها عالعرض كله
+  Widget _webWrapper(Widget child) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _kidTile(Map<String, dynamic> kid) {
+    final name = kid["name"]?.toString() ?? "Kid";
+    final email = kid["email"]?.toString() ?? "";
+
+    return InkWell(
+      onTap: () => _openKid(kid),
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppColors.warmHoneyYellow.withOpacity(0.22),
+              child: const Icon(Icons.child_care),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (email.isNotEmpty)
+                    Text(
+                      email,
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _kids.isEmpty
+            ? const Center(child: Text("No kids found."))
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _kids.length,
+                itemBuilder: (_, i) => _kidTile(_kids[i]),
+              );
+
+    return Scaffold(
+      backgroundColor: AppColors.creamYellow,
+      appBar: AppBar(
+        backgroundColor: AppColors.warmHoneyYellow,
+        title: const Text("Choose a Child"),
+        actions: [
+          IconButton(
+            onPressed: _fetchKids,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: kIsWeb ? _webWrapper(list) : list,
+    );
+  }
+}
+
+
+
+
+
+
+
+
+
+
+/*import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -170,3 +372,4 @@ class _ParentChooseKidChallengesScreenState
     );
   }
 }
+*/

@@ -230,13 +230,7 @@ _buildParentActionCard(
         );}
     ),
 
-
-    ],
-  ),
-),
-
-    
-  const SizedBox(height: 12),
+ const SizedBox(height: 12),
 
 _buildParentActionCard(
   context,
@@ -252,6 +246,12 @@ _buildParentActionCard(
     );
   },
 ),
+    ],
+  ),
+),
+
+    
+ 
 
         ],
       ),
