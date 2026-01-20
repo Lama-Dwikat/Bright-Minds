@@ -90,39 +90,6 @@ List<bool> correctAnswers = [];
     });
   }
 
-  // Future<void> submitQuiz() async {
-  //   if (quizData == null) return;
-
-  //   final payload = {
-  //     "quizId": quizData!["_id"],
-  //     "userId": userId,
-  //     "answers": answers.entries.map((e) => {
-  //       "questionIndex": e.key,
-  //       "answer": e.value,
-  //     }).toList(),
-  //   };
-
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse("${getBackendUrl()}/api/quiz/submitQuiz"),
-  //       headers: {"Content-Type": "application/json"},
-  //       body: jsonEncode(payload),
-  //     );
-
-  //     if (response.statusCode == 200) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text("Quiz submitted successfully!")),
-  //       );
-  //       Navigator.pop(context);
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text("Failed: ${response.body}")),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print("Error submitting quiz: $e");
-  //   }
-  // }
 Future<void> submitQuiz() async {
   if (quizData == null) return;
 

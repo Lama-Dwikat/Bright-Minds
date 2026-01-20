@@ -8,12 +8,12 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:bright_minds/widgets/home.dart';
-import 'package:bright_minds/screens/addVideo.dart';
+import 'package:bright_minds/screens/videos/addVideo.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/screens/Quiz/addQuiz.dart';
 import 'package:bright_minds/screens/Quiz/editQuiz.dart';
-import 'package:bright_minds/screens/playlistSupervisor.dart';
-import 'package:bright_minds/screens/analytics.dart';
+import 'package:bright_minds/screens/playlists/playlistSupervisor.dart';
+import 'package:bright_minds/screens/videos/analytics.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 

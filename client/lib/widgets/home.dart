@@ -13,10 +13,10 @@ import 'package:flutter/foundation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:bright_minds/screens/Signin.dart';
 import 'package:bright_minds/screens/profilePage.dart';
-import 'package:bright_minds/screens/homeParent.dart';
-import 'package:bright_minds/screens/homeChild.dart';
-import 'package:bright_minds/screens/homeSupervisor.dart';
-import 'package:bright_minds/screens/homeAdmin.dart';
+import 'package:bright_minds/screens/home/homeParent.dart';
+import 'package:bright_minds/screens/home/homeChild.dart';
+import 'package:bright_minds/screens/home/homeSupervisor.dart';
+import 'package:bright_minds/screens/home/homeAdmin.dart';
 import 'package:bright_minds/screens/childStory/childNotificationsScreen.dart';
 import 'package:bright_minds/screens/Settings/parentSettingsScreen.dart';
 import 'package:bright_minds/screens/Settings/childSettingsScreen.dart';
@@ -268,11 +268,9 @@ return AppBar(
     );
   }
 
-  // =========================
-  // MOBILE BOTTOM NAV (UNCHANGED)
-  // =========================
+
 // =========================
-// MOBILE BOTTOM NAV (WITH ACTUAL BUTTONS)
+// MOBILE BOTTOM NAV 
 // =========================
 Widget _mobileBottomNav(BuildContext context) {
   final screenWidth = MediaQuery.of(context).size.width;
@@ -484,6 +482,9 @@ Widget _mobileBottomNav(BuildContext context) {
     } else if (role == "child") {
       Navigator.push(
           context, MaterialPageRoute(builder: (_) => const ChildWeeklyChallengesScreen()));
+    }else if (role == "parent") {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const ParentChooseKidChallengesScreen()));
     }
   }
 

@@ -13,7 +13,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:bright_minds/screens/supervisorKidDetails.dart';
+import 'package:bright_minds/screens/supervisorKids/supervisorKidDetails.dart';
 import 'package:bright_minds/theme/colors.dart';
 
 class SupervisorKidsScreen extends StatefulWidget {

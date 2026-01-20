@@ -7,8 +7,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 //import 'package:bright_minds/screens/childStory.dart';
-import 'package:bright_minds/screens/videosKids.dart';
-import 'package:bright_minds/screens/videosKids.dart';
+import 'package:bright_minds/screens/videos/videosKids.dart';
+import 'package:bright_minds/screens/videos/videosKids.dart';
 import 'package:bright_minds/screens/childStory/childStory.dart';
 import 'package:bright_minds/screens/childStory/childPublishedStoriesScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +16,7 @@ import 'package:bright_minds/screens/childStory/childBadgesScreen.dart';
 import 'package:bright_minds/screens/childDrawing/childDrawingActivities.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:bright_minds/screens/gameKids.dart';
+import 'package:bright_minds/screens/games/gameKids.dart';
 
 
 

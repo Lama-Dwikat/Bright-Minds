@@ -1,5 +1,5 @@
 
-import 'package:bright_minds/screens/gameKids.dart';
+import 'package:bright_minds/screens/games/gameKids.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';

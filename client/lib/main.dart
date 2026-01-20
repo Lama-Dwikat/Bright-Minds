@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:bright_minds/screens/welcome.dart';
-import 'package:bright_minds/screens/homeSupervisor.dart';
-import 'package:bright_minds/screens/gameSupervisor.dart';
+import 'package:bright_minds/screens/home/homeSupervisor.dart';
+import 'package:bright_minds/screens/games/gameSupervisor.dart';
 
-import 'package:bright_minds/screens/analytics.dart';
+import 'package:bright_minds/screens/videos/analytics.dart';
 import 'package:bright_minds/screens/games/GuessWordTemplete.dart';
 
 import 'package:flame/game.dart';

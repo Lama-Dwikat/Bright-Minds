@@ -1,6 +1,6 @@
 
 
-import 'package:bright_minds/screens/supervisorKids.dart';
+import 'package:bright_minds/screens/supervisorKids/supervisorKids.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
