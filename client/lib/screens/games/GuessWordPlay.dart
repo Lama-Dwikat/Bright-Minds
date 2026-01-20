@@ -9,7 +9,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'package:bright_minds/widgets/home.dart';
-import 'package:bright_minds/screens/gameKids.dart';
+import 'package:bright_minds/screens/games/gameKids.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 

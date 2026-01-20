@@ -10,7 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:bright_minds/widgets/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:bright_minds/screens/gameSupervisor.dart';
+import 'package:bright_minds/screens/games/gameSupervisor.dart';
 
 // ================= ENUMS =================
 enum GameTheme {

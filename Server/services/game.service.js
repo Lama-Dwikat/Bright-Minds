@@ -198,27 +198,7 @@ Return the full result as a JSON object like this:
   return response.data.hits.map(hit => hit.webformatURL);
 },
 
-// async saveScoreService (gameId, userId, score , isComplete = false) {
-// const game = await Game.findById(gameId);
-//   if (!game) throw new Error("Game not found");
 
-//   const existing = game.playedBy.find(p => p.userId.toString() === userId);
-//   if (existing) {
-//     existing.score = Math.max(existing.score, score);
-//     if (isComplete) existing.complete = true; // mark complete only if finished
-//   } else {
-//     game.playedBy.push({ userId, score, complete: isComplete });
-//   }
-
-//   await game.save();
-
-//   // ✅ Check for Champion Gamer badge after completion
-//   if (isComplete) {
-//     await badgeService.checkGameCompletionBadges(userId);
-//   }
-
-//   return game;
-// },
 async saveScoreService(gameId, userId, score, isComplete = false) {
   const game = await Game.findById(gameId);
   if (!game) throw new Error("Game not found");
@@ -279,7 +259,35 @@ async getTopPlayedGames(limit = 4) {
 
   // Return top `limit`
   return gamesWithPlayCount.slice(0, limit);
-}
+},
+
+
+async getPlayedGamesByUserId(userId) {
+  const games = await Game.find({
+    playedBy: { $elemMatch: { userId } }
+  })
+    .select("name type ageGroup playedBy createdBy")
+    .populate("createdBy", "name");
+
+  return games.map(game => {
+    const userPlay = game.playedBy.find(
+      p => p.userId.toString() === userId
+    );
+
+    if (!userPlay) return null;
+
+    return {
+      _id: game._id,
+      name: game.name,
+      type: game.type,
+      ageGroup: game.ageGroup,
+      createdBy: game.createdBy?.name || null,
+      score: userPlay.score,
+      completed: userPlay.complete,
+      playedAt: userPlay.playedAt,
+    };
+  }).filter(Boolean); // removes nulls safely
+},
 
 
 

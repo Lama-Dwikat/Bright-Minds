@@ -1,5 +1,5 @@
 // lib/screens/kidVideos.dart
-import 'package:bright_minds/screens/playlistKids.dart';
+import 'package:bright_minds/screens/playlists/playlistKids.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;

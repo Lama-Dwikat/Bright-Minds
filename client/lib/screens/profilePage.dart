@@ -222,7 +222,7 @@ class _ProfilePageState extends State<ProfilePage> {
           )
         : CircleAvatar(
             radius: 60,
-            backgroundColor: AppColors.textAccent,
+            backgroundColor: const Color.fromARGB(255, 226, 168, 33),
             child: Text(
               user?["name"]?.substring(0, 1).toUpperCase() ?? "U",
               style: const TextStyle(
@@ -400,23 +400,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ],
                                   ),
                                 ),
-                                // if (showQuizzes)
-                                //   kidQuizzes.isNotEmpty
-                                //       ? Column(
-                                //           children: List.generate(
-                                //               kidQuizzes.length, (index) {
-                                //             final quiz = kidQuizzes[index];
-                                //             return ListTile(
-                                //               leading: const Icon(Icons.quiz,
-                                //                   color: AppColors.textAccent),
-                                //               title: Text(quiz["quizTitle"] ?? "N/A"),
-                                //               subtitle: Text(
-                                //                   "Total Mark: ${quiz["totalMark"] ?? 0} | Attempt: ${quiz["attemptNumber"] ?? 0}"),
-                                //             );
-                                //           }
-                                //           ),
-                                //         )
-                                //       : const Text("No quizzes solved yet."),
+                         
                                 if (showQuizzes)
   kidQuizzes.isNotEmpty
       ? Column(
@@ -430,7 +414,6 @@ class _ProfilePageState extends State<ProfilePage> {
               final questions = quiz["questions"] as List<dynamic>;
               for (var q in questions) {
                 totalMark += (q["mark"] != null && q["mark"] > 0) ? q["mark"] as int : 1;
-                print("this is mark :${q["mark"]}");
               }
             }
 
@@ -443,7 +426,7 @@ if (quiz["submissions"] != null && (quiz["submissions"] as List).isNotEmpty) {
 
             return ListTile(
               leading: const Icon(Icons.quiz, color: AppColors.textAccent),
-              title: Text(quiz["quizTitle"] ?? "N/A"),
+              title: Text(quiz["title"] ?? "N/A"),
               subtitle: Text(
                 "Score: $userScore / $totalMark ||   Attempt: ${quiz["attemptNumber"] ?? 0}",
               ),
@@ -530,7 +513,7 @@ if (quiz["submissions"] != null && (quiz["submissions"] as List).isNotEmpty) {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: AppColors.textAccent.withOpacity(0.15),
+                                      color: const Color.fromARGB(255, 226, 168, 33).withOpacity(0.15),
                                       borderRadius: BorderRadius.circular(30),
                                     ),
                                     child: Text(
@@ -538,7 +521,7 @@ if (quiz["submissions"] != null && (quiz["submissions"] as List).isNotEmpty) {
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textAccent,
+                                        color: const Color.fromARGB(255, 226, 168, 33),
                                         letterSpacing: 1,
                                       ),
                                     ),

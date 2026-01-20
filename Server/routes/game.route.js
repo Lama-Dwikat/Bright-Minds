@@ -22,5 +22,6 @@ gameRouter.delete('/game/deleteAllGames', gameController.deleteAllGames);
 gameRouter.delete('/game/deletBySupervisor/:id', gameController.deleteBySupervisor);
 gameRouter.delete('/game/deleteGameById/:id', gameController.deleteGameById);
 gameRouter.get('/game/getTopPlayedGames', gameController.getTopPlayedGames);
+gameRouter.get('/game/getUserGames/:id', gameController.getPlayedGamesByUser);
 
 

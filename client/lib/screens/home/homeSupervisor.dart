@@ -1,8 +1,8 @@
 
 
 
-import 'package:bright_minds/screens/supervisorKids.dart';
-import 'package:bright_minds/screens/addVideo.dart';
+import 'package:bright_minds/screens/supervisorKids/supervisorKids.dart';
+import 'package:bright_minds/screens/videos/addVideo.dart';
 import 'package:bright_minds/theme/colors.dart';
 import 'package:bright_minds/widgets/home.dart';
 import 'package:flutter/material.dart';
@@ -14,12 +14,12 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:intl/intl.dart';
-import 'package:bright_minds/screens/videosSupervisor.dart';
-import 'package:bright_minds/screens/gameSupervisor.dart';
+import 'package:bright_minds/screens/videos/videosSupervisor.dart';
+import 'package:bright_minds/screens/games/gameSupervisor.dart';
 import 'package:bright_minds/screens/supervisorstory/supervisorStories.dart';
 import 'package:bright_minds/screens/supervisorDrawing/supervisorDrawingHome.dart';
-import 'package:bright_minds/screens/gameSupervisor.dart';
-import 'package:bright_minds/screens/analytics.dart';
+import 'package:bright_minds/screens/games/gameSupervisor.dart';
+import 'package:bright_minds/screens/videos/analytics.dart';
 
 
 class HomeSupervisor extends StatefulWidget {

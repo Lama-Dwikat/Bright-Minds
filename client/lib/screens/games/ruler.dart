@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-import 'package:bright_minds/screens/gameKids.dart';
+import 'package:bright_minds/screens/games/gameKids.dart';
 
 
 
