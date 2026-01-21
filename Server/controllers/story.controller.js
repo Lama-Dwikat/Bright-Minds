@@ -378,6 +378,15 @@ async trackStoryRead(req, res) {
     return res.status(500).json({ success: false, message: err.message });
   }
 }
+,
+async getPublishedStoriesCount(req, res) {
+  try {
+const count = await Story.countDocuments({ publicVisibility: true });
+    return res.status(200).json({ count });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+},
 
 
 
@@ -402,6 +411,62 @@ async trackStoryRead(req, res) {
         }
     }
      */
+async adminStoriesAnalytics(req, res) {
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const totalStories = await Story.countDocuments({});
+    const publishedStories = await Story.countDocuments({ publicVisibility: true });
+
+    const byStatusAgg = await Story.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const storiesByStatus = {};
+    for (const r of byStatusAgg) {
+      storiesByStatus[r._id || "unknown"] = r.count;
+    }
+
+    const byAgeAgg = await Story.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "childId",
+          foreignField: "_id",
+          as: "child",
+        },
+      },
+      { $unwind: "$child" },
+      { $group: { _id: "$child.ageGroup", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
+    const storiesByAgeGroup = {};
+    for (const r of byAgeAgg) {
+      storiesByAgeGroup[r._id || "unknown"] = r.count;
+    }
+
+    // Top 5 by likesCount
+    const topStoriesByLikes = await Story.find({})
+      .select("_id title likesCount viewsCount createdAt publicVisibility status")
+      .sort({ likesCount: -1 })
+      .limit(5)
+      .lean();
+
+    return res.status(200).json({
+      totalStories,
+      publishedStories,
+      storiesByStatus,
+      storiesByAgeGroup,
+      topStoriesByLikes,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+},
 
 
 };

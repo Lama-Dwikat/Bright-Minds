@@ -56,6 +56,7 @@ class _HomeAdminState extends State<HomeAdmin>
   int totalViews = 0;
   int totalPublished = 0;  
   int totalPlaylists = 0;
+  int totalPublishedStories = 0;
 
   @override
   void initState() {
@@ -88,7 +89,7 @@ class _HomeAdminState extends State<HomeAdmin>
     userId = decoded['id'];
   }
 
-  Future<void> fetchAllData() async {
+ /* Future<void> fetchAllData() async {
     try {
       // ===== Users =====
       final resKids = await http.get(Uri.parse('${getBackendUrl()}/api/users/role/child'));
@@ -161,6 +162,217 @@ class _HomeAdminState extends State<HomeAdmin>
 
  
   }
+*/
+Future<void> fetchAllData() async {
+  try {
+    final token = await getToken();
+    if (token == null) {
+      print("❌ No token in SharedPreferences");
+      return;
+    }
+
+    final headers = {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json",
+    };
+
+    // ===== Users =====
+    final resKids = await http.get(
+      Uri.parse('${getBackendUrl()}/api/users/role/child'),
+      headers: headers,
+    );
+    final resParents = await http.get(
+      Uri.parse('${getBackendUrl()}/api/users/role/parent'),
+      headers: headers,
+    );
+    final resSupervisors = await http.get(
+      Uri.parse('${getBackendUrl()}/api/users/role/supervisor'),
+      headers: headers,
+    );
+    final resAdmins = await http.get(
+      Uri.parse('${getBackendUrl()}/api/users/getAdmins/'),
+      headers: headers,
+    );
+
+    if (resKids.statusCode == 200) {
+      kids = jsonDecode(resKids.body);
+    } else {
+      print("❌ kids error ${resKids.statusCode}: ${resKids.body}");
+    }
+
+    if (resParents.statusCode == 200) {
+      parents = jsonDecode(resParents.body);
+    } else {
+      print("❌ parents error ${resParents.statusCode}: ${resParents.body}");
+    }
+
+    if (resSupervisors.statusCode == 200) {
+      supervisors = jsonDecode(resSupervisors.body);
+    } else {
+      print("❌ supervisors error ${resSupervisors.statusCode}: ${resSupervisors.body}");
+    }
+
+    if (resAdmins.statusCode == 200) {
+      admins = jsonDecode(resAdmins.body);
+    } else {
+      print("❌ admins error ${resAdmins.statusCode}: ${resAdmins.body}");
+    }
+
+    totalKids = kids.length;
+    totalParents = parents.length;
+    totalSupervisors = supervisors.length;
+    totalAdmins = admins.length;
+    totalUsers = totalKids + totalParents + totalSupervisors + totalAdmins;
+
+    // ===== Content =====
+    final resVideos = await http.get(
+      Uri.parse('${getBackendUrl()}/api/videos/getAllVideos'),
+      headers: headers,
+    );
+    final resGames = await http.get(
+      Uri.parse('${getBackendUrl()}/api/game/getAllGames'),
+      headers: headers,
+    );
+    final resDrawings = await http.get(
+      Uri.parse('${getBackendUrl()}/api/drawings/getAll'),
+      headers: headers,
+    );
+    final resStories = await http.get(
+      Uri.parse('${getBackendUrl()}/api/story/all'),
+      headers: headers,
+    );
+    final resChallenges = await http.get(
+      Uri.parse('${getBackendUrl()}/api/challenges/getAll'),
+      headers: headers,
+    );
+    final resPlaylist = await http.get(
+      Uri.parse('${getBackendUrl()}/api/playlists/getPlaylistsNumbers/null'),
+      headers: headers,
+    );
+    final resViews = await http.get(
+      Uri.parse('${getBackendUrl()}/api/videos/getViewsNumbers/null'),
+      headers: headers,
+    );
+
+    if (resVideos.statusCode == 200) {
+      videos = jsonDecode(resVideos.body);
+    } else {
+      print("❌ videos error ${resVideos.statusCode}: ${resVideos.body}");
+    }
+
+    if (resGames.statusCode == 200) {
+      games = jsonDecode(resGames.body);
+    } else {
+      print("❌ games error ${resGames.statusCode}: ${resGames.body}");
+    }
+
+    if (resDrawings.statusCode == 200) {
+      drawings = jsonDecode(resDrawings.body);
+    } else {
+      print("❌ drawings error ${resDrawings.statusCode}: ${resDrawings.body}");
+    }
+
+    if (resStories.statusCode == 200) {
+      stories = jsonDecode(resStories.body);
+    } else {
+      print("❌ stories error ${resStories.statusCode}: ${resStories.body}");
+    }
+
+    if (resChallenges.statusCode == 200) {
+      challenges = jsonDecode(resChallenges.body);
+    } else {
+      print("❌ challenges error ${resChallenges.statusCode}: ${resChallenges.body}");
+    }
+
+    if (resPlaylist.statusCode == 200) {
+      totalPlaylists = jsonDecode(resPlaylist.body);
+    } else {
+      print("❌ playlists error ${resPlaylist.statusCode}: ${resPlaylist.body}");
+    }
+
+    if (resViews.statusCode == 200) {
+      totalViews = jsonDecode(resViews.body);
+    } else {
+      print("❌ views error ${resViews.statusCode}: ${resViews.body}");
+    }
+
+    totalVideos = videos.length;
+    totalGames = games.length;
+    totalDrawings = drawings.length;
+    totalStories = stories.length;
+    totalChallenges = challenges.length;
+
+    // ===== Total Published Videos =====
+    int publishedCount = 0;
+    for (var ageGroup in ['5-8', '9-12']) {
+      final resPublished = await http.get(
+        Uri.parse('${getBackendUrl()}/api/videos/getPublishedVideos/$ageGroup'),
+        headers: headers,
+      );
+
+      if (resPublished.statusCode == 200) {
+        final list = jsonDecode(resPublished.body);
+        publishedCount += (list.length as int);
+      } else {
+        print("❌ published videos ($ageGroup) error ${resPublished.statusCode}: ${resPublished.body}");
+      }
+    }
+    totalPublished = publishedCount;
+
+
+    // ===== admin Drawings Count =====
+final resDrawingCount = await http.get(
+  Uri.parse('${getBackendUrl()}/api/admin/activities/count'),
+  headers: headers,
+);
+print("📌 published count drawing status: ${resDrawingCount.statusCode}");
+print("📌 published count drawing body: ${resDrawingCount.body}");
+
+if (resDrawingCount.statusCode == 200) {
+  totalDrawings = jsonDecode(resDrawingCount.body)["count"] ?? 0;
+}
+
+    // ===== Weekly Plans Count =====
+
+final resWeeklyPlansCount = await http.get(
+  Uri.parse('${getBackendUrl()}/api/challenges/weekly-plans/count'),
+  headers: headers,
+);
+
+print("📌 weekly plans count status: ${resWeeklyPlansCount.statusCode}");
+print("📌 weekly plans count body: ${resWeeklyPlansCount.body}");
+
+if (resWeeklyPlansCount.statusCode == 200) {
+  final data = jsonDecode(resWeeklyPlansCount.body);
+  totalChallenges = data["count"] ?? 0; //   
+} else {
+  totalChallenges = 0;
+}
+
+
+
+
+    // ===== Published Stories Count =====
+    final resPublishedStoriesCount = await http.get(
+      Uri.parse('${getBackendUrl()}/api/story/published/count'),
+      headers: headers,
+    );
+print("📌 published count status: ${resPublishedStoriesCount.statusCode}");
+print("📌 published count body: ${resPublishedStoriesCount.body}");
+
+    if (resPublishedStoriesCount.statusCode == 200) {
+      final data = jsonDecode(resPublishedStoriesCount.body);
+      totalPublishedStories = data["count"] ?? 0;
+    } else {
+      print("❌ published stories count error ${resPublishedStoriesCount.statusCode}: ${resPublishedStoriesCount.body}");
+      totalPublishedStories = 0;
+    }
+
+    setState(() {});
+  } catch (e) {
+    print("❌ Error fetching data: $e");
+  }
+}
 
 
   @override
@@ -225,7 +437,7 @@ Widget _buildDashboardTab() {
             _buildStatCard(Icons.videocam, "Videos", totalVideos.toString(), const Color.fromARGB(255, 234, 166, 32)),
             _buildStatCard(Icons.videogame_asset, "Games", totalGames.toString(), const Color.fromARGB(255, 234, 166, 32)),
             _buildStatCard(Icons.brush, "Drawings", totalDrawings.toString(), const Color.fromARGB(255, 234, 166, 32)),
-            _buildStatCard(Icons.book, "Stories", totalStories.toString(), const Color.fromARGB(255, 234, 166, 32)),
+            _buildStatCard(Icons.book, "Stories", totalPublishedStories.toString(), const Color.fromARGB(255, 234, 166, 32)),
             _buildStatCard(Icons.flag, "Challenges", totalChallenges.toString(), const Color.fromARGB(255, 234, 166, 32)),
           ],
         ),

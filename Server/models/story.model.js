@@ -41,7 +41,8 @@ const StorySchema = new mongoose.Schema({
   theme: String,
   pages: [PageSchema], // array of pages
   audioNarration: String, // full story audio (URL)
-  status: { type: String, enum: ["draft","pending","approved","rejected","needs_edit"], default: "draft" },
+  //status: { type: String, enum: ["draft","pending","approved","rejected","needs_edit"], default: "draft" },
+  status: { type: String, enum: ["draft","pending","approved","rejected","needs_edit","published"], default: "draft" },
   rating: { type: Number, min: 1, max: 5 },
   feedback: String,
   publicVisibility: { type: Boolean, default: false },

@@ -54,3 +54,19 @@ storyRouter.get(
   storyController.getStoryById
 );
 
+storyRouter.get(
+  "/story/published/count",
+  authMiddleware.authentication,
+  storyController.getPublishedStoriesCount
+);
+/*storyRouter.get(
+  "/story/published/count",
+  authMiddleware.authentication,
+  authorizeStory(["admin", "supervisor"], "publishedView"),
+  storyController.getPublishedStoriesCount
+);*/
+storyRouter.get(
+  "/admin/analytics/stories",
+  authMiddleware.authentication,
+  storyController.adminStoriesAnalytics
+);

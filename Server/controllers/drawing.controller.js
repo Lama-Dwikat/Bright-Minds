@@ -472,4 +472,62 @@ if (!allowedTypes.includes(type)) {
       return res.status(500).json({ error: e.message });
     }
   },
+
+  async getSupervisorActivitiesCount(req, res) {
+  try {
+    const supervisorId = req.user._id;
+
+    const count = await DrawingActivity.countDocuments({ supervisorId });
+
+    return res.status(200).json({ count });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+},
+async getAllActivitiesCount(req,res){
+  const count = await DrawingActivity.countDocuments({});
+  res.json({count});
+},
+async adminDrawingsAnalytics(req, res) {
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const totalActivities = await DrawingActivity.countDocuments({});
+    const activeActivities = await DrawingActivity.countDocuments({ isActive: true });
+
+    const byTypeAgg = await DrawingActivity.aggregate([
+      { $group: { _id: "$type", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+    const activitiesByType = {};
+    for (const r of byTypeAgg) activitiesByType[r._id || "unknown"] = r.count;
+
+    const byAgeAgg = await DrawingActivity.aggregate([
+      { $group: { _id: "$ageGroup", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+    const activitiesByAgeGroup = {};
+    for (const r of byAgeAgg) activitiesByAgeGroup[r._id || "unknown"] = r.count;
+
+    const latestActivities = await DrawingActivity.find({})
+      .select("_id title type ageGroup source isActive createdAt")
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    return res.status(200).json({
+      totalActivities,
+      activeActivities,
+      activitiesByType,
+      activitiesByAgeGroup,
+      latestActivities,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
+},
+
+
 };

@@ -14,7 +14,6 @@ drawingRouter.post(
   childDrawingController.saveChildDrawing
 );
 
-// ✅ جلب رسومات الطفل
 drawingRouter.get(
   "/drawings",
   authMiddleware.authentication,
@@ -97,7 +96,6 @@ drawingRouter.delete(
   drawingController.deleteActivity
 );
 
-// ✅ جلب رسومات الأطفال للسوبرفايزر
 drawingRouter.get(
   "/supervisor/kids-drawings",
   authMiddleware.authentication,
@@ -112,7 +110,6 @@ drawingRouter.put(
   childDrawingController.reviewChildDrawing
 );
 
-// ✅ جلب صورة رسم للسوبرفايزر (بدون تكرار)
 drawingRouter.get(
   "/supervisor/drawings/:id/image",
   authMiddleware.authentication,
@@ -161,4 +158,23 @@ drawingRouter.get(
   authMiddleware.authentication,
   roleMiddleware(["supervisor"]),
   childDrawingController.getDrawingsByKidForSupervisor
+);
+drawingRouter.get(
+  "/supervisor/activities/count",
+  authMiddleware.authentication,
+  roleMiddleware(["supervisor,admin"]),
+  drawingController.getSupervisorActivitiesCount
+);
+
+drawingRouter.get(
+  "/admin/activities/count",
+  authMiddleware.authentication,
+  roleMiddleware(["admin"]),
+  drawingController.getAllActivitiesCount
+);
+drawingRouter.get(
+  "/admin/analytics/drawings",
+  authMiddleware.authentication,
+  roleMiddleware(["admin"]),
+  drawingController.adminDrawingsAnalytics
 );

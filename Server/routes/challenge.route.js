@@ -49,4 +49,9 @@ challengeRouter.get(
   authMiddleware.authentication,
   challengeController.getParentKidWeekProgress
 );
+challengeRouter.get(
+  "/challenges/weekly-plans/count",
+  authMiddleware.authentication,
+  challengeController.getWeeklyPlansCount
+);
 

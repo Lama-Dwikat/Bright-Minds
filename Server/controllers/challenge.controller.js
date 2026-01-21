@@ -257,4 +257,14 @@ const ws = weekStart; // same format stored in DB
     return res.status(500).json({ error: error.message });
   }
 },
+async getWeeklyPlansCount(req, res) {
+  try {
+    const count = await WeeklyChallengePlan.countDocuments({});
+    return res.status(200).json({ count });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+},
+
+
 };
