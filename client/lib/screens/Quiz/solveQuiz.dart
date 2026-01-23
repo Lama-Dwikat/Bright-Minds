@@ -242,7 +242,7 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(255, 247, 242, 226),
         elevation: 0,
        // centerTitle: true,
         title: Text(
@@ -250,7 +250,7 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
+            color: Color.fromARGB(255, 190, 153, 53),
           ),
         ),
       ),
@@ -261,7 +261,7 @@ void checkVoiceAnswer(int questionIndex, String correctAnswer) {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: const Color.fromARGB(255, 223, 195, 73),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(40),
             ),
@@ -301,7 +301,7 @@ _buildQuizView(List<dynamic>questions){
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Colors.purple,
+                        backgroundColor: const Color.fromARGB(255, 220, 188, 74),
                         child: Text(
                           "${index + 1}",
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -319,7 +319,7 @@ _buildQuizView(List<dynamic>questions){
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.volume_up, color: Colors.pink),
+                        icon: const Icon(Icons.volume_up, color: Color.fromARGB(255, 228, 187, 4)),
                         onPressed: () => speak(q["question_text"] ?? ""),
                       ),
                     ],
@@ -344,7 +344,7 @@ _buildQuizView(List<dynamic>questions){
                       children: [
                         const Text("🔊 Listen: "),
                         IconButton(
-                          icon: const Icon(Icons.volume_up, color: Colors.purple),
+                          icon: const Icon(Icons.volume_up, color: Color.fromARGB(255, 216, 188, 4)),
                           onPressed: () => speak(q["question_audio"]),
                         ),
                       ],
@@ -378,7 +378,7 @@ _buildQuizView(List<dynamic>questions){
                                 ),
                                 label: Text(isListeningMap[index] == true ? "Stop" : "Speak"),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 223, 159, 235),
+                                  backgroundColor: const Color.fromARGB(255, 237, 227, 180),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -450,9 +450,9 @@ _buildQuizView(List<dynamic>questions){
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          tileColor: Colors.pink.shade50,
+                          tileColor: const Color.fromARGB(255, 244, 236, 212),
                           title: optionWidget,
-                          activeColor: Colors.purple,
+                          activeColor: const Color.fromARGB(255, 210, 189, 47),
                         );
                       }).toList(),
                     ),
@@ -475,7 +475,7 @@ Widget _buildResultView(List<dynamic> questions) {
       children: [
         Text(
           "Your Score: $score / ${questions.length}",
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.orange),
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 223, 187, 5)),
         ),
         const SizedBox(height: 20),
         Expanded(
@@ -515,7 +515,7 @@ Widget _buildResultView(List<dynamic> questions) {
             Navigator.pop(context); // go back to previous page
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: const Color.fromARGB(255, 183, 160, 45),
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           ),
@@ -539,8 +539,8 @@ BoxDecoration quizBackground() {
   return const BoxDecoration(
     gradient: LinearGradient(
       colors: [
-        Color(0xFFFFD6E8),
-        Color(0xFFD6ECFF),
+        Color.fromARGB(255, 247, 238, 214),
+        Color.fromARGB(255, 227, 217, 172),
       ],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -553,7 +553,7 @@ BoxDecoration quizCardDecoration() {
     borderRadius: BorderRadius.circular(20),
     boxShadow: [
       BoxShadow(
-        color: Colors.pink.withOpacity(0.2),
+        color: const Color.fromARGB(255, 206, 185, 48).withOpacity(0.2),
         blurRadius: 8,
         offset: const Offset(0, 4),
       ),

@@ -943,7 +943,7 @@ class _EditQuizPageState extends State<EditQuizPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(quizData!["title"] ?? "Edit Quiz",style:TextStyle( color:Colors.white)),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: const Color.fromARGB(255, 193, 160, 42),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(12),
@@ -967,7 +967,7 @@ class _EditQuizPageState extends State<EditQuizPage> {
               if (q["question_audio"] != null) ...[
                 const SizedBox(height: 6),
                 Row(children: [
-                  const Icon(Icons.volume_up, color: Colors.purple),
+                  const Icon(Icons.volume_up, color: Color.fromARGB(255, 223, 183, 63)),
                   const SizedBox(width: 6),
                   Text(q['question_audio']),
                 ]),
@@ -1027,7 +1027,7 @@ class _EditQuizPageState extends State<EditQuizPage> {
             child: ElevatedButton(
               onPressed: openEditForm,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: const Color.fromARGB(255, 181, 153, 49),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
@@ -1039,7 +1039,7 @@ class _EditQuizPageState extends State<EditQuizPage> {
             child: ElevatedButton(
               onPressed: deleteQuiz,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 158, 11, 11),
+                backgroundColor: const Color.fromARGB(255, 211, 170, 58),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),
@@ -1090,7 +1090,7 @@ class _EditQuizFormPageState extends State<EditQuizFormPage> {
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
       boxShadow: [
-        BoxShadow(color: Colors.purple.withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 4)),
+        BoxShadow(color: const Color.fromARGB(255, 200, 157, 38).withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 4)),
       ],
     );
   }
@@ -1106,7 +1106,7 @@ class _EditQuizFormPageState extends State<EditQuizFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Quiz"), backgroundColor: Colors.deepPurple),
+      appBar: AppBar(title: const Text("Edit Quiz"), backgroundColor: const Color.fromARGB(255, 193, 162, 41)),
       body: saving
           ? const Center(child: CircularProgressIndicator())
           : ListView(

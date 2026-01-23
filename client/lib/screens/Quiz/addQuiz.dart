@@ -146,7 +146,7 @@ Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: const Color(0xFFFFF3E0), // soft playful background
     appBar: AppBar(
-      backgroundColor: Colors.deepPurpleAccent,
+      backgroundColor: const Color.fromARGB(255, 215, 146, 36),
       elevation: 0,
       title: const Text(
         "🧩 Create Quiz",
@@ -258,7 +258,7 @@ Widget build(BuildContext context) {
             margin: const EdgeInsets.only(bottom: 20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFFFECB3), Color(0xFFCE93D8)],
+                colors: [Color(0xFFFFECB3), Color.fromARGB(255, 243, 212, 158)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -288,7 +288,7 @@ Widget build(BuildContext context) {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
+                        color: Color.fromARGB(255, 191, 150, 52),
                       ),
                     ),
                   ),
@@ -331,7 +331,7 @@ TextField(
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurpleAccent,
+                          backgroundColor: const Color.fromARGB(255, 211, 176, 62),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -496,7 +496,7 @@ if (q["options"].isNotEmpty && q["question_type"] != "voice-answer")
               children: [
                 Checkbox(
                   value: opt["isCorrect"],
-                  activeColor: Colors.deepPurple,
+                  activeColor: const Color.fromARGB(255, 189, 154, 59),
                   onChanged: (v) {
                     setState(() {
                       for (var o in q["options"]) o["isCorrect"] = false;
@@ -535,7 +535,7 @@ if (q["options"].isNotEmpty && q["question_type"] != "voice-answer")
       padding: const EdgeInsets.all(16),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.deepPurpleAccent,
+          backgroundColor: const Color.fromARGB(255, 211, 170, 58),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),

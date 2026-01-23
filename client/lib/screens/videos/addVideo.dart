@@ -217,6 +217,188 @@ Future<void> fetchAddedVideos() async {
   }
 
 
+Future<void> showUploadUrlDialog() async {
+  final TextEditingController urlController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+
+  String category = "English";
+  String ageGroup = "5-8";
+
+  final List<String> categories = [
+    "English",
+    "Arabic",
+    "Math",
+    "Science",
+    "Animation",
+    "Art",
+    "Music",
+    "Coding/Technology"
+  ];
+
+  String? thumbnailUrl;
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Upload Video by URL"),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  /// URL
+                  TextField(
+                    controller: urlController,
+                    decoration: const InputDecoration(
+                      labelText: "Video URL (YouTube / Drive / MP4)",
+                    ),
+                    onChanged: (url) {
+                      if (url.contains("youtube.com") || url.contains("youtu.be")) {
+                        final videoId = YoutubePlayer.convertUrlToId(url);
+                        if (videoId != null) {
+                          setState(() {
+                            thumbnailUrl =
+                                "https://img.youtube.com/vi/$videoId/0.jpg";
+                          });
+                        }
+                      } else {
+                        setState(() {
+                          thumbnailUrl =
+                              "https://via.placeholder.com/320x180?text=Video";
+                        });
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Title
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: "Title"),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Description
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: "Description"),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Category
+                  DropdownButtonFormField<String>(
+                    value: category,
+                    items: categories
+                        .map((c) =>
+                            DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) category = value;
+                    },
+                    decoration: const InputDecoration(labelText: "Category"),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Age Group
+                  DropdownButtonFormField<String>(
+                    value: ageGroup,
+                    items: const [
+                      DropdownMenuItem(value: "5-8", child: Text("5-8")),
+                      DropdownMenuItem(value: "9-12", child: Text("9-12")),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) ageGroup = value;
+                    },
+                    decoration:
+                        const InputDecoration(labelText: "Age Group"),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  /// Thumbnail Preview
+                  if (thumbnailUrl != null)
+                    Image.network(
+                      thumbnailUrl!,
+                      height: 120,
+                      fit: BoxFit.cover,
+                    ),
+                ],
+              ),
+            ),
+
+            /// Actions
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (urlController.text.trim().isEmpty ||
+                      titleController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("URL and Title are required"),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final videoData = {
+                    "title": titleController.text,
+                    "description": descriptionController.text,
+                    "category": category,
+                    "url": urlController.text, // 🔴 NO videoId
+                    "thumbnailUrl": thumbnailUrl ?? "",
+                    "ageGroup": ageGroup,
+                    "isPublished": false,
+                    "createdBy": userId,
+                  };
+
+                  try {
+                    final response = await http.post(
+                      Uri.parse('${getBackendUrl()}/api/videos/addVideo'),
+                      headers: {"Content-Type": "application/json"},
+                      body: jsonEncode(videoData),
+                    );
+
+                    if (response.statusCode == 201) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Video uploaded successfully")),
+                      );
+                      Navigator.pop(context);
+                      await fetchAddedVideos();
+                      setState(() {});
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                "Failed: ${response.body.toString()}")),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error: $e")),
+                    );
+                  }
+                },
+                child: const Text("Save"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
 Future<void> showAddVideoByUrlDialog() async {
   final TextEditingController urlController = TextEditingController();
@@ -847,7 +1029,10 @@ Widget _buildWebVideoGrid() {
          Align(
   alignment: Alignment.bottomRight,
   child: ElevatedButton.icon(
-    onPressed: () {},
+   onPressed: () {
+  showUploadUrlDialog();
+},
+
     icon: const Icon(
       Icons.cloud_upload_outlined,
       color: Colors.white,

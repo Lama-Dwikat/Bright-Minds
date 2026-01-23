@@ -655,7 +655,7 @@ class _MemoryGameSetupScreenState extends State<MemoryGameSetupScreen> {
                     controller: timeCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: "Time Per Level (seconds)",
+                      labelText: "Time Per Level (Minutes)",
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,

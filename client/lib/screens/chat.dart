@@ -414,7 +414,7 @@ class _ChatScreenState extends State<ChatScreen> {
         Uri.parse("${_socketService.getBackendUrl()}/api/chat/conversation/${widget.otherUserId}"),
         headers: {
           "Content-Type": "application/json",
-         // "Authorization": "Bearer $token",
+          "Authorization": "Bearer $token",
         },
       );
 
@@ -442,7 +442,7 @@ class _ChatScreenState extends State<ChatScreen> {
       Uri.parse("${_socketService.getBackendUrl()}/api/chat/send"),
       headers: {
         "Content-Type": "application/json",
-        //"Authorization": "Bearer $token",
+        "Authorization": "Bearer $token",
       },
       body: jsonEncode({
         "receiverId": widget.otherUserId,
@@ -452,7 +452,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (response.statusCode == 200) {
       final chat = jsonDecode(response.body)['chat'];
-      _socketService.socket.emit("sendMessage", {"chat": chat});
+     // _socketService.socket.emit("sendMessage", {"chat": chat});
+     _socketService.sendMessage(
+  widget.currentUserId,
+  widget.otherUserId,
+  text,
+);
+
 
       setState(() {
         messages.add(ChatMessage.fromJson(chat));

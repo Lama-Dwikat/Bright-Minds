@@ -207,14 +207,25 @@ void _onTimeOut() {
     });
   }
 
+// void _goToNextLevel() {
+
+  
+//     _startTimer();
+//     setState(() {});
+
+//     _showGameCompleteDialog();
+  
+// }
 void _goToNextLevel() {
+  setState(() {
+    level++;                 // move to next level
+    questionCount = 0;       // reset questions
+    totalTrialsUsed = 0;     // reset tries
+    selectedValue = null;
+  });
 
-  
-    _startTimer();
-    setState(() {});
-
-    _showGameCompleteDialog();
-  
+  generateNewQuestion();     // 🔥 THIS WAS MISSING
+  _startTimer();             // restart timer
 }
 
 
@@ -305,24 +316,41 @@ void checkAnswer() {
 
   double selectedDouble = double.tryParse(selectedValue!) ?? -1;
 
-  if ((selectedDouble - correctValue).abs() < 0.01) {
-    // Correct
-    num points = gameData?['scorePerQuestion'] ?? 10;
-    score += points;
-    questionCount++;
+  // if ((selectedDouble - correctValue).abs() < 0.01) {
+  //   // Correct
+  //   num points = gameData?['scorePerQuestion'] ?? 10;
+  //   score += points;
+  //   questionCount++;
 
-    if (questionCount >= 3) {
-      if (level < maxLevel) {
-        level++;
-        questionCount = 0;
-        _showLevelCompleteDialog();
-      } else {
-        _showGameCompleteDialog();
-      }
+  //   if (questionCount >= 3) {
+  //     if (level < maxLevel) {
+  //       level++;
+  //       questionCount = 0;
+  //       _showLevelCompleteDialog();
+  //     } else {
+  //       _showGameCompleteDialog();
+  //     }
+  //   } else {
+  //     generateNewQuestion();
+  //   }
+  // } else {
+  if ((selectedDouble - correctValue).abs() < 0.01) {
+  // Correct
+  int points = gameData?['scorePerQuestion'] ?? 10;
+  score += points;
+  questionCount++;
+
+  if (questionCount >= 3) {
+    if (level < maxLevel) {
+      _showLevelCompleteDialog(); // ONLY show dialog
     } else {
-      generateNewQuestion();
+      _showGameCompleteDialog();
     }
   } else {
+    generateNewQuestion();
+  }
+  }else {
+
     totalTrialsUsed++;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("😅 Try again!")),
@@ -340,221 +368,6 @@ void checkAnswer() {
     _startTimer();
   }
 
-
-//  @override
-// Widget build(BuildContext context) {
-
-
-
-//       if (!hasStarted) {
-
-
-//   return Scaffold(
-//   body: Container(
-//     decoration: const BoxDecoration(
-//       gradient: KidColors.bgGradient,
-//     ),
-//     child: Stack(
-//       children: [
-//         Positioned.fill(
-//           child: Image.asset(
-//             'assets/images/rulerGame.png',
-//             fit: BoxFit.cover,
-//             opacity: const AlwaysStoppedAnimation(0.90),
-//           ),
-//         ),
-
-//         Center(
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               const Text(
-//                 "📏 Ruler Game",
-//                 style: TextStyle(
-//                   fontSize: 42,
-//                   fontWeight: FontWeight.bold,
-//                   color: KidColors.purple,
-//                 ),
-//               ),
-
-//               const SizedBox(height: 20),
-
-//               Container(
-//                 padding: const EdgeInsets.all(16),
-//                 decoration: BoxDecoration(
-//                   color: Colors.white,
-//                   borderRadius: BorderRadius.circular(30),
-//                   boxShadow: const [
-//                     BoxShadow(color: Colors.black26, blurRadius: 8),
-//                   ],
-//                 ),
-//                 child: Text(
-//                   "🎯 You have ${gameData?['maxTrials'] ?? 3} tries",
-//                   style: const TextStyle(
-//                     fontSize: 22,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-
-//               const SizedBox(height: 40),
-
-//               ElevatedButton(
-//                 onPressed: _startGame,
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: KidColors.purple,
-//                   padding: const EdgeInsets.symmetric(
-//                       horizontal: 40, vertical: 13),
-//                   shape: RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.circular(40),
-//                   ),
-//                   elevation: 10,
-//                 ),
-//                 child: const Text(
-//                   "▶ PLAY",
-//                   style: TextStyle(
-//                     fontSize: 25,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.white,
-//                   ),
-//                 ),
-//               )
-//             ],
-//           ),
-//         ),
-//       ],
-//     ),
-//   ),
-// );
-
-//     }
-  
-//   return Scaffold(
-//   appBar: AppBar(
-//     backgroundColor: KidColors.purple,
-//     elevation: 0,
-//     leading: IconButton(
-//       icon: const Icon(Icons.home, size: 34),
-//       onPressed: () {
-//         Navigator.pushAndRemoveUntil(
-//           context,
-//           MaterialPageRoute(builder: (_) => gamesKidScreen()),
-//           (_) => false,
-//         );
-//       },
-//     ),
-//     title: Text(
-//       "🌟 Level $level",
-//       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-//     ),
-//     centerTitle: true,
-//   ),
-
-//   body: Container(
-//     decoration: const BoxDecoration(
-//       gradient: KidColors.bgGradient,
-//     ),
-//     child: SafeArea(
-//       child: Column(
-//         children: [
-
-//           // ⭐ TIME + SCORE
-//           Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               children: [
-//                 _infoBubble(Icons.timer, formatTime(remainingTime), Colors.blue),
-//                 _infoBubble(Icons.star, score.toStringAsFixed(0), Colors.pink),
-//               ],
-//             ),
-//           ),
-
-//           const SizedBox(height: 10),
-
-//           // 🐸 QUESTION
-//           Container(
-//             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-//             decoration: BoxDecoration(
-//               color: Colors.white,
-//               borderRadius: BorderRadius.circular(30),
-//               boxShadow: const [
-//                 BoxShadow(color: Colors.black12, blurRadius: 6),
-//               ],
-//             ),
-//             child: const Text(
-//               "🐸 How long is it?",
-//               style: TextStyle(
-//                 fontSize: 26,
-//                 fontWeight: FontWeight.bold,
-//                 color: KidColors.purple,
-//               ),
-//             ),
-//           ),
-
-//           const SizedBox(height: 15),
-
-//           // 📏 RULER
-//           rulerWidget(correctValue),
-
-//           const SizedBox(height: 20),
-
-//           // 🎯 DROP ZONE
-//           Row(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               dropZone(),
-//               const SizedBox(width: 8),
-//               const Text(
-//                 "cm",
-//                 style: TextStyle(
-//                   fontSize: 26,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ],
-//           ),
-
-//           const SizedBox(height: 25),
-
-//           // 🧱 OPTIONS
-//           Wrap(
-//             alignment: WrapAlignment.center,
-//             children: options.map((v) => draggableBlock(v)).toList(),
-//           ),
-
-//           const Spacer(),
-
-//           // ✅ CHECK BUTTON
-//           ElevatedButton(
-//             onPressed: checkAnswer,
-//             style: ElevatedButton.styleFrom(
-//               backgroundColor: KidColors.yellow,
-//               padding:
-//                   const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
-//               shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(20),
-//               ),
-//               elevation: 8,
-//             ),
-//             child: const Text(
-//               "CHECK ✅",
-//               style: TextStyle(
-//                 fontSize: 24,
-//                 fontWeight: FontWeight.bold,
-//                 color: Colors.black,
-//               ),
-//             ),
-//           ),
-
-//           const SizedBox(height: 20),
-//         ],
-//       ),
-//     ),
-//   ),
-// );
-
-// }
 
 
 @override

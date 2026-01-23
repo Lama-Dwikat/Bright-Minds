@@ -699,7 +699,7 @@ Align(
         // 🌿 QUESTION BOX
 
    Container(
-  width: MediaQuery.of(context).size.width * 0.7,
+  width: MediaQuery.of(context).size.width * 0.8,
   decoration: BoxDecoration(
     color: const Color.fromARGB(255, 204, 241, 122).withOpacity(0.7),
     borderRadius: BorderRadius.circular(28),
