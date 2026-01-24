@@ -409,7 +409,7 @@ class _FullScreenDrawingView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: AppColors.bgWarmPink,
+        backgroundColor: Colors.amber,
       ),
       body: Center(
         child: ConstrainedBox(

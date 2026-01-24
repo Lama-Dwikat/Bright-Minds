@@ -1,4 +1,4 @@
-import 'package:bright_minds/theme/colors.dart';
+/*import 'package:bright_minds/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
@@ -952,7 +952,7 @@ class _CreateStoryPageState extends State<CreateStoryPage> {
           // add page
           IconButton(
             tooltip: "Add New Page",
-            icon: const Icon(Icons.add_circle_rounded, color: Color(0xFFD97B83)),
+            icon: const Icon(Icons.add_circle_rounded, color: Color.fromARGB(255, 240, 169, 70)),
             onPressed: () async {
               print("🟣 Add button pressed!");
 
@@ -1827,6 +1827,7 @@ class DrawPainter extends CustomPainter {
   bool shouldRepaint(covariant DrawPainter oldDelegate) => true;
 }
 
+*/
 
 
 
@@ -1835,8 +1836,7 @@ class DrawPainter extends CustomPainter {
 
 
 
-
-/*import 'package:bright_minds/theme/colors.dart';
+import 'package:bright_minds/theme/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bright_minds/widgets/DraggableTextWidget.dart';
@@ -2753,7 +2753,7 @@ IconButton(
          // icon + to add another pages 
 IconButton(
   tooltip: "Add New Page",
-  icon: const Icon(Icons.add_circle_rounded, color: Color(0xFFD97B83)),
+  icon: const Icon(Icons.add_circle_rounded, color: Color.fromARGB(255, 240, 169, 70)),
   onPressed: () async {
     print("🟣 Add button pressed!");
 
@@ -4192,4 +4192,4 @@ class DrawPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant DrawPainter oldDelegate) => true;
 }
-*/
+
