@@ -70,7 +70,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: const [
-          Icon(Icons.delete_forever_rounded, color: Color(0xFFEBA1AB), size: 30),
+          Icon(Icons.delete_forever_rounded, color:  Color.fromARGB(255, 240, 169, 70), size: 30),
           SizedBox(width: 10),
           Text(
             "Delete this text?",
@@ -94,7 +94,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFFEBA1AB),
+            foregroundColor: const  Color.fromARGB(255, 240, 169, 70),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
@@ -279,7 +279,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
                     // ---------------- SAVE BUTTON ----------------
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEBA1AB),
+                        backgroundColor: const  Color.fromARGB(255, 240, 169, 70),
                         minimumSize: const Size(double.infinity, 45),
                       ),
                       onPressed: () {
@@ -326,7 +326,7 @@ class _DraggableTextWidgetState extends State<DraggableTextWidget> {
       child: CircleAvatar(
         radius: 22,
         backgroundColor:
-            active ? const Color(0xFFEBA1AB) : Colors.grey[300],
+            active ? const  Color.fromARGB(255, 240, 169, 70) : Colors.grey[300],
         child: Icon(icon, color: active ? Colors.white : Colors.black),
       ),
     );

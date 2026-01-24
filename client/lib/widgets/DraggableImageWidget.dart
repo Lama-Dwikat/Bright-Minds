@@ -83,12 +83,12 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFFFEAF0),
+        backgroundColor: const Color.fromARGB(255, 255, 248, 234),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
             Icon(Icons.delete_forever_rounded,
-                color: Color(0xFFD97B83), size: 28),
+                color:  Color.fromARGB(255, 240, 169, 70), size: 28),
             SizedBox(width: 10),
             Text(
               "Delete this image?",
@@ -170,12 +170,12 @@ class _DraggableImageWidgetState extends State<DraggableImageWidget> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Color(0xFFEBA1AB), width: 2),
+                      border: Border.all(color:  Color.fromARGB(255, 240, 169, 70), width: 2),
                     ),
                     child: const Icon(
                       Icons.open_in_full,
                       size: 16,
-                      color: Color(0xFFEBA1AB),
+                      color: Color.fromARGB(255, 240, 169, 70),
                     ),
                   ),
                 ),
