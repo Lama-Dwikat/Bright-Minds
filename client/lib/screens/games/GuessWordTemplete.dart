@@ -268,7 +268,7 @@ Widget build(BuildContext context) {
 
   return Scaffold(
     body: HomePage(
-      title: "Gruess Words Games",
+      title: "Guess Words Games",
       child: loading
           ? const Center(child: CircularProgressIndicator())
           : isWebLayout

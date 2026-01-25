@@ -78,29 +78,7 @@ class _GridGameScreenState extends State<GridGameScreen>
     });
   }
 
-  Future<void> loadGame() async {
-    try {
-      final encodedName = Uri.encodeComponent(gameName);
-      final response = await http
-          .get(Uri.parse('${getBackendUrl()}/api/game/getGameByName/$encodedName'));
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List && data.isNotEmpty) {
-          gameData = data[0];
-
-          // Group all words by level
-          _prepareLevelWords();
-          _startTimer();
-        //  _generateGrid();
-        }
-      }
-    } catch (e) {
-      debugPrint("Error loading game: $e");
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
 
 void _prepareLevelWords() {
   if (gameData == null) return;
@@ -138,6 +116,36 @@ void _prepareLevelWords() {
 }
 
 
+Future<void> loadGame() async {
+  try {
+    final encodedName = Uri.encodeComponent(gameName);
+    final response = await http.get(
+      Uri.parse('${getBackendUrl()}/api/game/getGameByName/$encodedName'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List && data.isNotEmpty) {
+        // ✅ keep only published games
+        final publishedGames =
+            data.where((g) => g['isPublished'] == true).toList();
+
+        if (publishedGames.isNotEmpty) {
+          gameData = publishedGames.first; // or last if needed
+          _prepareLevelWords();
+          _startTimer();
+        } else {
+          debugPrint("No published game found");
+        }
+      }
+    }
+  } catch (e) {
+    debugPrint("Error loading game: $e");
+  } finally {
+    setState(() => isLoading = false);
+  }
+}
 
 void _startTimer() {
   _timer?.cancel();
