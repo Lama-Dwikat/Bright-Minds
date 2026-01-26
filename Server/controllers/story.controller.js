@@ -9,6 +9,7 @@ import Story from "../models/story.model.js";
 import { Notification } from "../models/notification.model.js";
 import badgeService from "../services/badge.service.js";
 import Badge from "../models/badge.model.js";
+import StoryView from "../models/storyView.model.js";
 
 
 
@@ -183,7 +184,9 @@ async createStory(req, res) {
         message: "You are not allowed to view this story",
       });
 
-await badgeService.checkReadingBadges(requesterId);
+if (role === "child") {
+  await badgeService.checkReadingBadges(requesterId);
+}
 
     // otherwise allow access
     return res.status(200).json(story);
@@ -311,6 +314,7 @@ async publishStory(req, res) {
     await story.save();
 
     await Notification.create({
+      userId: supervisorId,
       childId: story.childId,
       storyId: storyId,
       message: `🎉 Your story "${story.title}" has been published for other kids!`,

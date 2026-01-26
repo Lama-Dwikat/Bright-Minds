@@ -63,10 +63,12 @@ export const reviewStoryController ={
     });
 
     await Notification.create({
-      childId: childId,
-      storyId: storyId,
-      message: `Your supervisor reviewed your story: ${story.title}`,
-    });
+  userId: supervisorId, // ✅ required (مين اللي عمل الفعل)
+  childId: childId,
+  storyId: storyId,
+  message: `Your supervisor reviewed your story: ${story.title}`,
+});
+
 
     res.status(201).json({
       success: true,
