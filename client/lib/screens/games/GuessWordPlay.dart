@@ -102,26 +102,55 @@ class _GuessGameScreenState extends State<GuessGameScreen> with SingleTickerProv
     await prefs.setInt(scoreKey, score.toInt());
   }
 
-  Future<void> loadGame() async {
-    try {
-      final encodedName = Uri.encodeComponent(gameName);
-      final response = await http.get(
-        Uri.parse('${getBackendUrl()}/api/game/getGameByName/$encodedName'),
-      );
+  // Future<void> loadGame() async {
+  //   try {
+  //     final encodedName = Uri.encodeComponent(gameName);
+  //     final response = await http.get(
+  //       Uri.parse('${getBackendUrl()}/api/game/getGameByName/$encodedName'),
+  //     );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List && data.isNotEmpty) {
-          gameData = data[0];
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body);
+  //       if (data is List && data.isNotEmpty) {
+  //         gameData = data[0];
+  //         theme = gameData!['theme'] ?? " ";
+  //       }
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error loading game: $e");
+  //   } finally {
+  //     setState(() => isLoading = false);
+  //   }
+  // }
+Future<void> loadGame() async {
+  try {
+    final encodedName = Uri.encodeComponent(gameName);
+    final response = await http.get(
+      Uri.parse('${getBackendUrl()}/api/game/getGameByName/$encodedName'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List && data.isNotEmpty) {
+        // ✅ FILTER published games only
+        final publishedGames =
+            data.where((g) => g['isPublished'] == true).toList();
+
+        if (publishedGames.isNotEmpty) {
+          gameData = publishedGames.first; // or .last if you prefer
           theme = gameData!['theme'] ?? " ";
+        } else {
+          debugPrint("No published version found for $gameName");
         }
       }
-    } catch (e) {
-      debugPrint("Error loading game: $e");
-    } finally {
-      setState(() => isLoading = false);
     }
+  } catch (e) {
+    debugPrint("Error loading game: $e");
+  } finally {
+    setState(() => isLoading = false);
   }
+}
 
   void _startTimer() {
     _timer?.cancel();
